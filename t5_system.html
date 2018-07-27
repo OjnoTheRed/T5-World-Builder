@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Traveller5 Generated System</title>
+	<meta charset="UTF-8">
+	<meta name="description" content="A generator of extended star systems using the Traveller5 RPG rules, with Official Traveller Universe data drawn from travellermap.com, user entered data, or randomly generated data." >	
+	<script src="FileSaver.js"></script>
+	<script src="generic.js"></script>
+	<script src="generate.js"></script>
+	<script src="planet_building_tables.js"></script>
+	<script src="planet_building_world_class.js"></script>
+	<script src="burtle.js"></script>
+	<script src="url-search-params.js"></script>
+	<script src="starData.js"></script>
+	<script src="orbit_data.js"></script>
+	<link rel="stylesheet" type="text/css" href="traveller.css">
+</head>
+<body onload="initLoad_system();">
+	<div class="container">
+		<h1 class="title">A Traveller5 Generated System</h1>
+		<h1 class="titleStrap">TRAVELLER<sup style="margin-left:0.25em;color:white;font-weight:bold;font-family:Arial">5</sup></h1>
+		<h1 class="subtitle">Science Fiction Adventure</h1>
+		<h1 class="subtitle">in the Far Future</h1>
+	</div>
+	<ul style="width:100%;float:left">
+		<li><a href="t5_world_builder.html">Home</a></li>
+		<li><a href="api_documentation.html">API Documentation</a></li>
+		<li><a href="change_log.html">Change Log</a></li>
+		<li><a href="legal.html">Legal</a></li>
+		<li><a href="credits.html">Credits</a></li>
+	</ul>
+
+	<p class="white" style="margin-left:0;padding-left:0">Click on any details button next to a planet to generate more details at random.  Scroll down to see the generated details.</p>
+	<div class="formItem" style="padding:0.5em;margin-top:0.2em;width:100%">
+		<p class="guidelines" style="color:white">Random number seed for maps and details</p>
+		<p style="font-size:1em;padding:3px;margin-right:3px;margin-top:1.5px;float:left"><input id="seed" type="text" maxlength="10" value="" /></p>
+		<span class="tooltiptext">An integer between 0 and 4294967295.<br /> Leave blank for a random seed.</span>
+		<p><input id="clearSeed" type="button" value="Clear Seed" onclick="document.getElementById('seed').value='';"  class="btn2" style="font-size:1em;padding:3px;margin:3px;float:left"/>
+		<input id="newRandomSeed" type="button" value="New Seed" onclick="giveRandomSeed();" class="btn2" style="font-size:1em;padding:3px;margin:3px;float:left"/></p>
+	</div>
+	
+	<div class="formItem">
+		<button id="downloadSystem" class="btn1" >Download System as HTML</button>
+		<span class="tooltiptext">Get your edited system as a plain HTML file you can edit with your favourite word processor. Probably.</span>
+	</div>
+	<div class="formItem">
+		<button id="downloadSystemAsText" class="btn1" onclick="downloadSystemText();">Download System as Plain Text</button>
+		<span class="tooltiptext">A traditional plain text file formatted with spaces to line up the columns.</span>
+	</div>
+	<div class="formItem">
+		<button id="downloadSystemAsCSV" class="btn1" onclick="downloadSystemCSV();">Download System as CSV</button>
+		<span class="tooltiptext">All data is in rows separated by commas.  You can edit this file using your favourite spreadsheet program.</span>
+	</div>
+	<div class="formItem">
+		<button id="system_map" class="btn1" onclick="systemMap();">Create system symbol map</button>
+		<span class="tooltiptext">Click this button and scroll down to see the system visualised using symbols (not to scale)</span>
+	</div>
+	<div style="clear:both;" id="sys_table"></div>
+</body>
+</html>
