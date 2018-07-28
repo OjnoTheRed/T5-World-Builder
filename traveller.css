@@ -70,6 +70,8 @@ li.normal {
 div.container {
 	margin-left:0.5em;
 	margin-right:0.5em;
+	margin-top:0.2em;
+	margin-bottom:0.5em;
 	clear:both;
 	border-style: none;
 	background-color: black;
@@ -100,7 +102,7 @@ div.contained {
 	background-color: #F3F3F3;
 	font-family: Arial, sans-serif;
 	width: 100%;
-	min-height: 14.5em;
+	min-height: 11.5em;
 	box-sizing:border-box;
 }
 
@@ -274,6 +276,7 @@ input.worldDetails {
   padding: 2px 4px 2px 4px;
   text-decoration: none;
   margin: auto;
+  min-height: 2.6em;
 }
 
 .btn1:hover {

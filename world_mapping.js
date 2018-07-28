@@ -37,6 +37,8 @@ var DEFAULT_INFO_PARAGRAPH_CLASS = "white";
 var STARPORT_AVOID_EDGE = true;
 var SLIDE_COUNTER = 0;
 var BLANK_MAP = false;
+var ALLOW_OCEAN_NOBZ = false;
+var NUM_WORLD_MAPS = 1;
 
 function worldMap(world, parentObj, containerDiv, blankMap)
 {
@@ -1047,7 +1049,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 					{
 						selectedHex = array_fnc.random.call(me.hexes);
 					}
-					while((selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain)) || selectedHex.has(nobleTerrainB) || selectedHex.has(nobleTerrainc) || selectedHex.has(nobleTerrainC) || selectedHex.has(nobleTerrainD) || selectedHex.has(nobleTerraine) || selectedHex.has(nobleTerrainE) || selectedHex.has(nobleTerrainf) || selectedHex.has(nobleTerrainF) );
+					while((!ALLOW_OCEAN_NOBZ && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain)) || selectedHex.has(nobleTerrainB) || selectedHex.has(nobleTerrainc) || selectedHex.has(nobleTerrainC) || selectedHex.has(nobleTerrainD) || selectedHex.has(nobleTerraine) || selectedHex.has(nobleTerrainE) || selectedHex.has(nobleTerrainf) || selectedHex.has(nobleTerrainF) );
 					selectedHex.add(terrain);
 				}
 			}
@@ -1060,7 +1062,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			{
 				selectedHex = array_fnc.random.call(me.hexes);
 			}
-			while(selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain))
+			while(!ALLOW_OCEAN_NOBZ && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain))
 			selectedHex.add(nobleTerrain);			
 		}
 	}
@@ -3605,30 +3607,30 @@ function hexMap(parentObj, parentHex)
 		switch(me.parentHex.hexType)
 		{
 			case WORLD_HEX:
-			if(!MAP_OPT_SEVERAL_NOBLE_ESTATES)
-				placeTerrain(nobleTerrain, "one", true, false);
-			else
-			{
-				if(me.parentHex.has(nobleTerrainB))
-					placeTerrain(nobleTerrainB, "one", true, false);
-				if(me.parentHex.has(nobleTerrainc))
-					placeTerrain(nobleTerrainc, "two", true, false);
-				if(me.parentHex.has(nobleTerrainC))
-					placeTerrain(nobleTerrainC, "four", true, false);
-				if(me.parentHex.has(nobleTerrainD))
-					placeTerrain(nobleTerrainD, "eight", true, false);
-				if(me.parentHex.has(nobleTerraine))
-					placeTerrain(nobleTerraine, "sixteen", true, false);
-				if(me.parentHex.has(nobleTerrainE))
-					placeTerrain(nobleTerrainE, "thirty-two", true, false);
-				if(me.parentHex.has(nobleTerrainf))
-					placeTerrain(nobleTerrainf, "thirty-two", true, false);
-				if(me.parentHex.has(nobleTerrainF))
-					placeTerrain(nobleTerrainF, "thirty-two", true, false);					
-			}
+				if(!MAP_OPT_SEVERAL_NOBLE_ESTATES)
+					placeTerrain(nobleTerrain, "one", true, ALLOW_OCEAN_NOBZ);
+				else
+				{
+					if(me.parentHex.has(nobleTerrainB))
+						placeTerrain(nobleTerrainB, "one", true, ALLOW_OCEAN_NOBZ);
+					if(me.parentHex.has(nobleTerrainc))
+						placeTerrain(nobleTerrainc, "two", true, ALLOW_OCEAN_NOBZ);
+					if(me.parentHex.has(nobleTerrainC))
+						placeTerrain(nobleTerrainC, "four", true, ALLOW_OCEAN_NOBZ);
+					if(me.parentHex.has(nobleTerrainD))
+						placeTerrain(nobleTerrainD, "eight", true, ALLOW_OCEAN_NOBZ);
+					if(me.parentHex.has(nobleTerraine))
+						placeTerrain(nobleTerraine, "sixteen", true, ALLOW_OCEAN_NOBZ);
+					if(me.parentHex.has(nobleTerrainE))
+						placeTerrain(nobleTerrainE, "thirty-two", true, ALLOW_OCEAN_NOBZ);
+					if(me.parentHex.has(nobleTerrainf))
+						placeTerrain(nobleTerrainf, "thirty-two", true, ALLOW_OCEAN_NOBZ);
+					if(me.parentHex.has(nobleTerrainF))
+						placeTerrain(nobleTerrainF, "thirty-two", true, ALLOW_OCEAN_NOBZ);					
+				}
 				break;
 			case TERRAIN_HEX:
-				placeTerrain(nobleTerrain, "all", true, false);
+				placeTerrain(nobleTerrain, "all", true, ALLOW_OCEAN_NOBZ);
 				break;
 		}
 	}
@@ -4232,12 +4234,17 @@ function sort_land_first(a, b)
 	// if both have or neither have, do nothing (return 0)
 }
 
-function mapFlags()
+function mapFlags(numWorldMaps)
 {
 	var urlAdd = "&" + encodeURIComponent("b_and_w") + "=" + encodeURIComponent(BLACK_AND_WHITE ? "1" : "0");
 	urlAdd += "&" + encodeURIComponent("place_nobz") + "=" + encodeURIComponent(MAP_OPT_PLACE_NOBLE_ESTATE ? "1" : "0");
 	urlAdd += "&" + encodeURIComponent("several_nobz") + "=" + encodeURIComponent(MAP_OPT_SEVERAL_NOBLE_ESTATES ? "1" : "0");
 	urlAdd += "&" + encodeURIComponent("blank_map") + "=" + encodeURIComponent(BLANK_MAP ? "1" : "0");
+	urlAdd += "&" + encodeURIComponent("allow_ocean_nobz") + "=" + encodeURIComponent(ALLOW_OCEAN_NOBZ ? "1" : "0");
+	if(arguments.length == 0)
+		urlAdd += "&" + encodeURIComponent("num_world_maps") + "=" + encodeURIComponent(NUM_WORLD_MAPS);
+	else
+		urlAdd += "&" + encodeURIComponent("num_world_maps") + "=" + encodeURIComponent(numWorldMaps);
 	return urlAdd;
 }
 
@@ -4247,4 +4254,8 @@ function readMapFlags(URLParams)
 	MAP_OPT_PLACE_NOBLE_ESTATE = parseInt(URLParams.get("place_nobz")) == 1 ? true : false;
 	MAP_OPT_SEVERAL_NOBLE_ESTATES = parseInt(URLParams.get("several_nobz")) == 1 ? true : false;
 	BLANK_MAP = parseInt(URLParams.get("blank_map")) == 1 ? true : false;
+	ALLOW_OCEAN_NOBZ = parseInt(URLParams.get("allow_ocean_nobz")) == 1 ? true : false;
+	NUM_WORLD_MAPS = parseInt(URLParams.get("num_world_maps"));
+	if(isNaN(NUM_WORLD_MAPS) || !NUM_WORLD_MAPS)
+		NUM_WORLD_MAPS = 1;
 }

@@ -115,6 +115,8 @@ function readUserInput()
 	MAIN_WORLD_NOT_SAT = document.getElementById("mw_is_not_sat").checked;
 	MAP_OPT_PLACE_NOBLE_ESTATE = document.getElementById("place_nobz").checked;
 	MAP_OPT_SEVERAL_NOBLE_ESTATES = document.getElementById("place_several_nobz").checked;
+	ALLOW_OCEAN_NOBZ = document.getElementById("allow_ocean_nobz").checked;
+	NUM_WORLD_MAPS = document.getElementById("num_world_maps").value;
 	return myWorld;
 }
 
@@ -225,68 +227,85 @@ function initLoad_map()
 	var myWorld = readURL(readMapFlags);
 	if(myWorld)
 	{
-		var saveAreaName = "saveArea";
-		var worldMapSVGID = "worldMapSVG";
-		init_rng(myWorld.standardSeed);
-		var worldMapContainerDiv = document.createElement("DIV");
-		worldMapContainerDiv.setAttribute("id","worldMapContainer" + worldMapCounter++);
-		worldMapContainerDiv.setAttribute("class","container");
-		var downloadMapButton = document.createElement("INPUT");
-		downloadMapButton.setAttribute("name","downloadMap");
-		var fileName = myWorld.name.replace(/'/g,"") + " UWP " + myWorld.uwp + " world map.svg";
-		var clickScript = "downloadMap('" + saveAreaName + "','" + fileName +"');";
-		downloadMapButton.setAttribute("onclick",clickScript);
-		downloadMapButton.setAttribute("value","Download Map as SVG");
-		downloadMapButton.setAttribute("type","button");
-		downloadMapButton.setAttribute("class","btn1");
-		downloadMapButton.setAttribute("style","margin:8px;");
-		worldMapContainerDiv.appendChild(downloadMapButton);
-		var downloadAsPNGButton = document.createElement("INPUT");
-		downloadAsPNGButton.setAttribute("name","downloadMap");
-		fileName = myWorld.name.replace(/'/g,"") + " UWP " + myWorld.uwp + " world map.png";
-		clickScript = "svgToPng('" + worldMapSVGID + "','" + fileName + "');";
-		downloadAsPNGButton.setAttribute("onclick",clickScript);
-		downloadAsPNGButton.setAttribute("value","Download Map as PNG");
-		downloadAsPNGButton.setAttribute("type","button");
-		downloadAsPNGButton.setAttribute("class","btn1");
-		downloadAsPNGButton.setAttribute("style","margin:8px;");
-		worldMapContainerDiv.appendChild(downloadAsPNGButton);
-		var slideLeftButton = document.createElement("INPUT");
-		slideLeftButton.setAttribute("name","slideLeft");
-		slideLeftButton.setAttribute("onclick","myMap.slideTerrain(false);");
-		slideLeftButton.setAttribute("value", "<");
-		slideLeftButton.setAttribute("type","button");
-		slideLeftButton.setAttribute("class","btn1");
-		slideLeftButton.setAttribute("style","margin:8px;");
-		worldMapContainerDiv.appendChild(slideLeftButton);
-		var slideRightButton = document.createElement("INPUT");
-		slideRightButton.setAttribute("name","slideRight");
-		slideRightButton.setAttribute("onclick","myMap.slideTerrain(true);");
-		slideRightButton.setAttribute("value", ">");
-		slideRightButton.setAttribute("type","button");
-		slideRightButton.setAttribute("class","btn1");
-		slideRightButton.setAttribute("style","margin:8px;");
-		worldMapContainerDiv.appendChild(slideRightButton);
-		
-		var worldMapDiv = document.createElement("DIV");
-		worldMapDiv.setAttribute("id", saveAreaName);
-		worldMapDiv.setAttribute("class", "container");
-		worldMapDiv.style.backgroundColor = "white";
-		worldMapDiv.style.marginLeft = "1.5em";
-		var worldMapSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-		worldMapSVG.setAttribute("xmlns","http://www.w3.org/2000/svg");
-		worldMapSVG.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-		worldMapSVG.setAttribute("xml:space","preserve");
-		worldMapSVG.setAttribute("id", worldMapSVGID);	
-		
-		worldMapDiv.appendChild(worldMapSVG);
-		worldMapContainerDiv.appendChild(worldMapDiv);
-		
-		document.body.appendChild(worldMapContainerDiv);
-		myMap = new worldMap(myWorld, worldMapSVG, worldMapDiv);
-		myMap.generate();
-		myMap.render(); 
-		myMap.outline();		
+		for(var i=0;i<NUM_WORLD_MAPS;i++)
+		{
+			var saveAreaName = "saveArea";
+			var worldMapSVGID = "worldMapSVG";
+			if(i==0)
+				init_rng(myWorld.standardSeed);
+			else
+			{
+				init_rng(Date.now());
+				myWorld.standardSeed = rng(4294967295);
+				init_rng(myWorld.standardSeed);
+			}
+			var worldMapContainerDiv = document.createElement("DIV");
+			worldMapContainerDiv.setAttribute("id","worldMapContainer" + worldMapCounter++);
+			worldMapContainerDiv.setAttribute("class","container");
+			var downloadMapButton = document.createElement("INPUT");
+			downloadMapButton.setAttribute("name","downloadMap");
+			var fileName = myWorld.name.replace(/'/g,"") + " UWP " + myWorld.uwp + " world map.svg";
+			var clickScript = "downloadMap('" + saveAreaName + "','" + fileName +"');";
+			downloadMapButton.setAttribute("onclick",clickScript);
+			downloadMapButton.setAttribute("value","Download Map as SVG");
+			downloadMapButton.setAttribute("type","button");
+			downloadMapButton.setAttribute("class","btn1");
+			downloadMapButton.setAttribute("style","margin:8px;");
+			worldMapContainerDiv.appendChild(downloadMapButton);
+			var downloadAsPNGButton = document.createElement("INPUT");
+			downloadAsPNGButton.setAttribute("name","downloadMap");
+			fileName = myWorld.name.replace(/'/g,"") + " UWP " + myWorld.uwp + " world map.png";
+			clickScript = "svgToPng('" + worldMapSVGID + "','" + fileName + "');";
+			downloadAsPNGButton.setAttribute("onclick",clickScript);
+			downloadAsPNGButton.setAttribute("value","Download Map as PNG");
+			downloadAsPNGButton.setAttribute("type","button");
+			downloadAsPNGButton.setAttribute("class","btn1");
+			downloadAsPNGButton.setAttribute("style","margin:8px;");
+			worldMapContainerDiv.appendChild(downloadAsPNGButton);
+			var slideLeftButton = document.createElement("INPUT");
+			slideLeftButton.setAttribute("name","slideLeft");
+			slideLeftButton.setAttribute("onclick","myMap.slideTerrain(false);");
+			slideLeftButton.setAttribute("value", "<");
+			slideLeftButton.setAttribute("type","button");
+			slideLeftButton.setAttribute("class","btn1");
+			slideLeftButton.setAttribute("style","margin:8px;");
+			worldMapContainerDiv.appendChild(slideLeftButton);
+			var slideRightButton = document.createElement("INPUT");
+			slideRightButton.setAttribute("name","slideRight");
+			slideRightButton.setAttribute("onclick","myMap.slideTerrain(true);");
+			slideRightButton.setAttribute("value", ">");
+			slideRightButton.setAttribute("type","button");
+			slideRightButton.setAttribute("class","btn1");
+			slideRightButton.setAttribute("style","margin:8px;");
+			worldMapContainerDiv.appendChild(slideRightButton);
+			var urlTitle = document.createElement("P");
+			urlTitle.style.color="white";
+			urlTitle.innerHTML = "URL for this map:";
+			var urlBox = document.createElement("INPUT");
+			urlBox.setAttribute("type","text");
+			urlBox.style.width="100%";
+			urlBox.style.marginBottom="0.5em";
+			urlBox.value=myWorld.buildQuery()+mapFlags(1);
+			worldMapContainerDiv.appendChild(urlTitle);
+			worldMapContainerDiv.appendChild(urlBox);
+			var worldMapDiv = document.createElement("DIV");
+			worldMapDiv.setAttribute("id", saveAreaName);
+			worldMapDiv.setAttribute("class", "container");
+			worldMapDiv.style.backgroundColor = "white";
+			worldMapDiv.style.marginLeft = "1.5em";
+			var worldMapSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+			worldMapSVG.setAttribute("xmlns","http://www.w3.org/2000/svg");
+			worldMapSVG.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+			worldMapSVG.setAttribute("xml:space","preserve");
+			worldMapSVG.setAttribute("id", worldMapSVGID);	
+			worldMapDiv.appendChild(worldMapSVG);
+			worldMapContainerDiv.appendChild(worldMapDiv);
+			document.body.appendChild(worldMapContainerDiv);
+			myMap = new worldMap(myWorld, worldMapSVG, worldMapDiv);
+			myMap.generate();
+			myMap.render(); 
+			myMap.outline();
+		}		
 	}
 	else
 	{

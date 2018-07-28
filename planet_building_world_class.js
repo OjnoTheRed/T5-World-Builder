@@ -1005,7 +1005,7 @@ function mainWorld(generationObject)
 	me.buildQuery = function()
 	{
 		var newURL, url = window.location.href;
-		var queryEnd = Math.min(url.indexOf("#"),url.indexOf("?"));
+		var queryEnd = url.indexOf("?");
 		if(queryEnd != -1)
 			newURL = url.substring(0,queryEnd);
 		else
