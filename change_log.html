@@ -21,7 +21,12 @@
 	</ul>
 	</div>
 	<div>
-		<h2 style="margin-top:0;">24 July 2018</h2>
+		<h2 style="margin-top:0;">28 July 2018</h2>
+		<p><b>Code Optimization:</b> when the code needs to fetch individual hexes, it uses an associative array to look up the hex instead of iterating through all the hexes in a map to find the correct one.  Hopefully this gives a significant speed increase for future development where we want to do more complex stuff.</p>
+		<p><b>Minor bug fix:</b> map key for world maps was oddly offset off the map for smaller sizes (1, 2 and 3) and spilled over the right edge for larger sizes.</p>
+		<p><b>Bug fix:</b> black and white map and noble state flags were not being read correctly.</p>
+		<p><b>Bug fix:</b> for Terrain Hex and Local Hex maps, the 'shore line' now works as intended - "creeping" ocean or ice cap from neighbours onto the current hex.</p>
+		<h2>24 July 2018</h2>
 		<p><b>GET Data parameters:</b> added a 'pbg' parameter for more conveniently specifying the 'Population Multipler, Belts, Gas Giants' in a star system.</p>
 		<h2>23 July 2018</h2>
 		<p><b>Bug Fixes:</b> Fixed information about the random seed, system name and sector names in the URL passed to both the system and map generators.</p>

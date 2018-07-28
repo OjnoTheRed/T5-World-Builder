@@ -84,38 +84,7 @@ function readPseudoHex(c)
 	throw new Error("Illegal value '" + c + "' passed to readPseudoHex.");
 }
 
-array_fnc = {
-	search: function(s)
-	{
-		var i = this.length;
-		while(i--)
-			if(this[i]==s)
-				return i;
-		return -1;
-	},
-	
-	nameSearch: function(s,labelName)
-	{
-		if(arguments.length<2)
-			labelName="name";
-		var i = this.length;
-		while(i--)
-			if(this[i][labelName]==s)
-				return this[i];
-		return -1;
-	},
-	
-	nameSearchIndex: function(s,labelName)
-	{
-		if(arguments.length<2)
-			labelName="name"
-		var i = this.length;
-		while(i--)
-			if(this[i][labelName]==s)
-				return i;
-		return -1;
-	},
-	
+array_fnc = {	
 	random: function()
 	{
 		var i = rng(this.length)-1;
@@ -129,7 +98,7 @@ array_fnc = {
 	
 	pushUnique: function(newElement)
 	{
-		if(this.search(newElement) == -1)
+		if(this.find(function(v) { return v == newElement }) === undefined)
 		{
 			this.push(newElement);
 			return true;

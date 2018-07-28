@@ -45,6 +45,8 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	me.totalRows = 3*me.world.uwp.size-1;
 	me.worldTriangles = [];
 	me.hexes = [];
+	me.namedHexes = {};
+	me.numHexes = 0;
 	me.rows = [];
 	me.oceanTriangleIDs = [];
 	me.cityHexes = [];
@@ -121,7 +123,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 				me.rows[i].sort(function(a,b) { return a.columnNumber - b.columnNumber });
 		}
 	}
-	
+		
 	me.getHexesWithin = function(selectedHex, distance)
 	{
 		var Q = [];
@@ -133,7 +135,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			{
 				var neighbours = Q[j].getAdjacentHexes();
 				for(var k=0;k<neighbours.length;k++)
-					if(array_fnc.nameSearch.call(Q,neighbours[k].name) == -1)
+					if(Q.find(function(v) { return v.name == neighbours[k].name } ) === undefined)
 						Q.push(neighbours[k]);
 			}
 		}
@@ -403,6 +405,9 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	
 	me.getHex = function(col, row)
 	{
+		
+		return me.namedHexes["(" + col + "," + row + ")"];
+		/*
 		var i=me.hexes.length;
 		while(i--)
 		{
@@ -410,6 +415,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 				return me.hexes[i];
 		}
 		return false;
+		*/
 	}
 	
 	
@@ -516,7 +522,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 					var neighbours = anOcean[k].getAdjacentHexes();
 					for(var l=0;l<neighbours.length;l++)
 					{
- 						if(array_fnc.nameSearch.call(allNeighbours,neighbours[l].name) == -1 && array_fnc.nameSearch.call(anOcean,neighbours[l].name) == -1 && !neighbours[l].has(oceanTerrain))
+ 						if(allNeighbours.find(function(v){ return v.name == neighbours[l].name}) === undefined && anOcean.find(function(v) { return v.name == neighbours[l].name } ) === undefined && !neighbours[l].has(oceanTerrain))
 							allNeighbours.push(neighbours[l]);
 					}
 				}
@@ -531,7 +537,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	
 	function oceans2()
 	{
-		var numOceanHexes = Math.floor(me.hexes.length*0.1*me.world.uwp.hydro);
+		var numOceanHexes = Math.floor(me.numHexes*0.1*me.world.uwp.hydro);
 		var shuffledHexes = shuffle(me.hexes);
 		for(var i=0;i<numOceanHexes;i++)
 			addOcean(shuffledHexes[i]);
@@ -595,8 +601,8 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		me.key.addHex(chasmTerrain);
 		if(me.world.uwp.size == 1)
 		{
+			var shuffledHexes = shuffle(me.hexes);
 			var numChasms = d3();
-			shuffledHexes = shuffle(me.hexes);
 			for(var i=0;i<numChasms;i++)
 				shuffledHexes[i].add(chasmTerrain);
 			return;
@@ -1178,7 +1184,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		var zoneHexes = me.getTwilightZone();
 		for(var i=0;i<me.hexes.length;i++)
 		{
-			if(array_fnc.nameSearch.call(zoneHexes,me.hexes[i].name) != -1)
+			if(zoneHexes.find(function(v) { return v.name == me.hexes[i].name }) !== undefined)
 				continue;
 			var hex = me.hexes[i];
 			if(hex.columnNumber > me.twilightZoneWestCol+1 && hex.columnNumber < me.twilightZoneEastCol-1)
@@ -2208,7 +2214,7 @@ function mapHex(mapObj, parentObj, left_offset, top_offset)
 	
 	me.has = function(terrainObject)
 	{
-		return array_fnc.nameSearchIndex.call(me.terrainTypes,terrainObject.name) != -1;
+		return (me.terrainTypes.find(function(v) { return v.name == terrainObject.name }) !== undefined);
 	}
 	
 	me.add = function(terrainObject)
@@ -2219,7 +2225,7 @@ function mapHex(mapObj, parentObj, left_offset, top_offset)
 	
 	me.erase = function(terrainObject)
 	{
-		var index = array_fnc.nameSearchIndex.call(me.terrainTypes,terrainObject.name);
+		var index = me.terrainTypes.findIndex(function(v) { return v.name == terrainObject.name });
 		if(index != -1)
 			me.terrainTypes.splice(index, 1);
 	}
@@ -2553,7 +2559,8 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		if(me.rowNumber == eqRow)
 			me.hemisphere = "E";
 	}
-	me.map.hexes.push(me);	
+	me.map.hexes.push(me);
+	me.map.namedHexes[me.name] = me;
 }
 
 function terrainHex(worldHexMapObject, parentObj, left_offset, top_offset)
@@ -2645,8 +2652,7 @@ function localHex(terrainHexMapObject, parentObj, left_offset, top_offset)
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		me.hexElem = addPolygon(pointsCoord, 1, "black", "none", me.parentObj);
 		
-// Uncomment this code to put the x,y values for every hex onto the generated world; very useful for analysing more extensions to the code.
-//		addText(me.left_offset+8, me.top_offset+8, me.coord, "Arial, sans-serif", "8px","black", me.parentObj);
+//		addText(me.left_offset+8, me.top_offset+8, me.name, "Arial, sans-serif", "8px","black", me.parentObj);
 //		addText(me.left_offset+15, me.top_offset+15, me.id, "Arial, sans-serif", "12px", "black", me.parentObj);
 	 	
 		for(var i=0;i<me.terrainTypes.length;i++)
@@ -2675,7 +2681,6 @@ function localHex(terrainHexMapObject, parentObj, left_offset, top_offset)
 	me.inheritFrom = mapHex;
 	me.inheritFrom(terrainHexMapObject, parentObj, left_offset, top_offset);
 	me.hexType = LOCAL_HEX;
-
 }
 
 function singleHex(terrainHexMapObject, parentObj, left_offset, top_offset)
@@ -2811,6 +2816,7 @@ function hexMap(parentObj, parentHex)
 	me.parentHex = parentHex;
 	me.world = me.parentHex.world;
 	me.hexes = [];
+	me.namedHexes = {};
 	me.whiteHexes = [];
 	me.blackHexes = []; 
 	me.hexSetType = me.parentHex.hexType % 2 == 0 ? HORIZONTAL_HEXES : VERTICAL_HEXES;
@@ -2885,7 +2891,7 @@ function hexMap(parentObj, parentHex)
 		volcano();
 		nobleLand();
 		penal();
-		creepNeighbouringTerrain(icecapTerrain);		
+		creepNeighbouringTerrain(icecapTerrain);
 	}
 	
 	me.generateHorizontal = function()
@@ -2906,14 +2912,18 @@ function hexMap(parentObj, parentHex)
 					case WORLD_HEX:
 						var aTerrainHex = new terrainHex(me, me.parentObj, x, y);
 						break;
+					case TERRAIN_HEX:
+						var aTerrainHex = new localHex(me, me.parentObj, x, y);
+						break;
 					case LOCAL_HEX:
 						var aTerrainHex = new singleHex(me, me.parentObj, x, y);
 						break;
 				}
 				aTerrainHex.applyPattern(HORIZONTAL_HEXES_PATTERN[patternIndex++]);
 				me.hexes.push(aTerrainHex);
+				me.namedHexes[aTerrainHex.name] = aTerrainHex;
 				aTerrainHex.id = hexID++;
-				if(array_fnc.search.call(me.edgeHexSet,aTerrainHex.id) != -1)
+				if(me.edgeHexSet.find(function(v) { return v == aTerrainHex.id } ) !== undefined)
 					aTerrainHex.edge = true;
 				switch(aTerrainHex.colour)
 				{
@@ -2944,9 +2954,10 @@ function hexMap(parentObj, parentHex)
 				var newHex = new localHex(me, me.parentObj, left_offset, rowTopOffset);
 				newHex.id = hexID++;
 				newHex.applyPattern(VERTICAL_HEXES_PATTERN[patternIndex++]);
-				if(array_fnc.search.call(me.edgeHexSet,newHex.id) != -1)
+				if(me.edgeHexSet.find(function(v){ return v ==  newHex.id } ) !== undefined)
 					newHex.edge = true;
 				me.hexes.push(newHex);
+				me.namedHexes[newHex.name] = newHex;
 				if(newHex.colour == WHITE_HEX)
 					me.whiteHexes.push(newHex);
 				if(newHex.colour == BLACK_HEX)
@@ -2963,11 +2974,14 @@ function hexMap(parentObj, parentHex)
 	
 	me.getHex = function(col, row)
 	{
+		return me.namedHexes["(" + col + "," + row + ")"];
+		/*
 		var i=me.hexes.length;
 		while(i--)
 			if(me.hexes[i].rowNumber == row && me.hexes[i].columnNumber == col)
 				return me.hexes[i];
 		return false;
+		*/
 	}
 	
 	me.getParallelHex = function(hex, direction, amount)
@@ -2993,7 +3007,7 @@ function hexMap(parentObj, parentHex)
 			{
 				nextHex = array_fnc.random.call(currentHex.getAdjacentHexes());
 			}
-			while(!nextHex || array_fnc.nameSearch.call(hexPath,nextHex.name) != -1 || !currentHex.closer(destHex,nextHex) || nextHex.getNeighboursIn(hexPath).length > 1 || (hexPath.length == 1 && nextHex.edge));
+			while(!nextHex || hexPath.find(function(v) { return v.name == nextHex.name }) !== undefined || !currentHex.closer(destHex,nextHex) || nextHex.getNeighboursIn(hexPath).length > 1 || (hexPath.length == 1 && nextHex.edge));
 			currentHex = nextHex; 
 			hexPath.push(currentHex);
 		}
@@ -3688,18 +3702,20 @@ function hexMap(parentObj, parentHex)
 		var numPasses = d3() + 1;
 		for(i=0;i<numPasses;i++)
 		{
-			for(j=0;j<me.hexes.length;j++)
+			for(var j=0;j<me.hexes.length;j++)
 			{
 				if(!(me.hexes[j].has(terrainObj) || me.hexes[j].has(terrainToAdd)) && me.hexes[j].colour != BLANK_HEX && !me.hexes[j].edge)
 				{
 					var terrC = me.hexes[j].countTerrainInNeighbours(terrainObj) + me.hexes[j].countTerrainInNeighbours(terrainToAdd);
 					if(terrC > (i+1))
+					{
 						if(d100() < (SHORELINE_EXTEND_CHANCE / (i+1)))
 							{
 								me.hexes[j].add(terrainToAdd);
 								if(arguments.length > 1)
 									me.hexes[j].erase(terrainToErase);
 							}
+					}
 				}
 			}
 		}
@@ -4016,7 +4032,7 @@ function hexMapKey(hexMap)
 	
 	me.addHex = function(terrainType)
 	{
-		if(array_fnc.nameSearch.call(me.hexesIncluded,terrainType.name) == -1)
+		if(me.hexesIncluded.find(function(v){ return v.name == terrainType.name }) === undefined)
 			me.hexesIncluded.push(terrainType);
 	}
 	
@@ -4092,11 +4108,11 @@ function mapKey(worldMap)
 	me.parentObj = worldMap.parentObj;
 	me.hexesIncluded = [];
 	
-	var HEXES_PER_ROW = Math.max(4,Math.floor((6*(me.map.world.uwp.size+1)*32)/250));
+	var HEXES_PER_ROW = Math.max(4,Math.floor((6*(me.map.world.uwp.size+1)*32)/320));
 	
 	me.addHex = function(terrainType)
 	{
-		if(array_fnc.nameSearch.call(me.hexesIncluded,terrainType.name) == -1)
+		if(me.hexesIncluded.find( function(v) { return v.name == terrainType.name } ) === undefined)
 			me.hexesIncluded.push(terrainType);
 	}
 	
@@ -4104,9 +4120,9 @@ function mapKey(worldMap)
 	{
 		me.hexesIncluded.sort(array_sort_by_name);
 		if(me.map.world.uwp.size > 1)
-			var starting_left_offset = me.map.mapCornerPoints[1].x - 50;
+			var starting_left_offset = me.map.mapCornerPoints[1].x;
 		else
-			var starting_left_offset = MAP_LEFT_OFFSET - 50;
+			var starting_left_offset = MAP_LEFT_OFFSET;
 		var starting_top_offset = me.map.mapHeight - MAP_KEY_HEIGHT + 10;
 		for(var i=0;i<me.hexesIncluded.length;i++)
 		{

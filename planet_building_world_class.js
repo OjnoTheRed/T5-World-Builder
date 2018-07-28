@@ -74,14 +74,12 @@ function world()
 		var p = me.orbitalPeriod();
 		var myStar = me.isSatellite ? me.planet.orbit.set.centralStar : me.orbit.set.centralStar;
 		var starName = myStar.name ? myStar.name : "an unnamed " + myStar.toString();
-		console.log("p = " + p);
 		if(me.isSatellite)
 		{
 			if(p < 2)
 				s += dhms(p*28);
 			else
 				s += mdhms(p);
-			console.log("s = " + s);
 			var pname = me.planet.name;
 			var porbp = me.planet.orbitalPeriod();
 			s += " around " + (pname ? pname : (" an unnamed " + (me.planet.generationObject ? me.planet.generationObject.name : me.planet.toString()))) + ", ";
@@ -445,8 +443,6 @@ function world()
 			if(me.isSatellite)
 			{
 				ROTATIONAL_PERIOD += me.planet.mass() / (me.orbit.orbitDistance() / 400000);
-				console.log("me.planet.mass() = " + me.planet.mass());
-				console.log("me.orbit.orbitDistance() / 400000 = " + me.orbit.orbitDistance() / 400000);
 			}
 			else
 				ROTATIONAL_PERIOD += (me.orbit.set.centralStar.mass + (me.orbit.set.companionStar ? me.orbit.set.companionStar.mass : 0))/me.orbit.orbitDistance();
@@ -662,7 +658,8 @@ function world()
 		else
 		{
 			for(var i=0;i<me.satelliteSystem.orbits.length;i++)
-				STRESS_FACTOR += me.satelliteSystem.orbits[i].contents.diameter() / (me.satelliteSystem.orbits[i].baseOrbit.m*64);
+				if(me.satelliteSystem.orbits[i].contents.constructor.name != "ring")
+					STRESS_FACTOR += me.satelliteSystem.orbits[i].contents.diameter() / (me.satelliteSystem.orbits[i].baseOrbit.m*64);
 			STRESS_FACTOR += me.orbit.set.centralStar.mass / me.orbit.orbitDistance();
 		}
 		STRESS_FACTOR = Math.round(Math.max(0, STRESS_FACTOR));
@@ -1442,7 +1439,7 @@ function tcs(world)
 	
 	me.has = function(tcCode)
 	{
-		return array_fnc.search.call(me.classes,tcCode) != -1;
+		return me.classes.find(function(v) { return v == tcCode } ) !== undefined;
 	}
 
 	me.add = function(tcCode)
@@ -1532,7 +1529,7 @@ function bases(world)
 	
 	me.has = function(baseName)
 	{
-		return array_fnc.nameSearch.call(me.basesPresent,baseName) != -1;
+		return me.basesPresent.find(function(v) {v.name == baseName}) !== undefined;
 	}
 	
 	me.add = function(baseObj)
@@ -1879,7 +1876,7 @@ function star(world, isPrimary)
 	
 	me.getData = function()
 	{
-		var data = array_fnc.nameSearch.call(STAR_DATA,me.toString());
+		var data = STAR_DATA.find(function(v) {return v.name == me.toString()});
 		me.radii = data.radii;
 		me.radius = data.radii*695700;
 		me.jump_point = me.radius*200;
@@ -1960,7 +1957,7 @@ function star(world, isPrimary)
 		if(s == "")
 			return;
 		s = s.trim();
-		if(array_fnc.nameSearch.call(STAR_DATA,s) == -1 && s != "D" && s != "BD")
+		if(STAR_DATA.find(function(v){ return v.name == s}) === undefined && s != "D" && s != "BD")
 			throw new Error("Non-valid stellar classification passed into a star object: '" + s + "'");
 		if(s == "D")
 		{

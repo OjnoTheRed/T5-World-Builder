@@ -293,8 +293,7 @@ function initLoad_map()
 		var msgDiv = document.createElement("DIV");
 		msgDiv.innerHTML = "This web page functions by using GET data.  Click <a href='t5_world_builder.html'>here</a> to generate a map.";
 		document.body.appendChild(msgDiv);
-	}
-	
+	}	
 }
 
 var xx = 0;
@@ -308,7 +307,7 @@ function loadSectors(sectorListText)
 		var myOption = new Object();
 		myOption.text = sectors.Sectors[i].Names[0].Text.trim();
 		myOption.value = encodeURIComponent(sectors.Sectors[i].Names[0].Text.trim());
-		if(array_fnc.nameSearch.call(sectorList,myOption.text,"text") == -1)
+		if(sectorList.find(function(v) {return v.text == myOption.text}) === undefined)
 			sectorList.push(myOption); 
 	}
 	sectorList.sort(function(a, b) {return a.text.localeCompare(b.text);});
@@ -405,7 +404,7 @@ function loadWorldDetails(selectObject)
 {
 	if(selectObject.value == "XXXX")
 		return;
-	var selectedWorld = array_fnc.nameSearch.call(worldArray,selectObject.value,"hex");
+	var selectedWorld = worldArray.find(function(v) { return v.hex == selectObject.value } );
 	loadWorld(selectedWorld);
 }
 
@@ -609,7 +608,6 @@ function readURL(flagFnc)
 	else
 		myWorld.iX = iX;
 	var pbgString = URLParams.get("pbg");
-	console.log("pbgString = " + pbgString);
 	if(pbgString !== null)
 	{
 		myWorld.popMulti = parseInt(pbgString.substr(0,1));
@@ -662,8 +660,7 @@ function readURL(flagFnc)
 	myWorld.standardSeed = URLParams.get("seed") || ("" + myWorld.hex + myWorld.hex);
 	myWorld.travelZone = URLParams.get("travelZone");
 	myWorld.system = URLParams.get("system") || (myWorld.name + " (" + myWorld.hex + " " + myWorld.sector + ")");
-	
-	if(arguments.length > 1)
+	if(arguments.length > 0)
 		flagFnc(URLParams);
 	return myWorld;
 }
