@@ -23,6 +23,26 @@ div {
 	font-family: Arial, sans-serif;
 }
 
+div.transparent {
+	background-color: transparent;
+	border-style: none;
+	margin:0 0 0 0;
+	padding:0 0 0 0;
+	font-family: Arial, sans-serif;
+}
+
+div.worldDetailDiv {
+	position:fixed;
+	left:0.5%;
+	top:1%;
+	padding: 0.2em 0.2em 0.2em 0.2em;
+	margin: 0 0 0 0;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	width:96%;
+	height:93%;
+}
+
 ul {
 	list-style-type: none;
 	margin-left: 0em;
@@ -127,10 +147,10 @@ div.contained-flex {
 	padding:0;
 	margin:0;
 	border-style: none;
-	background-color: #F3F3F3;
 	font-family: Arial, sans-serif;
 	width: 100%;
 	box-sizing:border-box;
+	background-color:transparent;
 }
 
 .formItem {
@@ -140,9 +160,20 @@ div.contained-flex {
 	margin-bottom:0.1em;
 	margin-left:0;
 	margin-right:0.3em;
-	background-color:#F3F3F3;
 	border-style:none;
 	padding:0;
+}
+
+.contained-flex-vertical {
+    display: -webkit-flex;
+    display: flex;
+	flex-wrap: wrap;
+	flex-direction: column;
+	padding:0;
+	margin: 0 0.5em 0 0;
+	border-style: none;
+	font-family: Arial, sans-serif;
+	box-sizing:border-box;
 }
 
 p {
@@ -222,12 +253,15 @@ h1 {
 h2 {
 	margin-top: 1em;
 	margin-bottom: 0em;
-	font-family: Arial, sans-serif;
+	font-family: Optima, Arial, sans-serif;
+	font-weight: bold;
 }
 
 h3 {
-	margin-top: 0px;
-	font-family: Arial, sans-serif;
+	margin: 0 0 0.2em 0;
+	font-size: 0.85em;
+	font-family: Optima, Arial, sans-serif;
+	font-weight: bold;
 }
 
 h4 {
@@ -255,8 +289,11 @@ h6 {
 	margin-bottom: 6pt;
 }
 
-input.worldDetails {
+.worldDetails {
 	margin-bottom: 0.5em;
+	border: 0.5px 0.5px 0.5px 0.5px;
+	border-style: solid;
+	border-color: #555555;
 }
 
 .btn1 {

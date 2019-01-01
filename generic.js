@@ -267,3 +267,52 @@ function codeKey(numDigits)
 		s += codeDigits.charAt(rng(codeDigits.length-1));
 	return s;
 }
+
+//paramObj = {d:, t:, a: } and can have any two defined; the third must be 'false'
+function intraSystemTravel(paramObj)
+{
+	var me = this;
+	me.d = paramObj.d;
+	me.t = paramObj.t;
+	me.a = paramObj.a;
+	
+	if((!me.d && !me.t) || (!me.d && !me.a) || (!me.t && !me.a))
+		throw new Error("Calculating Intra System travel requires at least 2 parameters out of time, distance and acceleration.  Time = " + me.t + " Distance = " + me.d + " Accelration = " + me.a);
+		
+	
+	me.solve = function()
+	{
+		if(!me.d)
+			me.d = me.a * Math.pow(me.t,2) / 4;
+		if(!me.t)
+			me.t = 2*Math.sqrt(me.d/me.a);
+		if(!me.a)
+			me.a = 4*me.d/Math.pow(me.t,2);
+	}
+	
+	me.timeString = function()
+	{
+		if(me.t < 90)
+			return me.t + "s";
+		if(me.t < 5400)
+			return Math.floor(me.t/60) + "m " + Math.floor(me.t%60) + "s";
+		if(me.t < 129600)
+			return Math.floor(me.t/3600) + "h " + Math.floor(me.t%3600/60) + "m " + Math.floor(me.t%60) + "s";
+		if(me.t < 691200)
+			return Math.floor(me.t/86400) + "d " + Math.floor(me.t%86400/3600) + "h " + Math.floor(me.t%3600/60) + "m " + Math.floor(me.t%60) + "s";
+		return Math.floor(me.t/604800) + "w " + Math.floor(me.t%604800/86400) + "d " + Math.floor(me.t%86400/3600) + "h " + Math.floor(me.t%3600/60) + "m " + Math.floor(me.t%60) + "s";
+	}
+	
+	me.accelerationString = function()
+	{
+		return me.a / 9.81 + "G";
+	}
+	
+	me.distanceString = function()
+	{
+		return Math.floor(me.d/1000) + "km";
+	}
+	
+	me.solve();
+
+}

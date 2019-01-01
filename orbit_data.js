@@ -62,3 +62,5 @@ var SATELLITE_ORBIT_DATA_FAR = { dice: function() {return dice(2)}, min:2, max:1
 11:{ o:"ex", m:700 }, 
 12:{ o:"wye", m:800 }, 
 13:{ o:"zee", m:900 } };
+
+var AU_IN_KM = 149597870.7;

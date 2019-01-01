@@ -59,19 +59,19 @@
 			<div class="contained-flex">
 				<div class="formItem">
 				<p class="guidelines" id="guide_7">Hex and Sector</p> 
-				<input class="worldDetails" id="element_7" name="element_7" type="text" maxlength="50" value=""/>
+				<input id="element_7" name="element_7" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">e.g. '3005 Spinward Marches'. Used in the map title.</span>
 				</div>
 
 				<div class="formItem">
 				<p class="guidelines" id="guide_1">World Name</p> 
-				<input class="worldDetails" id="element_1" name="element_1" type="text" maxlength="50" value=""/> 
+				<input id="element_1" name="element_1" type="text" maxlength="50" value=""/> 
 				<span class="tooltiptext">e.g. 'Aramanx'.  Used in the map title and to label the mainworld of the system.</span>
 				</div>
 
 				<div class="formItem">
 				<p class="guidelines" id="guide_2">UWP (in the format XNNNNNN-N)</p> 
-				<input class="worldDetails" id="element_2" name="element_2" type="text" maxlength="9" value=""/> 
+				<input id="element_2" name="element_2" type="text" maxlength="9" value=""/> 
 				<span class="tooltiptext">e.g. 'C657874-6'. Used for many aspects of the map.  Inserted into the generated star system.</span>
 				</div>
 
@@ -143,8 +143,8 @@
 				</div>
 
 				<div class="formItem">
-				<p class="guidelines" id="guide_15"><br />Allegience</p>
-				<p><input id="Allegience" type="text" maxlength="4" value="" style="width:45px;"/></p>
+				<p class="guidelines" id="guide_15"><br />Allegiance</p>
+				<p><input id="allegiance" type="text" maxlength="4" value="" style="width:45px;"/></p>
 				<span class="tooltiptext">Interstellar government code.  Ignored in map and system creation.</span>
 				</div>
 				
@@ -153,14 +153,18 @@
 				<p><input id="Stellar_Data" type="text" maxlength="40" value=""/></p>
 				<span class="tooltiptext">System stars. Ignored in map creation and used as the basis for system generation.  Multiple stars will be placed randomly in the eight possible positions.</span>
 				</div>
-				<div class="formItem">
+				<div class="transparent">
 					<p style="padding-bottom:0.5em;">Additional Trade codes</p>
-					<p class="formItem"><input id="element_4_1" name="TradeCode" type="checkbox" value="Fr" />
-					<label for="element_4_1">Frozen (Fr)</label>
-					<span class="tooltiptext">Planet is further out than the Habitable Zone plus 2 orbits.  All lands and oceans are frozen.</span></p>
-					<p class="formItem"><input id="element_4_2" name="TradeCode" type="checkbox" value="Tu" />
-					<label for="element_4_2">Tundra (Tu)</label>
-					<span class="tooltiptext">Planet is somewhat earth-like but in the next orbit out from the Habitable Zone.  Land and ocean near the ice caps is frozen.</span></p>
+					<p class="formItem">
+						<input id="element_4_1" name="TradeCode" type="checkbox" value="Fr" />
+						<label for="element_4_1">Frozen (Fr)</label>
+						<span class="tooltiptext">Planet is further out than the Habitable Zone plus 2 orbits.  All lands and oceans are frozen.</span>
+					</p>
+					<p class="formItem">
+						<input id="element_4_2" name="TradeCode" type="checkbox" value="Tu" />
+						<label for="element_4_2">Tundra (Tu)</label>
+						<span class="tooltiptext">Planet is somewhat earth-like but in the next orbit out from the Habitable Zone.  Land and ocean near the ice caps is frozen.</span>
+					</p>
 					<p class="formItem"><input id="element_4_3" name="TradeCode" type="checkbox" value="Tz" />
 					<label for="element_4_3">Twilight Zone (Tz)</label>
 					<span class="tooltiptext">Planet is tidally locked to its star with one face always pointing towards it and another facing away.</span></p>
@@ -253,6 +257,14 @@
 				<div class="formItem">
 					<p style="margin-bottom:0;"><input id="mw_in_hz" type="checkbox" />Force placement of MW in HZ</p>
 					<span class="tooltiptext">If this is unchecked, the T5 rules will be used to place the Main World in HZ-1, HZ or HZ+1.  If checked, the Main World will be placed in the HZ.</span>
+				</div>
+				<div class="formItem">
+					<p style="margin-bottom:0;"><input id="tz_no_sat" type="checkbox" />Worlds tidally locked to star have no satellites</p>
+					<span class="tooltiptext">If this is unchecked, the T5 rules will be used determine the number of satellites.  If checked, and a world is tidally locked to its star, it will have no satellites.</span>
+				</div>
+				<div class="formItem">
+					<p style="margin-bottom:0;"><input id="barren_sys" type="checkbox" />If mainworld population is zero, all other worlds are barren.</p>
+					<span class="tooltiptext">If this is unchecked, the T5 rules will be used which can end up with minor worlds having a population in the units</span>
 				</div>
 			</div>
 		</div>

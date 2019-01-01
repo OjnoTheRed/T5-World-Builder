@@ -1,8 +1,13 @@
+// now to put all dbObj and read_dbObj calls into orbitSet bearing in mind it is both the 'master' and can be contained by other orbit sets as well as the full system.
 var SYSTEM_OBJECT_COUNT = 0;
 var MAIN_WORLD_HZ_ONLY = false;
 var MAIN_WORLD_IS_SAT = false;
 var MAIN_WORLD_NOT_SAT = false;
+var TZ_NO_SAT = false;
+var BARREN_SYS = false;
 var NAME_TABLE_WIDTH = "70pt";
+var DOWNLOAD_WORLD_DETAIL = true;
+var ALL_DETAILS = [];
 
 function world()
 {
@@ -21,50 +26,107 @@ function world()
 	me.hex = "";
 	me.sector = "";
 
-	me.details = function()
+	me.nameTextBox = function()
 	{
-		var wD = [
-		{title:"World Name", contents:me.name ? me.name : ("Unnamed " + me.generationObject.name)},
-		{title:"Location", contents:me.system},
-		{title:"UWP", contents:me.uwp},
-		{title:"Diameter", contents:me.diameter() + " km"},
-		{title:"Density Type", contents:me.densityType().name},
-		{title:"Density", contents:me.density() + " (Earth = 1)"},
-		{title:"Mass", contents:me.mass() + " (Earth = 1)"},
-		{title:"Surface Gravity", contents:me.gravity() + " G"},
-		{title:"Rotation Period", contents:rotationPeriodString()},
-		{title:"Orbital Period", contents:orbitalPeriodString()},
-		{title:"Axial Tilt", contents:me.axialTilt() + "&deg;"},
-		{title:"Surface Atmospheric Pressure", contents:me.atmosPressure() + " Atm"},
-		{title:"Atmosphere Composition", contents:me.atmosComposition()},
-		{title:"Hydrographic Percentage",contents:me.getHydroPercentage() + "%"},
-		{title:"Surface Liquid Composition",contents:me.getFluid().name},
-		{title:"Native Life",contents:me.nativeLife() ? "This world has native life." : "This world does not have native life."},
-		{title:"Seismic Stress Factor",contents:"Stress factor is " + me.getStress() + "<br />Occurence of a volcanic eruption or earthquake in a 24-hour period:<br />Formidable (4D) < " + (me.getStress() - 4) + "<br /><b>Note:</b> DM -2 if on a Volcano hex, DM -2 if on a fault line."},
-		{title:"Resources",contents:resourcesString()},
-		{title:"Albedo",contents:"" + me.albedo()},
-		{title:"Greenhouse Temperature multiplier",contents:"" + me.greenhouse()},
-		{title:"Base Surface Temperature",contents:Math.round(me.calcTemperatureC()) + "&deg;C"},
-		{title:"Average Daytime Temperature",contents:Math.round(me.calcTemperatureC() + me.dayPlus()) + "&deg;C"},
-		{title:"Average Nighttime Temperature",contents:Math.round(me.calcTemperatureC() + me.nightMinus()) + "&deg;C"},
-		{title:"Highest Possible Daytime Temperature",contents:Math.round(me.calcTemperatureC() + me.maxDayPlus()) + "&deg;C"},
-		{title:"Coldest Possible Nighttime Temperature",contents:Math.round(me.calcTemperatureC() + me.maxNightMinus()) + "&deg;C"},
-		{title:"Summer temperature increase",contents:Math.round(me.seasonSummerPlus()) + "&deg;C"},
-		{title:"Winter temperature decrease",contents:Math.round(me.seasonWinterMinus()) + "&deg;C"},
-		{title:"Temperature by latitude table",contents:me.temperatureTblHTML()}
-		];
-		return wD;
+		var textInput = document.createElement("INPUT");
+		textInput.setAttribute("type","text");
+		textInput.width = NAME_TABLE_WIDTH;
+		textInput.value = me.name;
+		textInput.onchange = function() { me.name = textInput.value };
+		return textInput;
+	}	
+	me.editDetails = function()
+	{
+		var world_details_div = document.getElementById("world_detail");
+		world_details_div.hidden = false;
+		me.updateEdits(world_details_div);
+		all_details.map(function(item, index)	{ 
+													var elem = document.getElementById(item.id);
+													elem.onchange = function()	{
+																					item.update(elem.value); 
+																					me.updateEdits(world_details_div);
+																					me.isSatellite ? me.planet.orbit.set.updateTable() : me.orbit.set.updateTable();
+																				};
+												});
+		var orbBtns = document.getElementById("orbitButtons"); 
+		while(orbBtns.hasChildNodes())
+			orbBtns.removeChild(orbBtns.childNodes[0]);
+		var orbDtl = document.getElementById("orbit_text");
+		var orbSatSel = document.getElementById("satOrbitSel");
+		var orbFI = document.getElementById("orbitFormItem");
+		if(!me.isSatellite)
+		{
+			orbDtl.hidden = false;
+			orbBtns.hidden = false;
+			orbSatSel.hidden = true;
+			orbBtns.appendChild(me.orbit.baseOrbitAdjustUpBtn());
+			orbBtns.appendChild(me.orbit.baseOrbitAdjustDownBtn());
+			orbBtns.appendChild(me.orbit.orbitAdjustUpBtn());
+			orbBtns.appendChild(me.orbit.orbitAdjustDownBtn());
+		}
+		else
+		{
+			orbDtl.hidden = true;
+			orbBtns.hidden = true;
+			orbSatSel.hidden = false;
+			orbSatSel.value = me.orbit.baseOrbit.o;
+		}
 		
+		RESOURCES_ALL.map(function(item,index)	{
+													var elem = document.getElementById(item.id);
+													elem.onchange = function()	{
+																					elem.checked ? me.resources().add(item) : me.resources().erase(item);
+																					me.updateEdits(world_details_div);
+																				};
+												});
+		var uwp_elem = document.getElementsByName("uwp");
+		for(var i=0;i<uwp_elem.length;i++)
+			uwp_elem[i].onchange = function()	{	me.uwp[this.id] = this.value;
+													me.updateEdits(world_details_div);
+													me.orbit.set.updateTable();
+												};
+	}
+
+	me.updateEdits = function(editDiv)
+	{
+		me.tcs.has("Tz") ? document.getElementById("tz_msg").hidden = false : document.getElementById("tz_msg").hidden = true;
+		me.tcs.has("Lk") ? document.getElementById("lk_msg").hidden = false : document.getElementById("lk_msg").hidden = true;
+		all_details.map(function(item, index)	{ 
+													var elem = editDiv.ownerDocument.getElementById(item.id);
+													switch(elem.tagName)
+													{
+														case "P":
+															elem.innerHTML = item.contents();
+															break;
+														case "INPUT":
+														case "SELECT":
+															elem.value = item.contents();
+															break;
+													}
+												
+												});
+		var uwp_edits = editDiv.ownerDocument.getElementsByName("uwp");
+		for(var i=0;i<uwp_edits.length;i++)
+			uwp_edits[i].value = me.uwp[uwp_edits[i].id];
+		
+		var resource_edits = editDiv.ownerDocument.getElementsByName("resource");
+		for(i=0;i<resource_edits.length;i++)
+			resource_edits[i].checked = me.resources().has(resource_edits[i].id);
+		
+		var tempTbl = document.getElementById("temperatureTbl");
+		if(tempTbl)
+			editDiv.removeChild(tempTbl);
+		tempTbl = me.temperatureTblHTML(true);
+		if(tempTbl)
+		{
+			tempTbl.id = "temperatureTbl";
+			editDiv.appendChild(tempTbl);
+		}
 	}
 	
 	function rotationPeriodString()
 	{
-		var s = "";
-		s += hms(Math.abs(me.rotationalPeriod())) + (me.rotationalPeriod() < 0 ? " retrograde" : "");
-		if(me.tcs.has("Tz"))
-			s += "<br>This planet is tidally locked to its central star, and so its rotational period equals its orbital period.";
-		if(me.tcs.has("Lk"))
-			s += "<br>This satellite is tidally locked to its central planet, and so its rotational period equals its orbital period.";
+		var s = hms(Math.abs(me.rotationalPeriod())) + (me.rotationalPeriod() < 0 ? " retrograde" : "");
 		return s;
 	}
 	
@@ -72,47 +134,54 @@ function world()
 	{
 		var s = "";
 		var p = me.orbitalPeriod();
-		var myStar = me.isSatellite ? me.planet.orbit.set.centralStar : me.orbit.set.centralStar;
-		var starName = myStar.name ? myStar.name : "an unnamed " + myStar.toString();
 		if(me.isSatellite)
 		{
 			if(p < 2)
-				s += dhms(p*28);
+				s = dhms(p*28);
 			else
-				s += mdhms(p);
-			var pname = me.planet.name;
-			var porbp = me.planet.orbitalPeriod();
-			s += " around " + (pname ? pname : (" an unnamed " + (me.planet.generationObject ? me.planet.generationObject.name : me.planet.toString()))) + ", ";
-			s += "which orbits" + starName + " at a period of " + (porbp < 2 ? dhms(porbp*365) : ydhms(porbp)) + ". ";
+				s = mdhms(p);
 		}
 		else
 		{
 			if(p < 2)
-				s += dhms(p*365);
+				s = dhms(p*365);
 			else
-				s += ydhms(p);
-			s += " around " + starName + ". ";
+				s = ydhms(p);
 		}
 		return s;
 	}
 	
-	function resourcesString()
+	me.detailsHTML = function()
 	{
-		var s = "The world has ";
-		var r = me.resources();
-		if(r.length == 0) return "None.";
-		for(var i=0;i<r.length-1;i++)
-			s += r[i].name + " (for example " + r[i].examples + "), ";
-		s += "and " + r[i].name + " (for example " + r[i].examples + ").";
+		var s = "";
+		all_details.map(function(item) { item.text_string ? s += "<td>" + item.text_string + "</td>" : s += "";} );
 		return s;
 	}
 	
+	me.detailsCSV = function()
+	{
+		var s = "";
+		all_details.map(function(item) { item.text_string ? s += item.text_string + "," : s += "";});
+		return s;
+	}
+	
+	me.detailsText = function()
+	{
+		var s = ""
+		all_details.map(function(item) { item.text_string ? s += item.name + ": " + item.text_string + ", " : s += ""; });
+		return s;
+	}
+		
 	var WORLD_DIAMETER;
 	me.diameter = function()
 	{
 		if(WORLD_DIAMETER)
 			return WORLD_DIAMETER;
-		var stupidImperial = me.uwp.size*1000 + flux()*100 + flux()*10 + flux();
+		var stupidImperial = 0;
+		if(me.uwp.size == 0)
+			stupidImperial = 300 + 25*flux() + 2.5*flux() + 0.25*flux();
+		else
+			stupidImperial = me.uwp.size*1000 + flux()*100 + flux()*10 + flux();
 		WORLD_DIAMETER = Math.round(stupidImperial*1.61);
 		return WORLD_DIAMETER;
 	}
@@ -125,6 +194,25 @@ function world()
 		return Math.sqrt(height * (2 * me.diameter()/2 + height));
 	}
 	
+	me.jumpPoint = function()
+	{
+		if(me.isSatellite)
+			return Math.round(Math.max(me.diameter()*100, me.planet.jumpPoint() - me.orbit.orbitDistance(), me.planet.orbit.set.centralStar.jumpPoint() - (me.planet.orbit.orbitDistance()*AU_IN_KM)));
+		else
+			return Math.round(Math.max(me.diameter()*100, me.orbit.set.centralStar.jumpPoint() - (me.orbit.orbitDistance()*AU_IN_KM))); 
+	}
+	
+	me.jumpPointTimes = function(lineBreaks)
+	{
+		if(arguments.length < 1)
+			lineBreaks = true;
+		var d = me.jumpPoint();
+		var s = "";
+		for(var a=1;a<7;a++)
+			s += a + "G: " + new intraSystemTravel({ d:d, a:a, t:false }).timeString() + (lineBreaks ? "<br />" : "; ");
+		return s;
+	}
+	
 	me.symbol = function()
 	{
 		var symbol = {baseOrbit:me.orbit.baseOrbit, distance:me.orbit.orbitDistance() + " AU", uwp:me.uwp.toString()};
@@ -133,15 +221,7 @@ function world()
 		return symbol;
 	}
 	
-	me.nameTextBox = function()
-	{
-		var textInput = document.createElement("INPUT");
-		textInput.setAttribute("type","text");
-		textInput.width = NAME_TABLE_WIDTH;
-		textInput.value = me.name;
-		textInput.onchange = function() { me.name = textInput.value };
-		return textInput;
-	}
+
 	
 	me.getSatelliteOrbit = function(numSats)
 	{
@@ -153,6 +233,8 @@ function world()
 	
 	me.numSats = function()
 	{
+		if(me.tcs.has("Tz") && TZ_NO_SAT)
+			return -1;
 		switch(me.zone)
 		{
 			case "H": return dice(1)-4;
@@ -324,16 +406,30 @@ function world()
 	
 	me.gravity = function()
 	{
-		var g = me.mass() * (64 / Math.pow(me.uwp.size,2));
-		g = Math.round(g*100)/100;
+		var g = 0;
+		if(me.uwp.size == 0)
+			g = me.mass() * (162358564 / Math.pow(me.diameter(),2));
+		else
+			g = me.mass() * (64 / Math.pow(me.uwp.size,2));
+		if(g > 0.1)
+			g = Math.round(g*100)/100;
+		else
+			g = Math.round(g*10000)/10000;
 		return g
 	}
 	
 	me.mass = function()
 	{
-		var vol = Math.pow(me.uwp.size/8,3); // in earth volumes
+		var vol = 0;
+		if(me.uwp.size == 0)
+			vol = Math.pow(me.diameter()/12742,3);
+		else
+			vol = Math.pow(me.uwp.size/8,3); // in earth volumes
 		var mass = vol*me.density();
-		mass = Math.round(mass*1000)/1000;
+		if(mass > 0.1)
+			mass = Math.round(mass*1000)/1000;
+		else
+			mass = Math.round(mass*100000)/100000;
 		return mass;
 	}
 	
@@ -365,6 +461,7 @@ function world()
 					densityTypeTbl.DM += 6;
 			}
 			DENSITY_TYPE = densityTypeTbl.roll();
+			
 		}
 		return DENSITY_TYPE;
 	}
@@ -394,18 +491,22 @@ function world()
 	}
 	
 	var SEASON_SUMMER_PLUS;
-	me.seasonSummerPlus = function()
+	me.seasonSummerPlus = function(reCalc)
 	{
-		if(SEASON_SUMMER_PLUS)
+		if(arguments.length < 1)
+			reCalc = false;
+		if(SEASON_SUMMER_PLUS && !reCalc)
 			return SEASON_SUMMER_PLUS;
 		SEASON_SUMMER_PLUS = me.axialTilt()*0.6;
 		return SEASON_SUMMER_PLUS;
 	}
 	
 	var SEASON_WINTER_MINUS;
-	me.seasonWinterMinus = function()
+	me.seasonWinterMinus = function(reCalc)
 	{
-		if(SEASON_WINTER_MINUS)
+		if(arguments.length < 1)
+			reCalc = false;
+		if(SEASON_WINTER_MINUS && !reCalc)
 			return SEASON_WINTER_MINUS;
 		SEASON_WINTER_MINUS = me.axialTilt();
 		return SEASON_WINTER_MINUS;
@@ -428,15 +529,15 @@ function world()
 	}
 	
 	var ROTATIONAL_PERIOD;
-	me.rotationalPeriod = function()
+	me.rotationalPeriod = function(reCalc)
 	{
-		if(ROTATIONAL_PERIOD)
+		if(arguments.length < 1)
+			reCalc = false;
+		if(ROTATIONAL_PERIOD && !reCalc)
 			return ROTATIONAL_PERIOD;
-		var lockPeriod = me.isSatellite ? me.orbitalPeriod()*28*24 : me.orbitalPeriod()*365*24;
+		ROTATIONAL_PERIOD = 0;
 		if(me.tcs.has("Tz") || me.tcs.has("Lk"))
-		{
-			ROTATIONAL_PERIOD = lockPeriod;
-		}
+			ROTATIONAL_PERIOD = me.lockPeriod();
 		else
 		{
 			ROTATIONAL_PERIOD = (dice(2)-2)*4+5;
@@ -449,15 +550,27 @@ function world()
 			if(ROTATIONAL_PERIOD >= 40)
 			{
 				var extrFnc = new dice_table(ROTATION_PERIOD_EXTREME_TABLE).roll();
-				ROTATIONAL_PERIOD *= extrFnc();
+				if(extrFnc())
+					ROTATIONAL_PERIOD *= extrFnc();
 			}
-			if(ROTATIONAL_PERIOD > lockPeriod || -ROTATIONAL_PERIOD < -lockPeriod)
-			{
-				ROTATIONAL_PERIOD = lockPeriod;
-				me.isSatellite ? me.tcs.add("Lk") : me.tcs.add("Tz");
-			}
+			me.lockCheck();
 		}
+		ROTATIONAL_PERIOD = Math.floor(ROTATIONAL_PERIOD*100)/100;
 		return ROTATIONAL_PERIOD;
+	}
+	
+	me.lockPeriod = function()
+	{
+		return me.isSatellite ? me.orbitalPeriod()*28*24 : me.orbitalPeriod()*365*24;
+	}
+	
+	me.lockCheck = function()
+	{
+		if(ROTATIONAL_PERIOD > me.lockPeriod() || -ROTATIONAL_PERIOD < -me.lockPeriod())
+		{
+			ROTATIONAL_PERIOD = me.lockPeriod();
+			me.isSatellite ? me.tcs.add("Lk") : me.tcs.add("Tz");
+		}		
 	}
 	
 	var MAX_DAY_PLUS_TEMP;
@@ -479,19 +592,36 @@ function world()
 	}
 	
 	var DAY_PLUS_TEMP;
-	me.dayPlus = function()
+	me.dayPlus = function(reCalc)
 	{
-		if(DAY_PLUS_TEMP)
+		if(arguments.length < 1)
+			reCalc = false;
+		if(DAY_PLUS_TEMP && !reCalc)
 			return DAY_PLUS_TEMP;
+		DAY_PLUS_TEMP = 0;
+		if(me.tcs.has("Tz"))
+		{
+			DAY_PLUS_TEMP = me.maxDayPlus();
+			return DAY_PLUS_TEMP;
+		}
+
 		DAY_PLUS_TEMP = Math.min(me.maxDayPlus(),Math.abs(me.rotationalPeriod())/2*me.atmosPressureTable().day_plus);
 		return DAY_PLUS_TEMP;
 	}
 	
 	var NIGHT_MINUS_TEMP;
-	me.nightMinus = function()
+	me.nightMinus = function(reCalc)
 	{
-		if(NIGHT_MINUS_TEMP)
+		if(arguments.length < 1)
+			reCalc = false;
+		if(NIGHT_MINUS_TEMP && !reCalc)
 			return NIGHT_MINUS_TEMP;
+		NIGHT_MINUS_TEMP = 0;
+		if(me.tcs.has("Tz"))
+		{
+			NIGHT_MINUS_TEMP = me.maxNightMinus();
+			return NIGHT_MINUS_TEMP;
+		}
 		NIGHT_MINUS_TEMP = Math.max(me.maxNightMinus(),Math.abs(me.rotationalPeriod())/2*me.atmosPressureTable().night_minus);
 		return NIGHT_MINUS_TEMP;
 	}
@@ -527,7 +657,7 @@ function world()
 				ATMOS_PRESSURE_TABLE = ATM_PRESSURE_VTHIN;
 				break;
 			case 15:
-				ATMOS_PRESSURE_TABLE = ATM_PRESSURE_TABLE[d10()];
+				ATMOS_PRESSURE_TABLE = ATM_PRESSURE_TABLE[d10()-1];
 				break;
 			default:
 				ATMOS_PRESSURE_TABLE = ATM_PRESSURE_TABLE[me.uwp.atmos];
@@ -577,7 +707,7 @@ function world()
 					ATMOS_PRESSURE_TABLE = atmosObj.pressure;
 					ATMOS_PRESSURE = new dice_table(ATMOS_PRESSURE_TABLE).roll();
 				}
-				ATMOS_COMPOSITION += me.getGasMix().description();
+				ATMOS_COMPOSITION += me.getGasMix(atmosObj.irritant).description();
 				break;
 			case 11:
 				var t = me.calcTemperatureC();
@@ -602,29 +732,35 @@ function world()
 	}
 	
 	var GAS_MIX_DETAIL;
-	me.getGasMix = function()
+	me.getGasMix = function(irritantFlag)
 	{
+		if(arguments.length < 1 || irritantFlag === null)
+			irritantFlag = false;
+		else
+			irritantFlag = true;
 		if(GAS_MIX_DETAIL)
 			return GAS_MIX_DETAIL;
-		GAS_MIX_DETAIL = new gasMix(me);
+		GAS_MIX_DETAIL = new gasMix(me, irritantFlag);
 		return GAS_MIX_DETAIL;
 	}
 	
 	var FLUID_DETAIL;
 	me.getFluid = function()
 	{
+		var f_obj;
 		if(FLUID_DETAIL)
 			return FLUID_DETAIL;
 		if(me.uwp.atmos < 10 || me.uwp.atmos > 12)
-			FLUID_DETAIL = LIQUID_H2O;
+			f_obj = LIQUID_H2O;
 		else
 		{
 			var randomRoll = dice(2);
 			if(me.uwp.atmos == 10 && randomRoll > 9)
-				FLUID_DETAIL = LIQUID_H2O;
+				f_obj = LIQUID_H2O;
 			else
-				FLUID_DETAIL = me.getGasMix().assoc_liquid();
+				f_obj = me.getGasMix().assoc_liquid();
 		}
+		FLUID_DETAIL = f_obj.name;
 		return FLUID_DETAIL;
 	}
 	
@@ -641,9 +777,11 @@ function world()
 	}
 
 	var STRESS_FACTOR;
-	me.getStress = function()
+	me.getStress = function(reCalc)
 	{
-		if(STRESS_FACTOR)
+		if(arguments.length < 1)
+			reCalc = false;
+		if(STRESS_FACTOR && !reCalc)
 			return STRESS_FACTOR;
 		STRESS_FACTOR = dice(1)-3;
 		if(me.densityType().name == "Molten Core")
@@ -657,9 +795,10 @@ function world()
 		}
 		else
 		{
-			for(var i=0;i<me.satelliteSystem.orbits.length;i++)
-				if(me.satelliteSystem.orbits[i].contents.constructor.name != "ring")
-					STRESS_FACTOR += me.satelliteSystem.orbits[i].contents.diameter() / (me.satelliteSystem.orbits[i].baseOrbit.m*64);
+			if(me.satelliteSystem)
+				for(var i=0;i<me.satelliteSystem.orbits.length;i++)
+					if(me.satelliteSystem.orbits[i].contents.constructor.name != "ring")
+						STRESS_FACTOR += me.satelliteSystem.orbits[i].contents.diameter() / (me.satelliteSystem.orbits[i].baseOrbit.m*64);
 			STRESS_FACTOR += me.orbit.set.centralStar.mass / me.orbit.orbitDistance();
 		}
 		STRESS_FACTOR = Math.round(Math.max(0, STRESS_FACTOR));
@@ -679,6 +818,11 @@ function world()
 	{
 		if(NATIVE_LIFE)
 			return NATIVE_LIFE;
+		if(me.nativeIntLife.type.natives)
+		{
+			NATIVE_LIFE = true;
+			return NATIVE_LIFE;
+		}
 		var nativeLifeTbl = new dice_table(NATIVE_LIFE_TBL,me.uwp);
 		nativeLifeTbl.DM += (me.calcTemperatureC() < -20 || me.calcTemperatureC()) > 30 ? -1 : 0;
 		if(me.isSatellite)
@@ -700,70 +844,8 @@ function world()
 	{
 		if(RESOURCES)
 			return RESOURCES;
-		RESOURCES = [];
-		var n = 0;
-		for(var i=0;i<RESOURCES_ALL.length;i++)
-		{
-			var numObj = RESOURCES_ALL[i].number;
-			switch(me.densityType())
-			{
-				case "Heavy Core":
-				case "Molten Core":
-					n += numObj.molten;
-					break;				
-				case "Rocky Body":
-					n += numObj.rocky;
-					break;
-				case "Icy Body":
-					n += numObj.icy;
-					break;
-			}
-			if(me.uwp.atmos > 3 && me.uwp.atmos < 10)
-				n += numObj.atmos_good;
-			else
-				n += numObj.atmos_bad;
-			switch(me.uwp.popul)
-			{
-				case 0:
-				case 1:
-				case 2:
-				case 3:
-				case 4:
-					n += numObj.pop_low;
-					break;
-				default:
-					n += numObj.pop_good;
-			}
-			switch(me.uwp.TL)
-			{
-				case 0:
-				case 1:
-				case 2:
-				case 3:
-					n += numObj.tl_low;
-					break;
-				case 4:
-				case 5:
-				case 6:
-					n += numObj.tech_low_mid;
-					break;
-				case 7:
-				case 8:
-				case 9:
-				case 10:
-				case 11:
-					n += numObj.tech_up_mid;
-					break;
-				default:
-					n += numObj.tech_hi;
-			}
-			if(me.nativeLife())
-				n += numObj.life;
-			else
-				n += numObj.no_life;
-			if(dice(2) < n)
-				RESOURCES.push(RESOURCES_ALL[i]);
-		}
+		RESOURCES = new worldResources(me);
+		RESOURCES.generate();
 		return RESOURCES;
 	}
 
@@ -808,9 +890,11 @@ function world()
 	}
 	
 	var TEMP_TABLE;
-	me.temperatureTbl = function()
+	me.temperatureTbl = function(reCalc)
 	{
-		if(TEMP_TABLE)
+		if(arguments.length < 1)
+			reCalc = false;
+		if(TEMP_TABLE && !reCalc)
 			return TEMP_TABLE;
 		TEMP_TABLE = [];
 		var seasonTbl = me.getSeasonTable();
@@ -821,12 +905,12 @@ function world()
 								avg:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i]) + "&deg;C", 
 								summer:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + seasonTbl[i]*me.seasonSummerPlus()) + "&deg;C", 
 								winter:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] - seasonTbl[i]*me.seasonWinterMinus()) + "&deg;C",
-								avg_day:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + me.dayPlus()) + "&deg;C", 
-								avg_night:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + me.nightMinus()) + "&deg;C", 
-								summer_day:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + seasonTbl[i]*me.seasonSummerPlus() + me.dayPlus()) + "&deg;C",
-								summer_night:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + seasonTbl[i]*me.seasonSummerPlus() + me.nightMinus()) + "&deg;C", 
-								winter_day:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] - seasonTbl[i]*me.seasonWinterMinus() + me.dayPlus()) + "&deg;C", 
-								winter_night:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] - seasonTbl[i]*me.seasonWinterMinus() + me.nightMinus()) + "&deg;C" };
+								avg_day:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + me.dayPlus(reCalc)) + "&deg;C", 
+								avg_night:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + me.nightMinus(reCalc)) + "&deg;C", 
+								summer_day:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + seasonTbl[i]*me.seasonSummerPlus() + me.dayPlus(reCalc)) + "&deg;C",
+								summer_night:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] + seasonTbl[i]*me.seasonSummerPlus() + me.nightMinus(reCalc)) + "&deg;C", 
+								winter_day:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] - seasonTbl[i]*me.seasonWinterMinus() + me.dayPlus(reCalc)) + "&deg;C", 
+								winter_night:me.boundTemp(me.calcTemperatureC() + latitudeTbl[i] - seasonTbl[i]*me.seasonWinterMinus() + me.nightMinus(reCalc)) + "&deg;C" };
 		}
 		return TEMP_TABLE;
 	}
@@ -836,8 +920,12 @@ function world()
 		return Math.round(Math.min(me.maxDayPlus() + me.calcTemperatureC(), Math.max(temperature, me.calcTemperatureC() + me.maxNightMinus())));
 	}
 	
-	me.temperatureTblHTML = function()
+	me.temperatureTblHTML = function(reCalc)
 	{
+		if(arguments.length < 1)
+			reCalc = false;
+		if(me.uwp.size == 0)
+			return null;
 		var tempTable = document.createElement("TABLE");
 		var hdrRow = document.createElement("TR");
 		var metaData;
@@ -861,7 +949,7 @@ function world()
 						{title:"Winter Day",contents:"winter_day"},
 						{title:"Winter Night",contents:"winter_night"}];			
 		}
-		var tempData = me.temperatureTbl();
+		var tempData = me.temperatureTbl(reCalc);
 		if(tempData[0].row == 0)
 			tempData.reverse();
 		for(var i=0;i<metaData.length;i++)
@@ -896,48 +984,7 @@ function world()
 			}
 		return tempTable;
 	}
-	
-	me.detailsDiv = function()
-	{
-		var userSeed = document.getElementById("seed").value;
-		var seedUsed = parseInt(userSeed);
-		if(userSeed && !isNaN(seedUsed))
-			init_rng(seedUsed);
-		else
-		{
-			seedUsed = Date.now() >>> 0;
-		}
-		document.getElementById("seed").value = seedUsed;
-		clearAll();
-		var allDetails = me.details();
-		var d = document.createElement("DIV");
-		for(var i=0;i<allDetails.length;i++)
-		{
-			addHeading(d, allDetails[i].title);
-			if(allDetails[i].contents.constructor.name == "String" || allDetails[i].contents.constructor.name == "uwp" )
-				addText(d, allDetails[i].contents);
-			else
-				d.appendChild(allDetails[i].contents);
-
-		}
-		document.body.appendChild(d);
-	}
-	
-	function addHeading(div, s)
-	{
-		var heading = document.createElement("H2");
-		heading.className = "guidelines";
-		heading.innerHTML = s;
-		div.appendChild(heading);
-	}
-	
-	function addText(div, s)
-	{
-		var para = document.createElement("P");
-		para.innerHTML = s;
-		div.appendChild(para);
-	}
-	
+		
 	function clearAll()
 	{
 		TEMP_TABLE = false;
@@ -975,6 +1022,219 @@ function world()
 		//CALC_ALBEDO = false;
 		WORLD_DIAMETER = false;
 	}
+	
+	var all_details = [
+	{id:"world_name_edit",units:function() {return false},name:"World Name",contents:function() { return (me.name ? me.name : ("Unnamed " + me.generationObject.name)) },validate:function(s) { return s != ""; }, text_string:function() { return me.name;} ,update:function(v) {me.name = v;}, data_string:function() { return me.name; } },
+	{id:"orbit_text", units:function() {return false}, name:"Orbit",contents:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, text_string:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number();}, data_string:function() { return this.text_string(); }},
+	{id:"orbit_distance", units:function() { return (me.isSatellite ? "km" : "AU"); }, name:"Orbital Distance",contents:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, text_string:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, data_string:function() { return me.orbit.orbitDistance(); } },
+	{id:"diameter_edit", units:function() { return "km"; }, name:"Diameter", contents:function() { return me.diameter(); }, validate:function(s){ return !isNaN(parseInt(s)) && parseInt(s) < 1.61*(me.uwp.size*1000 + 500) && parseInt(s) > 1.61*(me.uwp.size*1000 - 500);}, text_string:function() {return me.diameter() + " km"},update:function(v) { WORLD_DIAMETER = v; }, data_string:function() { return me.diameter(); }},
+	{id:"jump_point_edit", units:function() { return "km"; }, name:"Jump Point distance", contents:function() { return me.jumpPoint(); }, validate:function() { return true; }, text_string:function() { return me.jumpPoint() + " km" }, update:function() { me.jumpPoint(); }, data_string:function() { return me.jumpPoint(); }},
+	{id:"jump_point_times",units:function() { return false; }, name:"Time to Jump Point at ...", contents:function() { return me.jumpPointTimes(); }, validate:function() { return true; }, text_string:function() { return me.jumpPointTimes(false); }, update:function() { me.jumpPointTimes(); }, data_string:function() { return this.text_string(); } },
+	{id:"density_type",units:function() { return false; }, name:"Density Type", contents:function() { return me.densityType().name }, validate:function() {return [WORLD_DENSITY_HEAVY_CORE_TABLE.name, WORLD_DENSITY_MOLTEN_CORE_TABLE.name, WORLD_DENSITY_ROCKY_BODY_TABLE.name, WORLD_DENSITY_ICY_BODY_TABLE.name]; }, text_string:function() { return me.densityType().name }, update:function(v) { DENSITY_TYPE = WORLD_DENSITY_TYPES_ALL.find(function(x) { return x.name == v; }) }, data_string:function() { return this.text_string(); }	},
+	{id:"density_edit",units:function() { return "Earth"; }, name:"Density", contents:function() { return me.density() }, validate:function(s) { return !isNaN(parseFloat(s)) }, text_string:function() { return me.density() + " Earth"; }, update:function(v) { WORLD_DENSITY = v; }, data_string:function() { return me.density(); } },
+	{id:"mass_text",units:function() { return "Earth"; },name:"Mass", contents:function() { return me.mass() },  validate:null, text_string:function() { return me.mass() + " Earth" }, update:null, data_string:function() { return me.mass(); } }, 
+	{id:"gravity_text",units:function() { return "G"; },name:"Surface Gravity (G)", contents:function() { return me.gravity() },  validate:function(s) { return !isNaN(parseFloat(s));}, text_string:function() { return me.gravity() + " G"}, update:null, data_string:function() { return me.gravity(); } },
+	{id:"rotational_period_edit",units:function() { return "hours"; }, name:"Rotation Period", contents:function() { if(me.tcs.has("Tz") || me.tcs.has("Lk")) document.getElementById(this.id).readOnly = true; else document.getElementById(this.id).readOnly = false; return me.rotationalPeriod(); }, validate:function(s) { return !isNaN(parseFloat(s));}, text_string:function() { return rotationPeriodString()}, update:function(v) { ROTATIONAL_PERIOD = v; me.lockCheck(); }, data_string:function() { return me.rotationalPeriod(); } },
+	{id:"orbital_period_text",units:function() { return "years"; }, name:"Orbital Period", contents:function() { return orbitalPeriodString(); },  validate:function(s) { return !isNaN(parseFloat(s));}, text_string:function() { return orbitalPeriodString()}, update:null, data_string:function() { return me.orbitalPeriod(); } },
+	{id:"tilt_edit",units:function() { return "degrees"; }, name:"Axial Tilt", contents:function() { return me.axialTilt() }, validate:function(s) { return !isNaN(parseInt(s));}, text_string:function() { return me.axialTilt() & "&deg;"}, update:function(v) { AXIAL_TILT = v; }, data_string:function() { return me.axialTilt(); }},
+	{id:"atmos_pressure_edit",units:function() { return "Atmospheres"; }, name:"Surface Atmospheric Pressure", contents:function() { return me.atmosPressure() }, validate:function(s) { return !isNaN(parseFloat(s)); }, text_string:function() { return me.atmosPressure() + "Atm" }, update:function(v) { ATMOS_PRESSURE = v; }, data_string:function() { return me.atmosPressure(); }},
+	{id:"atmos_compo_edit",units:function() { return false; }, name:"Atmosphere Composition", contents:function() { return me.atmosComposition() }, validate:function(s) { return s != "" }, text_string:function() { return me.atmosComposition()}, update:function(v) { ATMOS_COMPOSITION = v }, data_string:function() { return me.atmosComposition(); }},
+	{id:"albedo_edit",units:function() { return false; }, name:"Albedo", contents:function() { return me.albedo() }, validate:function(s) { return !isNaN(parseInt(s)) }, text_string:function() { return me.albedo().toString() }, update:function(v) { CALC_ALBEDO = v; }, data_string:function() { return me.albedo(); } },
+	{id:"greenhouse_edit",units:function() { return false; }, name:"Greenhouse", contents:function() { return me.greenhouse() }, validate:function(s) { return !isNaN(parseInt(s)) }, text_string:function() { return me.greenhouse().toString() }, update: function(v) { CALC_GREEN_HOUSE = v }, data_string:function() { return me.greenhouse(); } },
+	{id:"base_world_temp_text",units:function() { return "degrees Celsius"; }, name:"Base Surface Temperature", contents:function() { return me.calcTemperatureC() + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC()) + "&deg;C"}, update:function() {me.calcTemperatureC()}, data_string:function() { return me.calcTemperatureC(); } },
+	{id:"average_day_temp_text",units:function() { return "degrees Celsius"; }, name:"Base Daytime temperature", contents:function() { return Math.round(me.calcTemperatureC() + me.dayPlus()) + "&deg;C"; },  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.dayPlus()) + "&deg;C"}, update:function() { me.dayPlus(); }, data_string:function() { return Math.round(me.calcTemperatureC() + me.dayPlus()); } },
+	{id:"average_night_temp_text",units:function() { return "degrees Celsius"; }, name:"Base Nighttime temperature", contents:function() { return Math.round(me.calcTemperatureC() + me.nightMinus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.nightMinus()) + "&deg;C"}, update:function() { me.nightMinus() }, data_string:function() { return Math.round(me.calcTemperatureC() + me.nightMinus()); } },
+	{id:"summer_increase_text",units:function() { return "degrees Celsius"; }, name:"Summer temperature increase", contents:function() { return Math.round(me.seasonSummerPlus(true))  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.seasonSummerPlus(true)) + "&deg;C"}, update:function() { me.seasonSummerPlus(); }, data_string:function() { return Math.round(me.seasonSummerPlus(false)); } },
+	{id:"winter_decrease_text",units:function() { return "degrees Celsius"; }, name:"Winter temperature decrease", contents:function() { return Math.round(me.seasonWinterMinus(true))  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.seasonWinterMinus()) + "&deg;C"}, update:function() { me.seasonWinterMinus() }, data_string:function() { return Math.round(me.seasonWinterMinus()); } },
+	{id:"highest_day_temperature_text",units:function() { return "degrees Celsius"; }, name:"Upper Temperature Limit", contents:function() { return Math.round(me.calcTemperatureC() + me.maxDayPlus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.maxDayPlus()) + "&deg;C"}, update:function() { me.maxDayPlus(); }, data_string:function() { return Math.round(me.calcTemperatureC() + me.maxDayPlus()); } },
+	{id:"coldest_night_temperature_text",units:function() { return "degrees Celsius"; }, name:"Lower Temperature Limit", contents:function() { return Math.round(me.calcTemperatureC() + me.maxNightMinus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.maxNightMinus()) + "&deg;C"}, update:function() { me.maxNightMinus() }, data_string:function() { return Math.round(me.calcTemperatureC() + me.maxNightMinus()); } },
+	{id:"hydro_perc_edit",units:function() { return "Percentage"; }, name:"Hydrographic Percentage", contents:function() { return me.getHydroPercentage() + "%";}, validate:function(s) { return !isNaN(parseInt(s))}, text_string:function() { return me.getHydroPercentage() + "%"}, update:function(v) { HYDRO_PERCENTAGE = v; }, data_string:function() { return me.getHydroPercentage(); }},
+	{id:"liq_comp_edit",units:function() { return false; }, name:"Surface Liquid Composition", contents:function() { return me.getFluid() }, validate:function() { return true; }, text_string:function() { return me.getFluid(); }, update:function(v) { FLUID_DETAIL = v }, data_string:function() { return me.getFluid(); } },
+	{id:"native_life_select",units:function() { return false; }, name:"Native Life", contents:function() { return me.nativeLife() ? "Yes" : "No" }, update:function(v) { v == "Yes" ? NATIVE_LIFE = true : NATIVE_LIFE = false }, text_string:function() { return me.nativeLife() ? "Yes" : "No" }, data_string:function() { return me.nativeLife() ? "Yes" : "No"; }},
+	{id:"native_int_life_text",units:function() { return false; }, name:"Native Intelligent Life", contents:function() { return me.nativeIntLife.toString() }, update:function() { me.nativeIntLife.generate(); }, text_string:function() { return me.nativeIntLife.toString(); }, data_string:function() { return me.nativeIntLife.toString(); } },
+	{id:"seismic_edit",units:function() { return false; }, name:"Seismic Stress", contents:function() { return me.getStress() }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return "Stress factor is " + me.getStress() + "<br />Occurence of a volcanic eruption or earthquake in a 24-hour period:<br />Formidable (4D) < " + (me.getStress() - 4) + "<br /><b>Note:</b> DM -2 if on a Volcano hex, DM -2 if on a fault line."}, update:function(v) { STRESS_FACTOR = v; }, data_string:function() { return me.getStress(); }}
+	];
+	
+	all_details.map(function(item, index) { ALL_DETAILS[index] = item.name; });
+	
+	me.all_details = all_details;
+	
+	me.dbObj = function()
+	{
+		var o = {};
+		o.name = me.name;
+		o.uwp = me.uwp.dbObj();
+		o.tcs = me.tcs.dbObj();
+		o.isMainWorld = me.isMainWorld;
+		o.generationObject = me.generationObject.name;
+		o.nil = me.nativeIntLife.dbObj();
+		o.diameter = me.diameter();
+		o.densityType = me.densityType().name;
+		o.density = me.density();
+		o.rotationalPeriod = me.rotationalPeriod();
+		o.axialTilt = me.axialTilt();
+		o.atmosPressure = me.atmosPressure();
+		o.atmosComposition = me.atmosComposition();
+		o.albedo = me.albedo();
+		o.greenhouse = me.greenhouse();
+		o.hydroPercentage = me.getHydroPercentage();
+		o.surfaceLiquid = me.getFluid();
+		o.nativeLife = me.nativeLife();
+		o.stressFactor = me.getStress();
+		o.standardSeed = me.standardSeed;		
+		o.populLimit = me.populLimit;
+		o.isSatellite = me.isSatellite;
+		o.zone = me.zone;
+		o.system = me.isMainWorld ? me.name : me.mainWorld.name;
+		o.sector = me.sector;
+		o.hex = me.hex;
+		if(me.satelliteSystem)
+			o.satelliteSystem = me.satelliteSystem.dbObj();
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.name = o.name;
+		me.isMainWorld = o.isMainWorld;
+		me.standardSeed = o.standardSeed;
+		me.generationObject = ALL_GENERATION_OBJECTS.find(function(v) { return v.name == o.generationObject });
+		me.populLimit = o.populLimit;
+		WORLD_DIAMETER = o.diameter;
+		DENSITY_TYPE = WORLD_DENSITY_TYPES_ALL.find(function(x) { return x.name == o.densityType; });
+		WORLD_DENSITY = o.density;
+		ROTATIONAL_PERIOD = o.rotationalPeriod;
+		AXIAL_TILT = o.axialTilt;
+		ATMOS_PRESSURE = o.atmosPressure;
+		ATMOS_COMPOSITION = o.atmosComposition;
+		CALC_ALBEDO = o.albedo;
+		CALC_GREEN_HOUSE = o.greenhouse;
+		HYDRO_PERCENTAGE = o.hydroPercentage;
+		FLUID_DETAIL = o.surfaceLiquid;
+		NATIVE_LIFE = o.nativeLife;
+		STRESS_FACTOR = o.stressFactor
+		me.uwp = new uwp(me);
+		me.uwp.read_dbObj(o.uwp);
+		me.tcs = new tcs(me);
+		me.tcs.read_dbObj(o.tcs);
+		me.nativeIntLife = new nil(me);
+		me.nativeIntLife.read_dbObj(o.nil);
+		me.isSatellite = o.isSatellite;
+		me.zone = o.zone;
+		me.system = o.system;
+		me.sector = o.sector;
+		me.hex = o.hex;
+		if(o.satelliteSystem)
+		{
+			me.satelliteSystem = new satelliteOrbitSet(me);
+			me.satelliteSystem.read_dbObj(o.satelliteSystem);
+		}
+
+	}
+}
+
+function worldResources(world)
+{
+	var me = this;
+	me.world = world;
+	me.resourceList = [];
+	
+	me.generate = function()
+	{
+		for(var i=0;i<RESOURCES_ALL.length;i++)
+		{
+			var n = 0;
+			var numObj = RESOURCES_ALL[i].number;
+			switch(me.world.densityType())
+			{
+				case "Heavy Core":
+				case "Molten Core":
+					n += numObj.molten;
+					break;				
+				case "Rocky Body":
+					n += numObj.rocky;
+					break;
+				case "Icy Body":
+					n += numObj.icy;
+					break;
+			}
+			if(me.world.uwp.atmos > 3 && me.world.uwp.atmos < 10)
+				n += numObj.atmos_good;
+			else
+				n += numObj.atmos_bad;
+			switch(me.world.uwp.popul)
+			{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					n += numObj.pop_low;
+					break;
+				default:
+					n += numObj.pop_good;
+			}
+			switch(me.world.uwp.TL)
+			{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+					n += numObj.tl_low;
+					break;
+				case 4:
+				case 5:
+				case 6:
+					n += numObj.tech_low_mid;
+					break;
+				case 7:
+				case 8:
+				case 9:
+				case 10:
+				case 11:
+					n += numObj.tech_up_mid;
+					break;
+				default:
+					n += numObj.tech_hi;
+			}
+			if(me.world.nativeLife())
+				n += numObj.life;
+			else
+				n += numObj.no_life;
+			if(dice(2) <= n)
+				me.resourceList.push(RESOURCES_ALL[i]);
+		}
+		return me.resourceList;
+	}
+	
+	me.add = function(resource)
+	{
+		if(me.resourceList.find(function(v) { return v.name == resource.name }) === undefined)
+			me.resourceList.push(resource);
+	}
+	
+	me.erase = function(resource)
+	{
+		var i = me.resourceList.findIndex(function(v) { return v.name == resource.name });
+		if(i !== undefined)
+			me.resourceList.splice(i,1);
+	}
+	
+	me.has = function(resourceID)
+	{
+		return me.resourceList.find(function(v) { return v.id == resourceID }) !== undefined;
+	}
+	
+	me.toString = function()
+	{
+		var s = "The world has ";
+		var r = me.resourceList;
+		if(r.length == 0) return "None.";
+		for(var i=0;i<r.length-1;i++)
+			s += r[i].name + " (for example " + r[i].examples + "); ";
+		s += "and " + r[i].name + " (for example " + r[i].examples + ").";
+		return s;
+	}
 }
 
 function mainWorld(generationObject)
@@ -997,7 +1257,7 @@ function mainWorld(generationObject)
 	me.culturalExt = new cX(me);
 	me.noblesExt = new nobles(me);
 	me.worlds = 0;
-	me.allegience = "Im";
+	me.allegiance = "Im";
 	me.stars = new starSystem(me);
 	me.nativeIntLife = new nil(me);
 	me.standardSeed = "";
@@ -1032,7 +1292,7 @@ function mainWorld(generationObject)
 		newURL += "&" + encodeURIComponent("cX") + "=" + encodeURIComponent(me.culturalExt);
 		newURL += "&" + encodeURIComponent("nobz") + "=" + encodeURIComponent(me.noblesExt);
 		newURL += "&" + encodeURIComponent("worlds") + "=" + encodeURIComponent(me.worlds);
-		newURL += "&" + encodeURIComponent("allegience") + "=" + encodeURIComponent(me.allegience);
+		newURL += "&" + encodeURIComponent("allegiance") + "=" + encodeURIComponent(me.allegiance);
 		newURL += "&" + encodeURIComponent("stellar") + "=" + encodeURIComponent(me.stars);
 		newURL += "&" + encodeURIComponent("seed") + "=" + encodeURIComponent(me.standardSeed);
 		newURL += "&" + encodeURIComponent("genMissData") + "=" + encodeURIComponent(0);
@@ -1053,7 +1313,7 @@ function mainWorld(generationObject)
 		me.noblesExt.generate();
 		me.worlds = dice(2);
 		me.stars.generate();
-		me.nil.generate();
+		me.nativeIntLife.generate();
 		me.system = me.name;
 	}
 		
@@ -1100,7 +1360,7 @@ function mainWorld(generationObject)
 		s += me.travelZone + " ";
 		s += me.popMulti + "" + me.belts + "" + me.gas_giants + " ";
 		s += pad(me.worlds,3);
-		s += pad(me.allegience,5);
+		s += pad(me.allegiance,5);
 		s += me.stars;
 		return s;
 	}
@@ -1128,8 +1388,9 @@ function mainWorld(generationObject)
 		me.belts = parseInt(s.substr(111,1));
 		me.gas_giants = parseInt(s.substr(112,1));
 		me.worlds = parseInt(s.substr(114,2).trim());
-		me.allegience = s.substr(117,4);
+		me.allegiance = s.substr(117,4);
 		me.stars.readString(s.substr(122));
+		me.nativeIntLife.generate();
 	}
 	
 	me.readTabDelimited = function(s)
@@ -1147,7 +1408,7 @@ function mainWorld(generationObject)
 		me.popMulti = parseInt(dataArray[8].substr(0,1));
 		me.belts = parseInt(dataArray[8].substr(1,1));
 		me.gas_giants = parseInt(dataArray[8].substr(2,1));
-		me.allegience = dataArray[9];
+		me.allegiance = dataArray[9];
 		me.stars.readString(dataArray[10]);
 		me.iX = parseInt(dataArray[11].substr(2,2));
 		if(isNaN(me.iX))
@@ -1159,6 +1420,7 @@ function mainWorld(generationObject)
 		me.noblesExt = new nobles(me);
 		me.noblesExt.readString(dataArray[14]);
 		me.worlds = parseInt(dataArray[15].trim());
+		me.nativeIntLife.generate();
 	}
 
 	me.readDataObj = function(dataObj)
@@ -1181,7 +1443,7 @@ function mainWorld(generationObject)
 		me.gas_giants = parseInt(dataObj.pbg.substr(2,1));
 		if(isNaN(me.gas_giants))
 			me.gas_giants = 0;
-		me.allegience = dataObj.allegiance;
+		me.allegiance = dataObj.allegiance;
 		me.stars.readString(dataObj.stars);
 		me.iX = parseInt(dataObj.ix.substr(2,2));
 		if(isNaN(me.iX))
@@ -1193,6 +1455,52 @@ function mainWorld(generationObject)
 		me.noblesExt = new nobles(me);
 		me.noblesExt.readString(dataObj.nobility);
 		me.worlds = parseInt(dataObj.w);
+		if(isNaN(me.worlds))
+			me.worlds = dice(2);
+		else
+			me.worlds = Math.min(12,me.worlds);
+		me.nativeIntLife.generate();
+	}
+	
+	var inherited_dbObj = me.dbObj;
+	me.dbObj = function()
+	{
+		var o = inherited_dbObj();
+		o.type = "mainWorld";
+		o.travelZone = me.travelZone;
+		o.popMulti = me.popMulti;
+		o.belts = me.belts;
+		o.gas_giants = me.gas_giants;
+		o.iX = me.iX;
+		o.worlds = me.worlds;
+		o.allegiance = me.allegiance;
+		o.economicExt = me.economicExt.dbObj();
+		o.culturalExt = me.culturalExt.dbObj();
+		o.noblesExt = me.noblesExt.toString();
+		o.stars = me.stars.dbObj();
+		o.bases = me.bases.toString();
+		return o;
+	}
+	
+	var inherited_read_dbObj = me.read_dbObj;
+	me.read_dbObj = function(o)
+	{
+		inherited_read_dbObj(o);
+		me.travelZone = o.travelZone;
+		me.popMulti = o.popMulti;
+		me.belts = o.belts;
+		me.gas_giants = o.gas_giants;
+		me.iX = o.iX;
+		me.worlds = o.worlds;
+		me.allegiance = o.allegiance;
+		me.economicExt = new eX();
+		me.economicExt.read_dbObj(o.economicExt);
+		me.culturalExt = new cX();
+		me.culturalExt.read_dbObj(o.culturalExt);
+		me.noblesExt = new nobles();
+		me.noblesExt.readString(o.noblesExt);
+		me.stars = new starSystem();
+		me.stars.read_dbObj(o.stars);
 	}
 }
 
@@ -1212,18 +1520,28 @@ function minorWorld(genObject, mainWorld, planet)
 	me.hz_rel = me.isSatellite ? planet.hz_rel : 0;
 	me.satelliteMaxSize = me.isSatellite ? (planet.uwp ? planet.uwp.size : planet.size) : 20;
 	me.satelliteSystem = null;
-	me.populLimit = Math.max(0,mainWorld.uwp.popul-1);
 	me.nativeIntLife = new nil(me);
-	me.standardSeed = me.mainWorld.standardSeed;
 	me.has_MW_as_sat = false;
 	me.orbit = null;
-	me.system = mainWorld.name;
-	me.hex = mainWorld.hex;
-	me.sector = mainWorld.sector;
+	if(me.mainWorld)
+	{
+		me.system = mainWorld.name;
+		me.hex = mainWorld.hex;
+		me.sector = mainWorld.sector;
+		me.populLimit = Math.max(0,me.mainWorld.uwp.popul-1);
+		me.standardSeed = me.mainWorld.standardSeed;
+	}
 	
 	me.generate = function()
 	{
 		me.uwp.createUWP();
+		if(BARREN_SYS && me.populLimit == 0 && me.mainWorld.uwp.popul == 0)
+		{
+			me.uwp.popul = 0;
+			me.uwp.gov = 0;
+			me.uwp.law = 0;
+			me.uwp.TL = 0;
+		}
 		me.tcs.generate();
 		me.nativeIntLife.generate();
 	}
@@ -1251,11 +1569,20 @@ function minorWorld(genObject, mainWorld, planet)
 		newURL += me.buildGet();
 		return newURL;
 	}
+	
+	var inherited_dbObj = me.dbObj;
+	me.dbObj = function()
+	{
+		var o = inherited_dbObj();
+		o.type = "minorWorld";
+		return o;
+	}
 }
 
 function gasGiant(mainWorld)
 {
 	var me = this;
+	me.isMainWorld = false;
 	me.inheritFrom = world;
 	me.inheritFrom();
 	me.mainWorld = mainWorld;
@@ -1264,6 +1591,7 @@ function gasGiant(mainWorld)
 	me.uwp = "Size: " + pseudoHex(me.size);
 	me.iceGiant = false;
 	me.zone = ""; // I = inner (closer than HZ-1), H = habitable (HZ-1 to HZ+1), O = outer (further than HZ+1)
+	me.satelliteSystem = null;
 
 	me.placementTable = function()
 	{
@@ -1303,6 +1631,8 @@ function gasGiant(mainWorld)
 	
 	me.numSats = function()
 	{
+		if((me.orbit.baseOrbit == 0 || me.orbit.baseOrbit == 1) && TZ_NO_SAT)
+			return -1;
 		return dice(1)-1;
 	}
 	
@@ -1323,12 +1653,47 @@ function gasGiant(mainWorld)
 		mass = Math.round(mass*1000)/1000;
 		return mass;
 	}
+	
+	me.dbObj = function()
+	{
+		var o = {};
+		o.name = me.name;
+		o.zone = me.zone;
+		o.size = me.size;
+		o.type = "gasGiant";
+		o.gas_giant_type = me.type;
+		o.uwp = me.uwp;
+		o.iceGiant = me.iceGiant;
+		o.density = me.density();
+		o.diameter = me.diameter();
+		if(me.satelliteSystem)
+			o.satelliteSystem = me.satelliteSystem.dbObj();
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.name = o.name;
+		me.zone = o.zone;
+		me.size = o.size;
+		me.type = o.gas_giant_type;
+		me.uwp = o.uwp;
+		me.iceGiant = o.iceGiant;
+		WORLD_DIAMETER = o.diameter;
+		WORLD_DENSITY = o.density;
+		if(o.satelliteSystem)
+		{
+			me.satelliteSystem = new satelliteOrbitSet(me);
+			me.satelliteSystem.read_dbObj(o.satelliteSystem);
+		}
+	}
 
 }
 
 function ring(planet)
 {
 	var me = this;
+	me.name = "";
 	me.inheritFrom = world;
 	me.inheritFrom();
 	me.planet = planet;
@@ -1354,6 +1719,16 @@ function ring(planet)
 	me.mass = function()
 	{
 		return 0;
+	}
+	
+	me.dbObj = function()
+	{
+		return {type:"ring", name:me.name};
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.name = o.name;
 	}
 }
 
@@ -1420,7 +1795,18 @@ function uwp(worldObject)
 		s += pseudoHex(me.law);
 		s += "-" + pseudoHex(me.TL);
 		return s;
-	}	
+	}
+
+	me.dbObj = function()
+	{
+		return {port:me.port, size:me.size, atmos:me.atmos, hydro:me.hydro, popul:me.popul, gov:me.gov, law:me.law, TL:me.TL};
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		for(p in o)
+			me[p] = o[p];
+	}
 }
 
 function tcs(world)
@@ -1467,6 +1853,21 @@ function tcs(world)
 			s += "&" + encodeURIComponent("tc") + "=" + encodeURIComponent(me.classes[i]);
 		return s;
 	}
+	
+	me.dbObj = function()
+	{
+		var o = {};
+		o.classes = me.classes;
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		o.classes.map(function(tcCode) 
+							{
+								me.classes.push(tcCode);
+							});
+	}
 }
 
 function nil(worldObject)
@@ -1480,7 +1881,7 @@ function nil(worldObject)
 		me.type = null;
 		for(var i=0;i<ALL_NIL.length;i++)
 			if(ALL_NIL[i].rules(me.world))
-				me.type = ALL_TC[i];
+				me.type = ALL_NIL[i];
 	}
 	
 	me.is = function(name)
@@ -1496,6 +1897,18 @@ function nil(worldObject)
 		if(me.world.gov == 6)
 			s += "Colonist ";
 		s += me.type.name;
+		return s;
+	}
+	
+	me.dbObj = function()
+	{
+		me.generate();
+		return {name:me.type.name};
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.type = ALL_NIL.find(function(v){ return v.name == o.name });
 	}
 }
 
@@ -1635,6 +2048,17 @@ function eX(world)
 		me.infrastructure = readPseudoHex(s.substr(3,1));
 		me.efficiency = parseInt(s.substr(4,2));
 	}
+	
+	me.dbObj = function()
+	{
+		return {resources:me.resources, labour:me.labour, infrastructure:me.infrastructure, efficiency:me.efficiency};
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		for(var p in o)
+			me[p] = o[p];
+	}
 }
 
 function cX(world)
@@ -1673,6 +2097,17 @@ function cX(world)
 		me.acceptance = readPseudoHex(s.substr(2,1));
 		me.strangeness = readPseudoHex(s.substr(3,1));
 		me.symbols = readPseudoHex(s.substr(4,1));
+	}
+	
+	me.dbObj = function()
+	{
+		return {homogeneity:me.homogeneity, acceptance:me.acceptance, strangeness:me.strangeness, symbols:me.symbols};
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		for(var p in o)
+			me[p] = o[p];
 	}
 }
 
@@ -1886,6 +2321,11 @@ function star(world, isPrimary)
 		me.fao = data.fao;
 	}
 	
+	me.jumpPoint = function()
+	{
+		return Math.round(me.radius*200);
+	}
+	
 	me.toString = function()
 	{
 		if(me.spectral_size == "D")
@@ -1898,8 +2338,8 @@ function star(world, isPrimary)
 	me.toTableRow = function()
 	{
 		var row = document.createElement("TR");
-		var orbit = me.isCloseCompanion ? "Companion" : "Primary";
-		var contents = [orbit,"","","","",me.nameTextBox(),"Star",me.toString(),"Radii (Sol): " + me.radii + "  Mass (Sol): " + me.mass + "  Luminosity (Sol): " + me.luminosity];
+		var orb = me.isCloseCompanion ? "Companion" : "Primary";
+		var contents = [orb,"","","","",me.nameTextBox(),"Star",me.toString(),"Radii (Sol): " + me.radii + "  Mass (Sol): " + me.mass + "  Luminosity (Sol): " + me.luminosity];
 		for(var i=0;i<contents.length;i++)
 		{
 			var cell = document.createElement("TD");
@@ -2013,6 +2453,17 @@ function star(world, isPrimary)
 		}
 		return cells;
 	}
+	
+	me.dbObj = function()
+	{
+		return {name:me.name, spectral_size:me.spectral_size, spectral_class:me.spectral_class};
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		for(var p in o)
+			me[p] = o[p];
+	}
 }
 
 function starSystem(world)
@@ -2110,188 +2561,229 @@ function starSystem(world)
 			}
 		}
 	}
+	
+	me.dbObj = function()
+	{
+		var o = {};
+		for(var i=0;i<me.stars.length;i++)
+		{
+			if(me.stars[i])
+				o["star" + i] = me.stars[i].dbObj();
+			if(me.companions[i])
+				o["companion" + i] = me.companions[i].dbObj();
+		}
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		for(var i=0;i<4;i++)
+		{
+			if(o["star" + i] !== undefined)
+			{
+				me.stars[i] = new star();
+				me.stars[i].read_dbObj(o["star" + i]);
+			}
+			if(o["companion" + i] !== undefined)
+			{
+				me.companions[i] = new star();
+				me.companions[i].read_dbObj(o["companion" + i]);
+			}
+		}
+	}
 }
 
-function fullSystem(mainWorldObj)
+function fullSystem(mainWorldObj, generate_now)
 {
 	var me = this;
 	me.mainWorld = mainWorldObj;
 	me.stars = me.mainWorld.stars;
 	me.primary = me.stars.stars[0];
 	me.companion = me.stars.companions[0];	
-	me.orbits = new orbitSet(me.primary, me.companion);
+	me.orbits = new orbitSet(me.primary, me.companion, me.mainWorld);
 	me.orbitSets = [me.orbits];
-	STAR_COUNT = 0;
-	var precedenceCount = 1;
-	for(var i=1;i<me.stars.stars.length;i++)
-	{
-		if(!me.stars.stars[i])
-			continue;
-		var orbitNumber;
-		switch(i)
-		{
-			case 1:
-				orbitNumber = dice(1)-1;
-				break;
-			case 2:
-				orbitNumber = dice(1)+5;
-				break;
-			case 3:
-				orbitNumber = dice(1)+11;
-				break;
-		}
-		var newOrbitSet = new orbitSet(me.stars.stars[i],me.stars.companions[i]);
-		newOrbitSet.maxOrbit = orbitNumber-3;
-		newOrbitSet.description = PREC_ORDINAL[precedenceCount++];
-		me.orbitSets.push(newOrbitSet);
-		me.orbits.add(orbitNumber, newOrbitSet);
-	}	
+	me.name = me.mainWorld.name ? me.mainWorld.name + " system" : "Unnamed system";
+	me.name += me.mainWorld.sector ? (" (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")") : "";
+	me.loadKey = null;
 	
-	if(MAIN_WORLD_IS_SAT && me.mainWorld.uwp.size != 0)
-		me.mainWorld.tcs.add("Sa");
-	if(!MAIN_WORLD_IS_SAT && !MAIN_WORLD_NOT_SAT && me.mainWorld.uwp.size != 0)
+	if(arguments.length < 2)
+		generate_now = true;
+	
+	me.generate = function()
 	{
-		mwSatTbl = new dice_table(MAIN_WORLD_SATELLITE_TABLE);
-		var mwType = mwSatTbl.roll()
-		if(mwType == "Sa" || mwType == "Lk")
+		STAR_COUNT = 0;
+		var precedenceCount = 1;
+		for(var i=1;i<me.stars.stars.length;i++)
 		{
+			if(!me.stars.stars[i])
+				continue;
+			var orbitNumber;
+			switch(i)
+			{
+				case 1:
+					orbitNumber = dice(1)-1;
+					break;
+				case 2:
+					orbitNumber = dice(1)+5;
+					break;
+				case 3:
+					orbitNumber = dice(1)+11;
+					break;
+			}
+			var newOrbitSet = new orbitSet(me.stars.stars[i],me.stars.companions[i], me.mainWorld);
+			newOrbitSet.maxOrbit = orbitNumber-3;
+			newOrbitSet.description = PREC_ORDINAL[precedenceCount++];
+			me.orbitSets.push(newOrbitSet);
+			me.orbits.add(orbitNumber, newOrbitSet);
+		}	
+		
+		if(MAIN_WORLD_IS_SAT && me.mainWorld.uwp.size != 0)
 			me.mainWorld.tcs.add("Sa");
-			me.mainWorld.isSatellite = true;
-		}
-		if(mwType == "Lk")
-			me.mainWorld.tcs.add("Lk");
-	}
-	var mainWorldPlaced = false;
-	if(!MAIN_WORLD_HZ_ONLY)
-	{
-		var mwOrbitTable = new dice_table(MAIN_WORLD_ORBIT_TABLE);
-		var mwOrbit = mwOrbitTable.roll();
-	}
-	else
-		mwOrbit = 0;
-	for(i=0;i<me.orbitSets.length;i++)
-	{
-		if(me.mainWorld.uwp.size == 0)
+		if(!MAIN_WORLD_IS_SAT && !MAIN_WORLD_NOT_SAT && me.mainWorld.uwp.size != 0)
 		{
-			var mwBeltOrbitTbl = new dice_table(BELT_PLACE_TABLE);
-			var mwBeltOrbit = me.orbitSets[i].hz+mwBeltOrbitTbl.roll();
-			if(me.orbitSets[i].add(mwBeltOrbit, me.mainWorld))
+			mwSatTbl = new dice_table(MAIN_WORLD_SATELLITE_TABLE);
+			var mwType = mwSatTbl.roll()
+			if(mwType == "Sa" || mwType == "Lk")
 			{
-				mainWorldPlaced = true;
-				break;
-			}	
+				me.mainWorld.tcs.add("Sa");
+				me.mainWorld.isSatellite = true;
+			}
+			if(mwType == "Lk")
+				me.mainWorld.tcs.add("Lk");
 		}
-		if(me.mainWorld.tcs.has("Sa"))
+		var mainWorldPlaced = false;
+		if(!MAIN_WORLD_HZ_ONLY)
 		{
-			var mw_planet;
-			if(me.mainWorld.gas_giants > 0)
+			var mwOrbitTable = new dice_table(MAIN_WORLD_ORBIT_TABLE);
+			var mwOrbit = mwOrbitTable.roll();
+		}
+		else
+			mwOrbit = 0;
+		for(i=0;i<me.orbitSets.length;i++)
+		{
+			if(me.mainWorld.uwp.size == 0)
 			{
-				mw_planet = new gasGiant(me.mainWorld);
-				me.mainWorld.gas_giants--;
+				var mwBeltOrbitTbl = new dice_table(BELT_PLACE_TABLE);
+				var mwBeltOrbit = me.orbitSets[i].hz+mwBeltOrbitTbl.roll();
+				if(me.orbitSets[i].add(mwBeltOrbit, me.mainWorld))
+				{
+					mainWorldPlaced = true;
+					break;
+				}	
+			}
+			if(me.mainWorld.tcs.has("Sa"))
+			{
+				var mw_planet;
+				if(me.mainWorld.gas_giants > 0)
+				{
+					mw_planet = new gasGiant(me.mainWorld);
+					me.mainWorld.gas_giants--;
+				}
+				else
+				{
+					mw_planet = new minorWorld(bigWorldUWP, me.mainWorld);
+					mw_planet.generate();
+				}
+				if(me.orbitSets[i].add(me.orbitSets[i].hz+mwOrbit, mw_planet))
+				{
+					mainWorldPlaced = true;
+					mw_planet.satelliteSystem = new satelliteOrbitSet(mw_planet);
+					mw_planet.satelliteSystem.add(me.mainWorld);
+					mw_planet.has_MW_as_sat = true; 
+					me.mainWorld.planet = mw_planet;
+					me.mainWorld.isSatellite = true;
+					me.mainWorld.hz_rel = mw_planet.hz_rel;
+					mw_planet.satelliteSystem.generate();
+					mw_planet.satelliteSystem.sort();
+					break;
+				}
 			}
 			else
-			{
-				mw_planet = new minorWorld(bigWorldUWP, me.mainWorld);
-				mw_planet.generate();
-			}
-			if(me.orbitSets[i].add(me.orbitSets[i].hz+mwOrbit, mw_planet))
-			{
-				mainWorldPlaced = true;
-				mw_planet.satelliteSystem = new satelliteOrbitSet(mw_planet);
-				mw_planet.satelliteSystem.add(me.mainWorld);
-				mw_planet.has_MW_as_sat = true;
-				me.mainWorld.planet = mw_planet;
-				me.mainWorld.isSatellite = true;
-				me.mainWorld.hz_rel = mw_planet.hz_rel;
-				mw_planet.satelliteSystem.sort();
-				break;
-			}
+				if(me.orbitSets[i].add(me.orbitSets[i].hz+mwOrbit, me.mainWorld))
+				{
+					mainWorldPlaced = true;
+					break;
+				}
 		}
-		else
-			if(me.orbitSets[i].add(me.orbitSets[i].hz+mwOrbit, me.mainWorld))
-			{
-				mainWorldPlaced = true;
-				break;
-			}
-	}
-	if(!mainWorldPlaced)
-		me.orbitSets[0].add(0, me.mainWorld); // Last resort: if somehow the main world has not been placed, put it in orbit 0 or nearest orbit
+		if(!mainWorldPlaced)
+			me.orbitSets[0].add(0, me.mainWorld); // Last resort: if somehow the main world has not been placed, put it in orbit 0
 
-	me.mainWorld.tcs.generate();
-	
-	var ice_g = false;
-	var orbit_set = 0;
-	var max_orbit_set = me.orbitSets.length-1;
-	var hz = parseInt(me.orbitSets[orbit_set].hz);
-	for(i=0;i<me.mainWorld.gas_giants;i++)
-	{
-		var giant = new gasGiant(me.mainWorld);
-		if(giant.type == "SGG")
-		{
-			giant.iceGiant = ice_g;
-			ice_g = !ice_g;
-		}
-		var pTable = new dice_table(giant.placementTable());
-		var o = hz + parseInt(pTable.roll());
-		while(!me.orbitSets[orbit_set].add(o,giant))
-			orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
-		orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
-	}
-	orbit_set = 0;
-	for(i=0;i<me.mainWorld.belts;i++)
-	{
-		var belt = new minorWorld(planetoidsUWP, me.mainWorld);
-		var pbTable = new dice_table(BELT_PLACE_TABLE);
-		var o = hz + parseInt(pbTable.roll());
-		while(!me.orbitSets[orbit_set].add(o,belt))
-			orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;		
-		belt.generate();
-		orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
-	}
-	orbit_set = 0;
-	for(i=0;i<me.mainWorld.worlds;i++)
-	{
-		if(i==me.mainWorld.worlds-1)
-			var ppTable = new dice_table(WORLD2_PLACE_TABLE);			
-		else
-			var ppTable = new dice_table(WORLD1_PLACE_TABLE);
-		while(me.orbitSets[orbit_set].full())
-			orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
-		var o = me.orbitSets[orbit_set].findClosestAvailable(ppTable.roll());
-		var wpTable;
-		if(o > hz-2 && o < hz+2)
-			wpTable = new dice_table(WORLD_TYPE_HZ_PLANET);
-		if(o < hz-1)
-			wpTable = new dice_table(WORLD_TYPE_INNER_PLANET);
-		if(o > hz+1)
-			wpTable = new dice_table(WORLD_TYPE_OUTER_PLANET);
-		var planet = new minorWorld(wpTable.roll(),me.mainWorld);
+		me.mainWorld.tcs.generate();
 		
-		var success = false;
-		do
+		var ice_g = false;
+		var orbit_set = 0;
+		var max_orbit_set = me.orbitSets.length-1;
+		var hz = parseInt(me.orbitSets[orbit_set].hz);
+		for(i=0;i<me.mainWorld.gas_giants;i++)
 		{
-			success = me.orbitSets[orbit_set].add(o, planet);
-			if(!success)
+			var giant = new gasGiant(me.mainWorld);
+			if(giant.type == "SGG")
+			{
+				giant.iceGiant = ice_g;
+				ice_g = !ice_g;
+			}
+			var pTable = new dice_table(giant.placementTable());
+			var o = hz + parseInt(pTable.roll());
+			while(!me.orbitSets[orbit_set].add(o,giant))
 				orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
+			orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
 		}
-		while(!success);
-		planet.generate();
-		orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
-	}	
-	for(i=0;i<me.orbitSets.length;i++)
-	{
-		var set = me.orbitSets[i].orbits;
-		for(var j=0;j<set.length;j++)
+		orbit_set = 0;
+		for(i=0;i<me.mainWorld.belts;i++)
 		{
-			var planet = set[j].contents;
-			if((planet.constructor.name == "mainWorld" || planet.constructor.name == "minorWorld") && planet.uwp.size == 0)
-				continue;
-			if(planet.constructor.name == "orbitSet")
-				continue;
-			if(planet.has_MW_as_sat)
-				continue;
-			planet.satelliteSystem = new satelliteOrbitSet(planet);
-			planet.satelliteSystem.generate();
+			var belt = new minorWorld(planetoidsUWP, me.mainWorld);
+			var pbTable = new dice_table(BELT_PLACE_TABLE);
+			var o = hz + parseInt(pbTable.roll());
+			while(!me.orbitSets[orbit_set].add(o,belt))
+				orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;		
+			belt.generate();
+			orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
+		}
+		orbit_set = 0;
+		for(i=0;i<me.mainWorld.worlds;i++)
+		{
+			if(i==me.mainWorld.worlds-1)
+				var ppTable = new dice_table(WORLD2_PLACE_TABLE);			
+			else
+				var ppTable = new dice_table(WORLD1_PLACE_TABLE);
+			while(me.orbitSets[orbit_set].full())
+				orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
+			var o = me.orbitSets[orbit_set].findClosestAvailable(ppTable.roll());
+			var wpTable;
+			if(o > hz-2 && o < hz+2)
+				wpTable = new dice_table(WORLD_TYPE_HZ_PLANET);
+			if(o < hz-1)
+				wpTable = new dice_table(WORLD_TYPE_INNER_PLANET);
+			if(o > hz+1)
+				wpTable = new dice_table(WORLD_TYPE_OUTER_PLANET);
+			var planet = new minorWorld(wpTable.roll(),me.mainWorld);
+			
+			var success = false;
+			do
+			{
+				success = me.orbitSets[orbit_set].add(o, planet);
+				if(!success)
+					orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
+			}
+			while(!success);
+			planet.generate();
+			orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
+		}	
+		for(i=0;i<me.orbitSets.length;i++)
+		{
+			var set = me.orbitSets[i].orbits;
+			for(var j=0;j<set.length;j++)
+			{
+				var planet = set[j].contents;
+				if((planet.constructor.name == "mainWorld" || planet.constructor.name == "minorWorld") && planet.uwp.size == 0)
+					continue;
+				if(planet.constructor.name == "orbitSet")
+					continue;
+				if(planet.has_MW_as_sat)
+					continue;
+				planet.satelliteSystem = new satelliteOrbitSet(planet);
+				planet.satelliteSystem.generate();
+			}
 		}
 	}
 	
@@ -2306,16 +2798,18 @@ function fullSystem(mainWorldObj)
 	me.tofixedWidthText = function()
 	{
 		var s = "The " + me.mainWorld.name + " System (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")\r\n\r\n";
-		for(var i=0;i<me.orbitSets.length;i++)
-			s += me.orbitSets[i].tofixedWidthText() + "\r\n";
+		me.orbitSets.map(function(i) { s += i.tofixedWidthText() + "\r\n"; });
+		if(DOWNLOAD_WORLD_DETAIL)
+			me.orbitSets.map(function(i) { s += i.tofixedWidthTextDetails() + "\r\n"; });
 		return s;
 	}
 	
 	me.toPlainHTML = function()
 	{
 		var s = "<html><head></head><body><h1>The " + me.mainWorld.name + " System (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")</h1>";
-		for(var i=0;i<me.orbitSets.length;i++)
-			s += me.orbitSets[i].toPlainHTML();
+		me.orbitSets.map(function(i) { s += i.toPlainHTML(); });
+		if(DOWNLOAD_WORLD_DETAIL)
+			me.orbitSets.map(function(i) { s += i.toPlainHTMLDetails(); });
 		s += "</body>";
 		return s;
 	}
@@ -2323,8 +2817,7 @@ function fullSystem(mainWorldObj)
 	me.toCSV = function()
 	{
 		var s = "";
-		for(var i=0;i<me.orbitSets.length;i++)
-			s += me.orbitSets[i].toCSV();
+		me.orbitSets.map(function(i) { s += i.toCSV(); });
 		return s;
 	}
 	
@@ -2340,23 +2833,137 @@ function fullSystem(mainWorldObj)
 		return map;
 	}
 	
+	me.dbObj = function()
+	{
+		var o = {};
+		o.name = me.name;
+		o.mainWorld = me.mainWorld.dbObj();
+		o.stars = me.stars.dbObj();
+		o.primary = me.primary.dbObj();
+		if(me.companion)
+			o.companion = me.companion.dbObj();
+		o.orbitSets = [];
+		me.orbitSets.map(function(orbit_set)
+							{
+								o.orbitSets.push(orbit_set.dbObj());
+							});
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.name = o.name;
+		me.mainWorld = new mainWorld();
+		me.mainWorld.read_dbObj(o.mainWorld);
+		me.stars = new starSystem(me.mainWorld)
+		me.stars.read_dbObj(o.stars);
+		me.primary = new star();
+		me.primary.read_dbObj(o.primary);
+		if(o.companion)
+		{
+			me.companion = new star();
+			me.companion.read_dbObj(o.companion);
+		}
+		me.orbitSets = [];
+		o.orbitSets.map(function(orbit_set_dbObj)
+							{
+								var orbit_set = new orbitSet(me.primary, me.companion, me.mainWorld); 
+								orbit_set.read_dbObj(orbit_set_dbObj);
+								me.orbitSets.push(orbit_set);
+							});
+	}
+	
+	if(generate_now)
+		me.generate();
+	
 }
 
 var ORBIT_SET_COUNT = 0;
 
-function orbitSet(centralStar, companionStar)
+function orbitSet(centralStar, companionStar, mainWorld)
 {
 	var me = this;
 	me.centralStar = centralStar;
 	me.companionStar = companionStar;
 	me.maxOrbit = 19;
-	me.firstOrbit = me.centralStar.fao;
 	me.orbits = [];
-	me.hz = me.centralStar.hz;
+	if(me.centralStar)
+	{
+		me.firstOrbit = me.centralStar.fao;
+		me.hz = me.centralStar.hz;
+	}
 	me.zone = false;
 	me.hz_rel = 0;
 	me.description = "";
 	me.tableName = "orbit_set_table_" + ORBIT_SET_COUNT++;
+	me.mainWorld = mainWorld;
+	
+	me.dbObj = function()
+	{
+		var o = {};
+		o.type = "orbitSet";
+		o.centralStar = me.centralStar.dbObj();
+		if(me.companionStar)
+			o.companionStar = me.companionStar.dbObj();
+		o.maxOrbit = me.maxOrbit;
+		o.firstOrbit = me.firstOrbit;
+		o.hz = me.hz;
+		o.zone = me.zone;
+		o.hz_rel = me.hz_rel;
+		o.description = me.description;
+		o.tableName = me.tableName;
+		o.orbits = [];
+		me.orbits.map(function(orb) 
+							{
+								o.orbits.push(orb.dbObj());
+							});
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.centralStar = new star();
+		me.centralStar.read_dbObj(o.centralStar);
+		me.centralStar.getData();
+		if(o.companionStar)
+		{
+			me.companionStar = new star();
+			me.companionStar.read_dbObj(o.companionStar);
+			me.companionStar.getData();
+		}
+		me.maxOrbit = o.maxOrbit;
+		me.firstOrbit = o.firstOrbit;
+		me.hz = o.hz;
+		me.zone = o.zone;
+		me.hz_rel = o.hz_rel;
+		me.description = o.description;
+		me.tableName = o.tableName;
+		me.orbits = [];
+		o.orbits.map(function(orbit_dbObj)
+							{
+								var c;
+								switch(orbit_dbObj.contents.type)
+								{
+									case "mainWorld":
+										c = me.mainWorld;
+										break;
+									case "minorWorld":
+										c = new minorWorld(null, me.mainWorld); //genObject, mainWorld, planet
+										break;
+									case "gasGiant":
+										c = new gasGiant(me.mainWorld);
+										break;
+									case "orbitSet":
+										c = new orbitSet(null,null, me.mainWorld);
+								}
+								if(orbit_dbObj.contents.type != "mainWorld") c.read_dbObj(orbit_dbObj.contents);
+								var on = orbit_dbObj.baseOrbit;
+								me.setZone(c, on);
+								var orb = new orbit(me, on , c); 
+								orb.read_dbObj(orbit_dbObj);
+								me.orbits.push(orb);
+							});
+	}
 	
 	me.add = function(orbitNumber, contents)
 	{
@@ -2515,39 +3122,62 @@ function orbitSet(centralStar, companionStar)
 	
 	me.tofixedWidthText = function()
 	{
-		// widths: orbit=5, actual = 7, distance=15 name=41, content type=16, uwp=10, tcs and remarks = no limit
 		var s = "--------Orbit-------\r\n";
 		s += "Base Actual Distance       Name                 Content Type    UWP       TCs and Remarks\r\n";
 		s += me.centralStar.tofixedWidthText();
 		if(me.companionStar !== undefined)
 			s += me.companionStar.tofixedWidthText();
-		for(var i=0;i<me.orbits.length;i++)
-			s += me.orbits[i].tofixedWidthText() + "\r\n";
+		me.orbits.map(function(i) { s += i.tofixedWidthText() + "\r\n"; });
+		if(DOWNLOAD_WORLD_DETAIL)
+			s += me.tofixedWidthTextDetails();
+		return s;
+	}
+	
+	me.tofixedWidthTextDetails = function()
+	{
+		var s = "";
+		me.orbits.map(function(i)	{ 
+										s += i.tofixedWidthTextDetails() + "\r\n";
+											
+									});
 		return s;
 	}
 	
 	me.toPlainHTML = function()
 	{
 		var s = "<table>";
-		s += "<tr><th>Base Orbit</th><th>Decimal Orbit</th><th>Orbital Distance</th><th>Name</th><th>Content Type</th><th>UWP</th><th>TCs and Remarks</th><th>Albedo</th><th>Greenhouse Multiplier</th><th>Average Temperature</th></tr>";
+		s += "<tr><th>Base Orbit</th><th>Decimal Orbit</th><th>Orbital Distance</th><th>Name</th><th>Content Type</th><th>UWP</th><th>TCs and Remarks</th>";
+		s += "<th>Albedo</th><th>Greenhouse Multiplier</th><th>Average Temperature</th>";
+		s += "</tr>";
 		s += me.centralStar.toPlainHTML();
 		if(me.companionStar !== undefined)
 			s += me.companionStar.toPlainHTML();
-		for(var i=0;i<me.orbits.length;i++)
-			s += me.orbits[i].toPlainHTML();
+		me.orbits.map(function(i) { s += i.toPlainHTML(); });
 		s += "</table>";
+		if(DOWNLOAD_WORLD_DETAIL)
+			s += me.toPlainHTMLDetails();
+		return s;
+	}
+	
+	me.toPlainHTMLDetails = function()
+	{
+		var s = "";
+		me.orbits.map(function(i) { s += "<table>" + i.toPlainHTMLDetails(); + "</table>"});
 		return s;
 	}
 	
 	me.toCSV = function()
 	{
-		var headings = ["Orbit", "Decimal Orbit", "Orbital Distance", "Name", "Content Type", "UWP","TCs and Remarks", "Albedo","Greenhouse Multiplier","Average Temperature"];
+		var headings = ["Orbit", "Decimal Orbit", "Orbital Distance", "Name", "Content Type", "UWP","TCs and Remarks"]
+		if(!DOWNLOAD_WORLD_DETAIL)
+			headings = headings.concat(["Albedo","Greenhouse Multiplier","Average Temperature"]);
+		else
+			ALL_DETAILS.map(function(item) { if(item != "World Name") headings.push(item); });
 		var s = headings.join(",") + "\r\n";
 		s += me.centralStar.toCSV();
 		if(me.companionStar !== undefined)
 			s += me.companionStar.toCSV();
-		for(var i=0;i<me.orbits.length;i++)
-			s += me.orbits[i].toCSV() + "\r\n";
+		me.orbits.map(function(i) { s += i.toCSV(); });
 		return s;
 	}
 	
@@ -2578,11 +3208,49 @@ function satelliteOrbitSet(planet)
 	var me = this;
 	me.planet = planet;
 	me.orbits = [];
+	
+	me.dbObj = function()
+	{
+		var o = {};
+		var dbObj_orbits = [];
+		me.orbits.map(function(orb)
+		{
+			dbObj_orbits.push(orb.dbObj());
+		});
+		o.sats = dbObj_orbits;
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.orbits = [];
+		var contents;
+		o.sats.map(function(orbit_dbObj)
+		{
+			switch(orbit_dbObj.contents.type)
+			{
+				case "ring":
+					contents = new ring(me.planet);
+					break;
+				case "minorWorld":
+					var mw = me.planet.isMainWorld ? me.planet : me.planet.mainWorld;
+					contents = new minorWorld(null, (me.planet.isMainWorld ? me.planet : me.planet.mainWorld) , me.planet); //(genObject, mainWorld, planet)
+					break;
+				case "mainWorld":
+					contents = me.planet.mainWorld;
+					contents.planet = me.planet;
+			}
+			contents.read_dbObj(orbit_dbObj.contents);
+			var orb = new orbit(me, orbit_dbObj.baseOrbit, contents); //orbitSet, orbitNumber, contents
+			orb.read_dbObj(orbit_dbObj);
+			me.orbits.push(orb);
+		});
+	}
 
-	me.occupied = function(orbit)
+	me.occupied = function(orb)
 	{
 		for(var i=0;i<me.orbits.length;i++)
-			if(me.orbits[i].baseOrbit.o == orbit.o)
+			if(me.orbits[i].baseOrbit.o == orb.o)
 				return true;
 		return false;
 	}
@@ -2608,14 +3276,14 @@ function satelliteOrbitSet(planet)
 	{
 		do
 		{
-			var numSats = me.planet.numSats();;
+			var numSats = me.planet.numSats();
 			if(numSats == 0)
 				me.add(new ring(planet));
 		}
 		while(numSats == 0)
 		numSats = Math.max(numSats,0);
 		for(var k=0;k<numSats;k++)
-			me.add(planet.generateSat());
+			me.add(me.planet.generateSat());
 		me.sort();
 	}	
 }
@@ -2630,6 +3298,18 @@ function orbit(orbitSet, orbitNumber, contents)
 	me.isSatellite = me.baseOrbit.o !== undefined
 	me.increment = flux();
 	me.objectID = 0;
+	
+	me.dbObj = function()
+	{
+		return {baseOrbit:me.baseOrbit, increment:me.increment, isSatellite:me.isSatellite, contents:me.contents.dbObj()};
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		me.baseOrbit = o.baseOrbit;
+		me.increment = o.increment;
+		me.isSatellite = o.isSatellite;
+	}
 	
 	me.number = function()
 	{
@@ -2713,11 +3393,12 @@ function orbit(orbitSet, orbitNumber, contents)
 											{name:"decimalOrbit", contents:me.number(), isText:true},{name:"orbitAdjBtns",contents:"", isText:true},
 											{name:"distance", contents:me.orbitDistance() + " AU", isText:true}];
 				}
-				var row_contents_b = [{name:"name", contents:me.contents.nameTextBox(), isText:false}, 
+				me.contents.tcs.generate();
+				var row_contents_b = [{name:"name", contents:me.contents.nameTextBox(),isText:false}, 
 								{name:"description",contents:me.contents.generationObject.name, isText:true}, 
 								{name:"uwp",contents:me.contents.uwp, isText:true},{name:"tc",contents:me.contents.tcs, isText:true},
 								{name:"mapLink",contents:(me.contents.uwp.size == 0 || me.contents.constructor.name == "ring" ? false : me.getMaplink()), isText:false},
-								{name:"details",contents:(me.contents.uwp.size == 0 || me.contents.constructor.name == "ring" ? false : me.calcDetails()), isText:false},
+								{name:"details",contents:(me.contents.generationObject.name == "Planetoids" || me.contents.constructor.name == "ring" ? false : me.calcDetails()), isText:false},
 								{name:"albedo",contents:me.contents.albedo(), isText:true},
 								{name:"greenhouse",contents:me.contents.greenhouse(), isText:true}, 
 								{name:"temperature",contents:me.contents.calcTemperatureC() + "&deg;C", isText:true}];
@@ -2736,7 +3417,7 @@ function orbit(orbitSet, orbitNumber, contents)
 		detailsBtn.style.paddingTop = "0";
 		
 		detailsBtn.innerHTML = "Details";
-		detailsBtn.onclick = me.contents.detailsDiv;
+		detailsBtn.onclick = me.contents.editDetails;
 		return detailsBtn;
 	}
 	
@@ -2837,20 +3518,21 @@ function orbit(orbitSet, orbitNumber, contents)
 				cell.appendChild(me.baseOrbitAdjustUpBtn("baseOrbit" + me.objectID));
 				cell.appendChild(me.baseOrbitAdjustDownBtn("baseOrbit" + me.objectID));
 			}
-		}		
-		for(var i=0;i<me.contents.satelliteSystem.orbits.length;i++)
-		{
-			var x = me.contents.satelliteSystem.orbits[i];
-			var sRowContents = x.calcRowContents();
-			for(var k=0;k<sRowContents.length;k++)
-			{
-				cell = document.getElementById(sRowContents[k].name + x.objectID);
-				if(sRowContents[k].isText)
-					cell.innerHTML = sRowContents[k].contents;
-				else
-					cell.appendChild(sRowContents[k].contents);
-			}
 		}
+		if(me.contents.satelliteSystem)
+			for(var i=0;i<me.contents.satelliteSystem.orbits.length;i++)
+			{
+				var x = me.contents.satelliteSystem.orbits[i];
+				var sRowContents = x.calcRowContents();
+				for(var k=0;k<sRowContents.length;k++)
+				{
+					cell = document.getElementById(sRowContents[k].name + x.objectID);
+					if(sRowContents[k].isText)
+						cell.innerHTML = sRowContents[k].contents;
+					else
+						cell.appendChild(sRowContents[k].contents);
+				}
+			}
 	}
 	
 	me.orbitAdjustUpBtn = function()
@@ -2859,7 +3541,17 @@ function orbit(orbitSet, orbitNumber, contents)
 		upButton.type = "BUTTON";
 		upButton.innerHTML = "&#x25B2;";
 		upButton.className = "adjBtn";
-		upButton.onclick = function() { if(me.increment < 5) { me.increment++; me.calcRowContents(); me.set.updateTable(); } };
+		upButton.onclick = function()	{ 
+											if(me.increment < 5) 
+											{
+												me.increment++; 
+												me.calcRowContents(); 
+												me.set.updateTable(); 
+												document.getElementById("orbit_text").innerHTML = me.number(); 
+												if(document.getElementById("world_detail").hidden == false)
+													me.contents.updateEdits(document.getElementById("world_detail"));
+											}
+										};
 		return upButton;
 	}
 
@@ -2869,7 +3561,17 @@ function orbit(orbitSet, orbitNumber, contents)
 		downButton.type = "BUTTON";
 		downButton.innerHTML = "&#x25BC;";
 		downButton.className = "adjBtn";
-		downButton.onclick = function() { if(me.increment > -5) { me.increment--; me.calcRowContents(); me.set.updateTable(); } };
+		downButton.onclick = function()	{ 
+											if(me.increment > -5) 
+											{
+												me.increment--; 
+												me.calcRowContents(); 
+												me.set.updateTable(); 
+												document.getElementById("orbit_text").innerHTML = me.number();
+												if(document.getElementById("world_detail").hidden == false)
+													me.contents.updateEdits(document.getElementById("world_detail"));												
+											}
+										};
 		return downButton;
 	}
 
@@ -2888,10 +3590,15 @@ function orbit(orbitSet, orbitNumber, contents)
 											{
 												var otherOrbit = me.set.get(newBaseOrbit);
 												otherOrbit.baseOrbit = me.baseOrbit;
+												otherOrbit.contents.systemOrbit = me.baseOrbit;
 												me.set.setZone(otherOrbit.contents, otherOrbit.baseOrbit)
 											}
 											me.baseOrbit = newBaseOrbit;
+											me.contents.systemOrbit = newBaseOrbit;
 											me.set.setZone(me.contents,me.baseOrbit);
+											document.getElementById("orbit_text").innerHTML = me.number();
+											if(document.getElementById("world_detail").hidden == false)
+												me.contents.updateEdits(document.getElementById("world_detail"));
 											me.set.updateTable(); 
 										}
 									};
@@ -2917,10 +3624,38 @@ function orbit(orbitSet, orbitNumber, contents)
 											}
 											me.baseOrbit = newBaseOrbit;
 											me.set.setZone(me.contents,me.baseOrbit);
+											document.getElementById("orbit_text").innerHTML = me.number();
+											if(document.getElementById("world_detail").hidden == false)
+												me.contents.updateEdits(document.getElementById("world_detail"));
 											me.set.updateTable(); 
 										}
 									};
 		return downButton;
+	}
+	
+	me.satOrbitSelector = function()
+	{
+		var satSelect = document.createElement("SELECT");
+		satSelect.className = "worldDetails";
+		SATELLITE_ORBIT_DATA.map(function(item,index)	{
+															var opt = document.createElement("OPTION")
+															opt.innerHTML = opt.value = item.o;
+															satSelect.appendChild(opt);
+														});
+		satSelect.onchange = function()	{
+											me.baseOrbit = SATELLITE_ORBIT_DATA.find(function(v) { return v.o == satSelect.value; });
+											me.contents.tcs.generate();
+											me.contents.rotationalPeriod(true);
+											me.contents.dayPlus(true);
+											me.contents.nightMinus(true);
+											me.contents.getStress(true);
+											if(me.contents.planet.constructor.name == "mainWorld" || me.contents.planet.constructor.name == "minorWorld")
+												me.contents.planet.getStress(true);
+											me.contents.updateEdits(document.getElementById("world_detail"));
+											me.updateTableRow();
+											
+										}
+		return satSelect;							
 	}
 	
 	me.toSysCells = function()
@@ -2994,31 +3729,43 @@ function orbit(orbitSet, orbitNumber, contents)
 			s += pad(me.contents.toString(),10);
 		if(me.contents.tcs)
 			s += pad(me.contents.tcs,30);
-		if(me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld")
+		if((me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld"))
 		{
 			s += " Albedo: " + me.contents.albedo();
 			s += " Greenhouse: " + me.contents.greenhouse();
 			s += " Avg Temp: " + me.contents.calcTemperatureC();
-			s += "\r\n";
 		}
-		else
-			s += "\r\n";
 		if(me.contents.satelliteSystem)
 		{
 			for(var j=0;j<me.contents.satelliteSystem.orbits.length;j++)
 			{
+				s += "\r\n";
 				var x = me.contents.satelliteSystem.orbits[j];
 				switch(x.contents.constructor.name)
 				{
 					case "ring":
-						s += " ".repeat(5) + pad_left(x.baseOrbit.o,7) + pad_left(x.orbitDistance() + " km",14) + " ".repeat(22) + "Ring System\r\n";
+						s += " ".repeat(5) + pad_left(x.baseOrbit.o,7) + pad_left(x.orbitDistance() + " km",14) + " ".repeat(22) + "Ring System";
 						break;
 					default:
 						s += " ".repeat(5) + pad_left(x.baseOrbit.o,7) + pad_left(x.orbitDistance() + " km",14) + " " + pad(x.contents.name, 21);
-						s += pad(x.contents.generationObject.name,16) + pad(x.contents.uwp,10) + pad(x.contents.tcs,30) + " Albedo: " + x.contents.albedo();
-						s += " Greenhouse: " + x.contents.greenhouse() + " Avg Temp: " + x.contents.calcTemperatureC() + "\r\n";
+						s += pad(x.contents.generationObject.name,16) + pad(x.contents.uwp,10) + pad(x.contents.tcs,30) 
+						s += " Albedo: " + x.contents.albedo() + " Greenhouse: " + x.contents.greenhouse() + " Avg Temp: " + x.contents.calcTemperatureC();
 				}
 			}
+		}
+		return s;
+	}
+	
+	me.tofixedWidthTextDetails = function()
+	{
+		var s = "";
+		if((me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld"))
+			me.contents.all_details.map(function(item) { s += item.name + ": " + item.text_string() + "\r\n"; });
+		if(me.contents.satelliteSystem)
+		{
+			var sats = me.contents.satelliteSystem.orbits;
+			sats.map(function(i) { if(i.contents.constructor.name != "ring") i.contents.all_details.map(function(j) { s += j.name + ": " + j.text_string() + "\r\n"; }) });
+			s += "\r\n";
 		}
 		return s;
 	}
@@ -3051,14 +3798,16 @@ function orbit(orbitSet, orbitNumber, contents)
 			s += "<td>" + me.contents.toString() + "</td>";
 		if(me.contents.tcs)
 			s += "<td>" + me.contents.tcs + "</td>";
-		if(me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld")
+		if((me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld"))
 		{
 			s += "<td>" + me.contents.albedo() + "</td>";
 			s += "<td>" + me.contents.greenhouse() + "</td>";
 			s += "<td>" + me.contents.calcTemperatureC() + "</td>";
 		}
 		else
-			s += "<td></td><td></td><td></td>";
+			s += "<td></td><td></td><td></td>";			
+		s += "</tr>";
+			
 		if(me.contents.satelliteSystem)
 		{
 			for(var i=0;i<me.contents.satelliteSystem.orbits.length;i++)
@@ -3075,14 +3824,26 @@ function orbit(orbitSet, orbitNumber, contents)
 					default:
 						s += "<td>" + x.contents.name + "</td><td>" + x.contents.generationObject.name + "</td><td>";
 						s += x.contents.uwp + "</td><td>" + x.contents.tcs + "</td>";
-						s += "<td>" + x.contents.albedo() + "</td>";
-						s += "<td>" + x.contents.greenhouse() + "</td>";
-						s += "<td>" + x.contents.calcTemperatureC() + "</td>";
+						s += "<td>" + x.contents.albedo() + "</td>" + "<td>" + x.contents.greenhouse() + "</td>" + "<td>" + x.contents.calcTemperatureC() + "</td>";
 				}
 				s += "</tr>";
 			}
 		}
-
+		return s;
+	}
+	
+	me.toPlainHTMLDetails = function()
+	{
+		var s = "";
+		if((me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld"))
+			me.contents.all_details.map(function(i) { s += "<tr><td>" + i.name + "</td><td>" + i.text_string() + "</td></tr>"; });
+		s += "<tr></tr>";
+		if(me.contents.satelliteSystem)
+		{
+			var sats = me.contents.satelliteSystem.orbits;
+			sats.map(function(i) { if(i.contents.constructor.name != "ring") i.contents.all_details.map(function(j) { s += "<tr><td>" + j.name + "</td><td>" + j.text_string() + "</td></tr>"; }); } );
+			s += "<tr></tr>";			
+		}
 		return s;
 	}
 	
@@ -3108,13 +3869,15 @@ function orbit(orbitSet, orbitNumber, contents)
 			s += me.contents.toString() + ",";
 		if(me.contents.tcs)
 			s += me.contents.tcs + ",";
-		if(me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld")
+		if((me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld") && !DOWNLOAD_WORLD_DETAIL)
 		{
 			s += me.contents.albedo() + ",";
 			s += me.contents.greenhouse() + ",";
 			s += me.contents.calcTemperatureC();
 		}
-		s += "\r\n"
+		if((me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld") && DOWNLOAD_WORLD_DETAIL)
+			me.contents.all_details.map(function(item) { s += item.name == "World Name" ? "" : item.data_string() + ","; });
+		s += "\r\n";
 		if(me.contents.satelliteSystem)
 		{
 			for(var j=0;j<me.contents.satelliteSystem.orbits.length;j++)
@@ -3126,8 +3889,13 @@ function orbit(orbitSet, orbitNumber, contents)
 						s += "," + x.baseOrbit.o + "," + x.orbitDistance() + " km,,Ring System\r\n";
 						break;
 					default:
-						s += "," + x.baseOrbit.o + "," + x.orbitDistance() + " km," + x.contents.name + "," + x.contents.generationObject.name + "," + x.contents.uwp + "," + x.contents.tcs + "," + x.contents.albedo() + "," + x.contents.greenhouse() + "," + x.contents.calcTemperatureC() + "\r\n";
+						s += "," + x.baseOrbit.o + "," + x.orbitDistance() + " km," + x.contents.name + "," + x.contents.generationObject.name + "," + x.contents.uwp + "," + x.contents.tcs;
+						if(!DOWNLOAD_WORLD_DETAIL)
+							s += "," + x.contents.albedo() + "," + x.contents.greenhouse() + "," + x.contents.calcTemperatureC();
+						else
+							x.contents.all_details.map(function(item) { s += item.name == "World Name" ? "" : "," + item.data_string(); });
 				}
+				s += "\r\n";
 			}
 		}
 		return s;
@@ -3139,6 +3907,8 @@ function systemFlags()
 	var urlAdd = "&" + encodeURIComponent("mw_hz_only") + "=" + encodeURIComponent(MAIN_WORLD_HZ_ONLY ? "1" : "0");
 	urlAdd += "&" + encodeURIComponent("mw_is_sat") + "=" + encodeURIComponent(MAIN_WORLD_IS_SAT ? "1" : "0");
 	urlAdd += "&" + encodeURIComponent("mw_is_not_sat") + "=" + encodeURIComponent(MAIN_WORLD_NOT_SAT ? "1" : "0");
+	urlAdd += "&" + encodeURIComponent("tz_no_sat") + "=" + encodeURIComponent(TZ_NO_SAT ? "1" : "0");
+	urlAdd += "&" + encodeURIComponent("barren_sys") + "=" + encodeURIComponent(BARREN_SYS ? "1" : "0");
 	return urlAdd;
 }
 
@@ -3147,14 +3917,17 @@ function readSystemFlags(URLParams)
 	MAIN_WORLD_HZ_ONLY = parseInt(URLParams.get("mw_hz_only")) == 1 ? true : false;
 	MAIN_WORLD_IS_SAT = parseInt(URLParams.get("mw_is_sat")) == 1 ? true : false;
 	MAIN_WORLD_NOT_SAT = parseInt(URLParams.get("mw_is_not_sat")) == 1 ? true : false;;
+	TZ_NO_SAT = parseInt(URLParams.get("tz_no_sat")) == 1 ? true : false;
+	BARREN_SYS = parseInt(URLParams.get("barren_sys")) == 1 ? true : false;
 }
 
-function gasMix(world)
+function gasMix(world, irritantFlag)
 {
 	var me = this;
 	me.world = world;
 	me.mix = null;
 	me.gasMixObjs = [];
+	me.irritant = irritantFlag;
 	
 	me.assoc_liquid = function()
 	{
@@ -3176,7 +3949,7 @@ function gasMix(world)
 			s += me.mix.gasses[i].name + "(" + me.mix.gasses[i].proportion + "%), ";
 		s = s.substr(0,s.length-2);
 		s += " and " + me.mix.gasses[i].name + "(" + me.mix.gasses[i].proportion + "%). ";
-		me.mix.gasses.forEach(function (gas) { s += gas.notes + " "; } );
+		//me.mix.gasses.forEach(function (gas) { s += gas.notes + " "; } );
 		return s;
 	}
 	
@@ -3194,7 +3967,7 @@ function gasMix(world)
 			{
 				case 10:
 					if(me.mix.gasses[i].corrosive)
-						me.mix.gasses[i].proportion = rng(me.mix.gasses[i].corrosive)/10000
+						me.mix.gasses[i].proportion = rng(me.mix.gasses[i].corrosive)/10000;
 					else
 						me.mix.gasses[i].proportion = Math.min(total_mix_left, rng(100));
 					total_mix_left -= me.mix.gasses[i].proportion;
@@ -3247,7 +4020,7 @@ function gasMix(world)
 		me.gasMixObjs.push(gasObj);
 	}	
 	
-	me.gasMixObjs.forEach( function(gas_mix) { if((me.world.uwp.atmos == 10 && gas_mix.exotic) || (me.world.uwp.atmos == 11 && gas_mix.corrosive) || (me.world.uwp.atmos == 12 && gas_mix.insidious)) gas_mix.possible = true;} );
+	me.gasMixObjs.forEach( function(gas_mix) { if((me.world.uwp.atmos == 10 && gas_mix.exotic) || (me.world.uwp.atmos == 10 && gas_mix.corrosive && me.irritant) || (me.world.uwp.atmos == 11 && gas_mix.corrosive) || (me.world.uwp.atmos == 12 && gas_mix.insidious)) gas_mix.possible = true;} );
 	me.gasMixObjs.forEach( function(gas_mix) { if(!me.world.tcs.has("Fr") && me.cold(gas_mix.gasses)) gas_mix.possible = false; } );
 	me.getMix();
 }

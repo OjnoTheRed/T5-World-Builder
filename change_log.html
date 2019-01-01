@@ -21,7 +21,26 @@
 	</ul>
 	</div>
 	<div>
-		<h2 style="margin-top:0;">28 July 2018 - second release</h2>
+		<h2 style="margin-top:0;">2 January 2019</h2>
+		<p><b>Bug Fix:</b> When the main world is a satellite, the planet it is orbiting (whether a Gas Giant or a Big World) now has other satellites generated correctly.  Previously the main world would be the only satellite of the planet.</p>
+		<h2>1 January 2019</h2>
+		<p><b>Save and reload your work:</b> When on the System page, you can save your modified system and re-load it at a later date.  The data is stored within your browser.  This allows you to manually alter any aspect of your star system, taking advantage of the calculators built into T5 World builder, and work on it over time before exporting it to your favourite format.</p>
+		<p><b>Import and Export systems:</b> In addition to saving your work within your browser, you can export it as a JSON file and also import saved JSON files.</p>
+		<p><b>Native Intelligent Life and Native Life:</b> if the T5 rules generate native intelligent life, the world now automatically has native life.</p>
+		<p><b>Bug Fix:</b> When the number of worlds in a system was not specified by Traveller Map data, the number was not being generated randomly.  Now fixed.</p>
+		<p><b>Data interpretation:</b> Many worlds in the OTU have a 'worlds' statistic of more than 12.  This has the potential to break the system generator if worlds plus gas giants plus belts plus the mainworld exceeds 20 orbit 'slots'.  For now, if the 'worlds' statistic is more than 12, it is reduced to 12.</p>
+		<p><b>Bug Fix:</b> Native Intelligent Life was not generating correctly.</p>
+		<h2>18 November 2018</h2>
+		<p><b>Edit World Details:</b> All planet and satellite details can now be edited when you press on the Details button next to them.  This allows all values including the UWP to be adjusted.  All details are automatically recalculated if needed in real time.</p>
+		<p><b>Jump Points:</b> As part of the new Edit World Details feature, every world's Jump Point is calculated in kilometres, including accounting for the parent star and parent planet (if the world is a satellite).  Also included is a table of travel times to the Jump Point from 1G to 6G.</p>
+		<p><b>New Satellite Option:</b> Under System Options, you can select an option that prevents tidally locked worlds having any satellites.  This comes from my own experimenting with Universe Sandbox - satellites of almost any Traveller size are torn apart if the world is close enough to the star.</p>
+		<p><b>Download World Details:</b> When the system is generated, there is a check-box to indicate you want all details of each world downloaded with the system data.  It is checked by default.  So I'm generally assuming you want more detail rather than less.</p>
+		<p><b>Small worlds:</b> The system generator now distinguishes between Asteroid and Planetoid belts and worlds that end up size 0 through modifiers or size limiting (typically satellites).  You can now generate and edit the details for these particular objects.  The diameter is randomly generated, ranging from about 260km - 700km.</p>
+		<p><b>New Barren Option:</b> Under System Options, you can indicate that if the main world population is zero, all minor worlds will be generated as barren (i.e. population, government, law level and TL will be zero).  If left unchecked, the T5 rules will be used, which can result in notional populations of less than 10.</p>
+		<p><b>Bug Fix:</b> When the size of the world is less than five and hydrographics more than seven, oceans were not being placed.  This is now fixed.</p>
+		<p><b>Bug Fix:</b> System orbit based Trade Classifications (e.g. Hot, Cold, Twilight Zone) now automatically update when orbit is adjusted.</p>
+		<p><b>Bug Fix:</b> Map was placing cities in every hex in Size 1 worlds regardless of population.  Now fixed to operate according to T5 rules.</p>
+		<h2>28 July 2018 - second release</h2>
 		<p><b>Layout:</b> changes to the home page to take advantage of a wider space for "Enter, Review and Change World Details".</p>
 		<p><b>Noble Estates:</b> option added to allow noble estates to be placed on ocean or sea hexes.</p>
 		<p><b>Multiple world maps:</b> option added to allow up to 10 maps to be generated at once.  This helps users hunt through several maps at once to find a suitable one.</p>

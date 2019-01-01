@@ -48,7 +48,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	me.worldTriangles = [];
 	me.hexes = [];
 	me.namedHexes = {};
-	me.numHexes = 0;
+	me.numHexes = 5*(2*triangleNumber(me.world.uwp.size) + 2*triangleNumber(me.world.uwp.size-1));
 	me.rows = [];
 	me.oceanTriangleIDs = [];
 	me.cityHexes = [];
@@ -846,11 +846,11 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	
 	function cities()
 	{
-		if(me.world.tcs.has("Lo") || me.world.tcs.has("Ni"))
+		if(me.world.uwp.popul < 7)
 			return;
 		me.cityHexes = [];
 		var cityType = cityTerrain;
-		if((me.world.atmos == 0 || me.world.atmos == 1 || me.world.atmos || (me.world.atmos > 9 && me.world.atmos < 13) || me.world.atmos > 13) && !me.world.nil.natives)
+		if((me.world.uwp.atmos == 0 || me.world.uwp.atmos == 1 || (me.world.uwp.atmos > 9 && me.world.uwp.atmos < 13) || (me.world.atmos > 13)) && !(me.world.nativeIntLife.type.name == "Natives" || me.world.nativeIntLife.type.name == "Exotic Natives"))
 			cityType = domedCityTerrain;
 		me.key.addHex(cityType);
 		if(me.world.uwp.size == 1)

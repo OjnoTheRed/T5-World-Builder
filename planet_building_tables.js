@@ -106,6 +106,8 @@ var stormWorldUWP = {
 							tech:function(uwp) { uwp.TL = dice(1) + uwp.totalTechDM(); }
 };
 
+var ALL_GENERATION_OBJECTS = [habitableZoneUWP,planetoidsUWP,iceWorldUWP,radWorldUWP,infernoWorldUWP,bigWorldUWP,worldletUWP,innerWorldUWP,stormWorldUWP];
+
 var GAS_GIANT_SIZES = { 20:20000, 21:30000, 22:40000, 23:50000, 24:60000, 25:70000, 26:80000, 27:90000, 28:125000, 29:180000, 30:220000, 31:250000, 32:250000};
 
 var WORLD_STARPORT_TABLE = {dice: function() { return dice(2) }, min: 2, max: 12, 2:"A", 3:"A", 4:"A", 5:"B", 6:"B", 7:"C", 8:"C", 9:"D", 10:"D", 11:"E", 12:"X"};
@@ -176,14 +178,15 @@ var NIL_CEN = {name:"Catastrophic Extinct Natives",natives:false,description:"Ev
 var NIL_XEN = {name:"Catastrophic Extinct Exotic Natives",natives:false,description:"Evidence of Exotic Extinct Natives remains.",rules:function(world) { return world.uwp.popul == 0 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0; } };
 var NIL_TRA = {name:"Transients",natives:false,description:"Temporary commercial or scientific activity.",rules:function(world) { return world.uwp.popul >= 1 && world.uwp.popul <= 3 && world.uwp.TL > 0; } };
 var NIL_SET = {name:"Settlers",natives:false,description:"The initial steps of creating a colony.",rules:function(world) { return world.uwp.popul >= 4 && world.uwp.popul <= 6 && world.uwp.TL > 0; } };
-var NIL_PLA = {name:"Transplants",natives:false,description:"Current locals evolved elsewhere.",rules:function(world) { return world.uwp.popul >= 7 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL > 0; } };
+var NIL_PLA = {name:"Transplants",natives:false,description:"Current locals evolved elsewhere.",rules:function(world) { return (world.uwp.popul >= 7 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL > 0); } };
 var NIL_VPL = {name:"Vanished Transplants",natives:false,description:"Evidence of locals who evolved elsewhere now vanished.",rules:function(world) { return world.uwp.popul == 0 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL > 0; } };
-var NIL_EXO = {name:"Exotic Natives",natives:true,description:"Intelligent life evolved on this world in an environment incompatible with humans.",rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0 && world.nativeLife(); } };
-var NIL_NIL = {name:"Natives",natives:true,description:"Intelligent life evolved on this world.",rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0  && world.nativeLife(); } };
-var NIL_EST = {name:"Established Transplants",natives:false,description:"Transplants from elsewhere established themselves in an easily adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0 && !world.nativeLife(); } };
-var NIL_XES = {name:"Established Exotic Transplants",natives:false,description:"Exotic Transplants from elsewhere established themselves in an easily adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0 && !world.nativeLife(); } };
+var NIL_EXO = {name:"Exotic Natives",natives:true,description:"Intelligent life evolved on this world in an environment incompatible with humans.",rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0 } };
+var NIL_NIL = {name:"Natives",natives:true,description:"Intelligent life evolved on this world.",rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0  } };
+var NIL_EST = {name:"Established Transplants",natives:false,description:"Transplants from elsewhere established themselves in an adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0; } };
+var NIL_XES = {name:"Established Exotic Transplants",natives:false,description:"Exotic Transplants from elsewhere established themselves in an adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0; } };
+var NIL_NON = {name:"Never had intelligent life",natives:false,description:"There was never any intelligent life, transplanted or native.",rules:function(world) { return world.uwp.popul == 0 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL == 0; } };
 
-var ALL_NIL = [ NIL_CEN, NIL_EXN, NIL_EXO, NIL_NIL, NIL_PLA, NIL_SET, NIL_TRA, NIL_VPL, NIL_XEN, NIL_XXN, NIL_EST ];
+var ALL_NIL = [ NIL_CEN, NIL_EXN, NIL_EXO, NIL_NIL, NIL_PLA, NIL_SET, NIL_TRA, NIL_VPL, NIL_XEN, NIL_XXN, NIL_NON/*, NIL_EST, NIL_XES*/ ];
 
 var MAIN_WORLD_ORBIT_TABLE = {dice: function() { return dice(2); }, min:1, max:13, mods:[], 1:-2, 2:-1, 3:-1, 4:-1, 5:0, 6:0, 7:0, 8:0, 9:0, 10:1, 11:1, 12:1, 13:1 };
 var MAIN_WORLD_SATELLITE_TABLE = {dice: function() { return dice(2); }, min:2, max:12, mods:[], 2:"Sa", 3:"Sa", 4:"Lk", 5:"", 6:"", 7:"", 8:"", 9:"", 10:"", 11:"", 12:"" };
@@ -210,7 +213,7 @@ var WORLD_DENSITY_ROCKY_BODY_TABLE = {name:"Rocky Body", dice: function() { retu
 var WORLD_DENSITY_ICY_BODY_TABLE = {name:"Icy Body", dice: function() { return dice(3) }, min: 3, max: 18, mods:[], 3:0.18, 4:0.20, 5:0.22, 6:0.24, 7:0.26, 8:0.28, 9:0.30, 10:0.32, 11:0.34, 12:0.36, 13:0.38, 14:0.40, 15:0.42, 16:0.44, 17:0.46, 18:0.48};
 var WORLD_DENSITY_GAS_GIANT = {name:"Gas Giant", dice: function() { return dice(3) }, min:3, max:18, mods:[], 3:0.1, 4:0.11, 5:0.12, 6:0.13, 7:0.14, 8:0.16, 9:0.18, 10:0.2, 11:0.22, 12:0.23, 13:0.24, 14:0.26, 15:0.27, 16:0.28, 17:0.29, 18:0.30}
 var WORLD_DENSITY_TYPE_TABLE = {dice: function() { return dice(2) }, min: 1, max: 15, mods: [WORLD_DENSITY_TYPE_SI_MOD, WORLD_DENSITY_TYPE_AT_MOD], 1:WORLD_DENSITY_HEAVY_CORE_TABLE, 2:WORLD_DENSITY_MOLTEN_CORE_TABLE, 3:WORLD_DENSITY_MOLTEN_CORE_TABLE, 4:WORLD_DENSITY_MOLTEN_CORE_TABLE, 5:WORLD_DENSITY_MOLTEN_CORE_TABLE, 6:WORLD_DENSITY_MOLTEN_CORE_TABLE, 7:WORLD_DENSITY_MOLTEN_CORE_TABLE, 8:WORLD_DENSITY_MOLTEN_CORE_TABLE, 9:WORLD_DENSITY_MOLTEN_CORE_TABLE, 10:WORLD_DENSITY_MOLTEN_CORE_TABLE, 11:WORLD_DENSITY_ROCKY_BODY_TABLE, 12:WORLD_DENSITY_ROCKY_BODY_TABLE, 13:WORLD_DENSITY_ROCKY_BODY_TABLE, 14:WORLD_DENSITY_ROCKY_BODY_TABLE, 15:WORLD_DENSITY_ICY_BODY_TABLE};
-
+var WORLD_DENSITY_TYPES_ALL = [WORLD_DENSITY_HEAVY_CORE_TABLE,WORLD_DENSITY_MOLTEN_CORE_TABLE,WORLD_DENSITY_ROCKY_BODY_TABLE,WORLD_DENSITY_ICY_BODY_TABLE,WORLD_DENSITY_GAS_GIANT];
 
 
 var GREENHOUSE = {0:1,1:1,2:1,3:1,4:1.05,5:1.05,6:1.1,7:1.1,8:1.15,9:1.15,10:1,11:1,12:1,13:1.15,14:1.1,15:1};
@@ -223,7 +226,7 @@ var AXIAL_TILT_TABLE = {dice: function() { return dice(2); }, min:2, max:12, mod
 var ORBIT_ECCENTRICITY_TABLE = {dice: function() {return dice(2); }, min:2, max:12, mods:[], 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0.005, 9:0.01, 10:0.015, 11:0.020, 12:ORBIT_ECCENTRICITY_TABLE_EXTREME};
 var ORBIT_ECCENTRICITY_TABLE_EXTREME = {dice: function() { return dice(1); }, min:1, max:6, mods:[], 1:0.025, 2:0.05, 3:0.1, 4:0.2, 5:0.25, 6:0.40};
 
-var ROTATION_PERIOD_EXTREME_TABLE = {dice: function() { return dice(2); }, min:2, max:12, mods:[], 2:function(){ return dice(1)*-240; }, 3:function(){ return dice(1)*480; }, 4:function(){ return dice(1)*240; }, 5:function(){ return 1; }, 6:function(){ return 1; }, 7:function(){ return 1; }, 8:function(){ return 1; }, 9:function(){ return 1; }, 10:function(){ return dice(1)*240; }, 11:function(){ return dice(1)*1200; }, 12:function(){ return dice(1)*-1200; }};
+var ROTATION_PERIOD_EXTREME_TABLE = {dice: function() { return dice(2); }, min:2, max:12, mods:[], 2:function(){ return dice(1)*-240; }, 3:function(){ return dice(1)*480; }, 4:function(){ return dice(1)*240; }, 5:function(){ return false; }, 6:function(){ return false; }, 7:function(){ return false; }, 8:function(){ return false; }, 9:function(){ return false; }, 10:function(){ return dice(1)*240; }, 11:function(){ return dice(1)*1200; }, 12:function(){ return dice(1)*-1200; }};
 
 var ATM_PRESSURE_VACC = { name:"Vaccuum", day_plus:1, night_minus:-20, day_abs:0.1, night_abs:0.8, dice:function() { return 1;}, min:1, max:1, mods:[], 1:0};
 var ATM_PRESSURE_TRACE = { name:"Trace", day_plus:0.9, night_minus:-15, day_abs:0.3, night_abs:0.7, dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:0.01, 3:0.05, 4:0.05, 5:0.06, 6:0.06, 7:0.07, 8:0.07, 9:0.07, 10:0.08, 11:0.08, 12:0.09};
@@ -248,6 +251,8 @@ var LIQUID_HCl = {name:"Hydrochloric Acid", colour:"colorless",odor:"odorless",m
 var LIQUID_HNO3 = {name:"Nitric Acid", colour:"colorless",odor:"odorless",melts:231,boils:356,molecular_weight:63,inert:false,exotic:false,corrosive:false,insidious:false,notes:"Nitric acid is highly corrosive but is subject to decomposition to Nitrous Dioxide.  It reacts corrosively with many metals and with flesh.  It is a precursor chemical to many explosives."};
 var LIQUID_SCl2 = {name:"Sulfur Dichloride",colour:"red brown",odor:"pungent",melts:152,boils:332,molecular_weight:102.97,exotic:false,corrosive:300,insidious:1000,notes:"A variety of sulfur compounds can be found in various types of atmospheres, ranging from non-irritant to corrosive. These compounds can be found in atmospheres of otherwise perfectly Terran worlds, and indeed are one of the prime components of smog. Sulfur compounds in the atmosphere can result from prolonged heavy industrialization, or can occur naturally from heavy volcanic activity." };
 var LIQUID_NH3 = {name:"Ammonia",colour:"colorless",odor:"sharp and pungent like concentrated urine",melts:196,boils:240,molecular_weight:17.031,exotic:true,corrosive:15000,insidious:false,notes:"Ammonia is an irritant gas.  In trace quantities mammals eliminate ammonia via urination.  But in small quantities - approximately 35 parts per million or more - it is toxic and eye protection must be worn.  It is lethal to humans if breathed even in small quantities, and the vapour from liquid ammonia leads to local concentrations of it.  However, its smell (detectable at 5 parts per million) alerts humans to its presence well before fatal levels." };
+
+var LIQUID_ALL = [LIQUID_H2O, LIQUID_H2SO4, LIQUID_ALKANES, LIQUID_HF, LIQUID_HCl, LIQUID_HNO3, LIQUID_SCl2, LIQUID_NH3];
 
 var GAS_He = {name:"Helium",assoc_liquid:LIQUID_H2O,colour:"colorless",odor:"odorless",inert:true,melts:1,boils:5,molecular_weight:4.02,exotic:true,corrosive:false,insidious:false,notes:"Helium is a very light but inert gas.  It is not toxic, but of course is asphyxiating." };
 var GAS_H = {name:"Hydrogen",assoc_liquid:LIQUID_H2O,colour:"colorless",odor:"odorless",inert:false,melts:14,boils:21,molecular_weight:2.016,exotic:false,corrosive:false,insidious:1000,notes:"Not corrosive or toxic, but seeping can cause explosions" };
@@ -291,21 +296,21 @@ var NATIVE_LIFE_AT_MOD = {property:"atmos", 0:-3,4:4,5:4,6:4,7:4,8:4,9:4};
 var NATIVE_LIFE_HY_MOD = {property:"hydro", 0:-2,2:1,3:1,4:1,5:1,6:1,7:1,8:1};
 var NATIVE_LIFE_TBL = { dice: function(){ return dice(2); }, min:2, max:12, mods:[NATIVE_LIFE_AT_MOD,NATIVE_LIFE_HY_MOD], 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:true, 11:true, 12:true};
 
-var NR_AGRI = { name:"Natural Agricultural Resources", examples:"wood, meat, spices, fruit, grain",number:{molten:4,rocky:4,icy:-4,atmos_good:1,atmos_bad:-3,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:5,no_life:0} };
-var NR_ORES = { name:"Natural Ore Resources", examples:"iron ore, copper ore, tin ore, silver ore, alumina", number:{molten:7,rocky:3,icy:0,atmos_good:0,atmos_bad:1,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:0,no_life:0} };
-var NR_RADI = { name:"Natural Radioactive Resources", examples:"uranium ore, thorium ore, radium ore", number:{molten:5,rocky:3,icy:0,atmos_good:0,atmos_bad:1,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:0,no_life:0} };
-var NR_GEMS = { name:"Natural Gem and Crystal Resources", examples:"diamond, emerald, ruby, quartz, opals, granite, sapphire, amethyst", number:{molten:5,rocky:2,icy:0,atmos_good:0,atmos_bad:0,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:5,no_life:0} };
-var NR_CHEM = { name:"Natural Petrochemical Resources", examples:"natural gas, oil, coal", number:{molten:4,rocky:1,icy:-4,atmos_good:0,atmos_bad:-3,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-2,tech_hi:-2,life:5,no_life:-5} };
-var PR_AGRI = { name:"Processed Agricultural Resources", examples:"liquor, dairy products, canned fruit, frozen vegetables, prepared food and sauces, confectionary, beverages, smoking products", number:{molten:5,rocky:5,icy:0,atmos_good:5,atmos_bad:-5,pop_low:1,pop_good:2,tl_low:-1,tech_low_mid:0,tech_up_mid:1,tech_hi:1,life:5,no_life:0} };
-var PR_ALLO = { name:"Processed Alloy Resources", examples:"steel, tungsten, iron, copper, bronze, brass, silver, aluminium",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:-5,pop_low:-1,pop_good:1,tl_low:-2,tech_low_mid:-1,tech_up_mid:0,tech_hi:1,life:0,no_life:0} };
-var PR_AGRO = { name:"Processed Agroproducts", examples:"textiles, polymers, pharmaceuticals",number:{molten:4,rocky:4,icy:-1,atmos_good:3,atmos_bad:-5,pop_low:0,pop_good:1,tl_low:-1,tech_low_mid:0,tech_up_mid:1,tech_hi:2,life:5,no_life:0} };
-var MA_WEAP = { name:"Weapons", examples:"firearms, ammunition, blades, body armor",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:0,tech_low_mid:1,tech_up_mid:3,tech_hi:5,life:0,no_life:0} };
-var MA_PART = { name:"Mechanical Parts and Goods", examples:"tools, vehicle parts, vacc suits, white goods",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:0,tech_low_mid:1,tech_up_mid:2,tech_hi:3,life:0,no_life:0} };
-var MA_EQUI = { name:"Heavy Equipment", examples:"aircraft, ATV, AFV, machine tools, farm machinery",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:2,tl_low:0,tech_low_mid:1,tech_up_mid:2,tech_hi:3,life:0,no_life:0} };
-var MA_ELEC = { name:"Electronics", examples:"computers, electronic parts, cybernetic parts, computer parts, security systems, communicators",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:-10,tech_low_mid:-10,tech_up_mid:2,tech_hi:4,life:0,no_life:0} };
-var MA_GRAV = { name:"Gravitics", examples:"anti-grav modules, grav belts, gravitic communicators",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:-10,tech_low_mid:-10,tech_up_mid:1,tech_hi:2,life:0,no_life:0} };
-
-var RESOURCES_ALL = [NR_AGRI,NR_ORES,NR_RADI,NR_GEMS,NR_CHEM,PR_AGRI,PR_ALLO,PR_AGRO,MA_WEAP,MA_PART,MA_EQUI,MA_ELEC,MA_GRAV];
+var RESOURCES_ALL = [
+{ name:"Natural Agricultural Resources", id:"agri_check", examples:"wood, meat, spices, fruit, grain",number:{molten:4,rocky:4,icy:-4,atmos_good:1,atmos_bad:-3,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:5,no_life:0} },
+{ name:"Natural Ore Resources", id:"ores_check", examples:"iron ore, copper ore, tin ore, silver ore, alumina", number:{molten:7,rocky:3,icy:0,atmos_good:0,atmos_bad:1,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:0,no_life:0} },
+{ name:"Natural Radioactive Resources", id:"radi_check", examples:"uranium ore, thorium ore, radium ore", number:{molten:5,rocky:3,icy:0,atmos_good:0,atmos_bad:1,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:0,no_life:0} },
+{ name:"Natural Gem and Crystal Resources", id:"gems_check", examples:"diamond, emerald, ruby, quartz, opals, granite, sapphire, amethyst", number:{molten:5,rocky:2,icy:0,atmos_good:0,atmos_bad:0,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:5,no_life:0} },
+{ name:"Natural Petrochemical Resources", id:"chem_check", examples:"natural gas, oil, coal", number:{molten:4,rocky:1,icy:-4,atmos_good:0,atmos_bad:-3,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-2,tech_hi:-2,life:5,no_life:-5} },
+{ name:"Processed Agricultural Resources", id:"agripr_check", examples:"liquor, dairy products, canned fruit, frozen vegetables, prepared food and sauces, confectionary, beverages, smoking products", number:{molten:5,rocky:5,icy:0,atmos_good:5,atmos_bad:-5,pop_low:1,pop_good:2,tl_low:-1,tech_low_mid:0,tech_up_mid:1,tech_hi:1,life:5,no_life:0} },
+{ name:"Processed Alloy Resources", id:"allo_check", examples:"steel, tungsten, iron, copper, bronze, brass, silver, aluminium",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:-5,pop_low:-1,pop_good:1,tl_low:-2,tech_low_mid:-1,tech_up_mid:0,tech_hi:1,life:0,no_life:0} },
+{ name:"Processed Agroproducts", id:"agro_check", examples:"textiles, polymers, pharmaceuticals",number:{molten:4,rocky:4,icy:-1,atmos_good:3,atmos_bad:-5,pop_low:0,pop_good:1,tl_low:-1,tech_low_mid:0,tech_up_mid:1,tech_hi:2,life:5,no_life:0} },
+{ name:"Weapons", id:"weap_check", examples:"firearms, ammunition, blades, body armor",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:0,tech_low_mid:1,tech_up_mid:3,tech_hi:5,life:0,no_life:0} },
+{ name:"Mechanical Parts and Goods", id:"part_check", examples:"tools, vehicle parts, vacc suits, white goods",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:0,tech_low_mid:1,tech_up_mid:2,tech_hi:3,life:0,no_life:0} },
+{ name:"Heavy Equipment", id:"equi_check", examples:"aircraft, ATV, AFV, machine tools, farm machinery",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:2,tl_low:0,tech_low_mid:1,tech_up_mid:2,tech_hi:3,life:0,no_life:0} },
+{ name:"Electronics", id:"elec_check", examples:"computers, electronic parts, cybernetic parts, computer parts, security systems, communicators",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:-10,tech_low_mid:-10,tech_up_mid:2,tech_hi:4,life:0,no_life:0} },
+{ name:"Gravitics", id:"grav_check", examples:"anti-grav modules, grav belts, gravitic communicators",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:-10,tech_low_mid:-10,tech_up_mid:1,tech_hi:2,life:0,no_life:0} }
+];
 
 var LAT_TEMPS = [	{ size:1, 0:0, 1:21 }, 
 					{ size:2, 0:7, 1:0, 2:-14, 3:-28 }, 
@@ -328,7 +333,7 @@ var LAT_TEMPS = [	{ size:1, 0:0, 1:21 },
 					{ size:19, 0:36, 1:32, 2:28, 3:24, 4:20, 5:16, 6:12, 7:8, 8:4, 9:0, 10:-4, 11:-8, 12:-12, 13:-16, 14:-20, 15:-24, 16:-28, 17:-32, 18:-36, 19:-40, 20:-44, 21:-48, 22:-52, 23:-56, 24:-60, 25:-64, 26:-68, 27:-72, 28:-76 }
 ];
 
-
 // var GAS_ = {name:"", melt:0, boil:0, molecular_weight: 0, exotic:true, corrosive:false, insidious:false, notes:"" };
 // var some_dice_table = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:, 3:, 4:, 5:, 6:, 7:, 8:, 9:, 10:, 11:, 12:};
 // var some_resource = { name:"", examples:"",number:{molten:,rocky:,icy:,atmos_good:,atmos_bad:,pop_low:,pop_good:,tl_low:,tech_low_mid:,tech_up_mid:,tech_hi:,life:,no_life:} };
+

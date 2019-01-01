@@ -1,0 +1,148 @@
+<html>
+<head>
+	<script src="FileSaver.js"></script>
+	<script src="generic.js"></script>
+	<script src="generate.js"></script>
+	<script src="planet_building_tables.js"></script>
+	<script src="planet_building_world_class.js"></script>
+	<script src="burtle.js"></script>
+	<script src="url-search-params.js"></script>
+	<script src="starData.js"></script>
+	<script src="orbit_data.js"></script>
+	<script>
+		function test()
+		{
+			init_rng(Date.now() >>> 0);
+			var sandbox = document.getElementById("sandbox");
+			for(var i=0;i<20;i++)
+				sandbox.innerHTML += codeKey(8) + "<br />";
+		}
+		
+		var SAVED_SYSTEMS = [];
+		var q;
+		var sb_db;
+		function db_sandbox()
+		{
+			q = window.indexedDB.open("sandbox_db",1);
+			
+			q.onerror = function(event) 
+			{
+				// no error handling yet
+			};
+			
+			q.onsuccess = function(event) 
+			{
+				sb_db = event.target.result;
+				var objS = sb_db.transaction("savedSystems").objectStore("savedSystems")
+				objS.openCursor().onsuccess = function(event) {
+					var cursor = event.target.result;
+					if(cursor) {
+						SAVED_SYSTEMS[cursor.key] = (cursor.value);
+						cursor.continue();
+					}
+					else {
+						load_saved_systems();
+					}
+				};
+			};
+			
+			q.onupgradeneeded = function(event) 
+			{ 
+				sb_db = event.target.result;
+				var objectStore = sb_db.createObjectStore("savedSystems", { autoIncrement: true });
+				objectStore.createIndex("name","name",{unique:false});
+/*				objectStore.transaction.oncomplete = function(event)
+				{
+					var profileObjectStore = sd_db.transaction("savedSystems","readwrite").objectStore("savedSystems");
+					var default_fav_sector = encodeURIComponent("Spinward Marches");
+					profileObjectStore.add({profile_name:"Default", fav_sector:default_fav_sector, b_and_w:false, capital_avoid_half_tri:true});
+				};		
+*/
+			};	
+		}
+		
+		function load_saved_systems()
+		{
+			var s = document.getElementById("saved_systems");
+			while(s.length > 0)
+				s.remove(0);
+			SAVED_SYSTEMS.forEach(function(v, k)	{
+														var o = document.createElement("OPTION");
+														o.text = v.name;
+														o.value = k;
+														s.add(o);
+													});
+		
+		}
+		
+		function save_sys()
+		{
+			var sysObjStore = sb_db.transaction("savedSystems","readwrite").objectStore("savedSystems");
+			var sys_name = document.getElementById("sys_name").value;
+			var sys_uwp = document.getElementById("sys_uwp").value;
+			var nl = document.getElementById("native_life").value == "Y" ? true : false;
+			var someString = "An arbitrary string";
+			var someArray = [{a:"F5", b:"V"},{a:"M6", b:"II"},{a:"G2", b:"IV"}];
+			var sys_obj = {name:sys_name, uwp:sys_uwp, native_life:nl, someString:someString, someArray:someArray};
+			var request = sysObjStore.add(sys_obj)
+			request.onsuccess = function(event)
+			{
+				document.getElementById("sandbox").innerHTML += "key = " + event.target.result + "; value = " + sys_obj.name + "<br />";
+				SAVED_SYSTEMS[event.target.result] = sys_obj;
+				load_saved_systems();
+			};
+		}
+		
+		function load_sys()
+		{
+			var s = document.getElementById("saved_systems");
+			var k = parseInt(s.options[s.selectedIndex].value);
+			var sys_obj;
+			sb_db.transaction("savedSystems").objectStore("savedSystems").get(k).onsuccess = function(event)
+			{
+				sys_obj = event.target.result;
+				document.getElementById("sys_name").value = sys_obj.name;
+				document.getElementById("sys_uwp").value = sys_obj.uwp;
+				document.getElementById("native_life").value = sys_obj.native_life ? "Y" : "N";	
+				document.getElementById("sandbox").innerHTML += sys_obj.someArray + "<br />";
+				document.getElementById("sandbox").innerHTML += sys_obj.someString + "<br />";
+				sys_obj.someArray.map(function(o)
+										{
+											document.getElementById("sandbox").innerHTML += "a: " + o.a + " b: " + o.b + "<br />";
+										});
+
+			};
+		}
+		
+		function del_sys()
+		{
+			var s = document.getElementById("saved_systems");
+			var k = parseInt(s.options[s.selectedIndex].value);
+			sb_db.transaction("savedSystems","readwrite").objectStore("savedSystems").delete(k).onsuccess = function(event)
+			{
+				SAVED_SYSTEMS.splice(k,1);
+				load_saved_systems();
+			}
+		}
+	</script>
+</head>
+
+<body onload="db_sandbox();">
+<p>Name:
+<input type="text" id="sys_name" />
+</p>
+<p>UWP:
+<input type="text" id="sys_uwp" />
+</p>
+<p>Native Life?
+<select id="native_life"><option>Y</option><option selected >N</option></select>
+<button onclick="save_sys();">Save</button>
+
+<select id="saved_systems"></select>
+<button onclick="load_sys();">Load</button>
+<button onclick="del_sys();">Delete</button>
+
+<div id="sandbox"></div>
+
+</body>
+</html>
