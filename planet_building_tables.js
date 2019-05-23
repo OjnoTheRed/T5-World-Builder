@@ -128,65 +128,65 @@ var STAR_CLASS_F_G_K_SIZE_TABLE = {dice: function() { return dice(2); },min:1,ma
 var STAR_CLASS_M_SIZE_TABLE = {dice:function() { return dice(2); },min:1,max:13,1:"II",2:"II",3:"II",4:"II",5:"III",6:"V",7:"V",8:"V",9:"V",10:"V",11:"VI",12:"D",13:"D" };
 
 
-var TC_AS = {name:"Asteroid Belt", code:"As", rules:function(world) { return world.uwp.size == 0 && world.uwp.atmos == 0 && world.uwp.hydro == 0; } };
-var TC_DE = {name:"Desert", code:"De", rules:function(world) { return world.uwp.atmos > 1 && world.uwp.atmos < 10 && world.uwp.hydro == 0; } };
-var TC_FL = {name:"Fluid Oceans", code:"Fl", rules:function(world) { return world.uwp.atmos > 9 && world.uwp.atmos < 13 && world.uwp.hydro > 0; } };
-var TC_GA = {name:"Garden World", code:"Ga", rules:function(world) { return world.uwp.size > 5 && world.uwp.size < 9 && (world.uwp.atmos == 5 || world.uwp.atmos == 6 || world.uwp.atmos == 8) && world.uwp.hydro > 4 && world.uwp.hydro < 8; } };
-var TC_HE = {name:"Hell World", code:"He", rules:function(world) { return world.uwp.size > 2 && world.uwp.size < 13 && (world.uwp.atmos == 2 || world.uwp.atmos == 4 || world.uwp.atmos == 7 || world.uwp.atmos == 9 || world.uwp.atmos == 10 || world.uwp.atmos == 11 || world.uwp.atmos == 12) && world.uwp.hydro < 3; } };
-var TC_IC = {name:"Ice capped", code:"Ic", rules:function(world) { return world.uwp.atmos < 2 && world.uwp.hydro > 0 } };
-var TC_OC = {name:"Ocean World", code:"Oc", rules:function(world) { return world.uwp.size > 9 && ((world.uwp.atmos > 3 && world.uwp.atmos < 10) || world.uwp.atmos > 12) && world.uwp.hydro == 10; } };
-var TC_VA = {name:"Vacuum World", code:"Va", rules:function(world) { return world.uwp.size > 0 && world.uwp.atmos == 0; } };
-var TC_WA = {name:"Water World", code:"Wa", rules:function(world) { return world.uwp.size > 2 && world.uwp.size < 10 && ((world.uwp.atmos > 3 && world.uwp.atmos < 10) || world.uwp.atmos > 12) && world.uwp.hydro == 10; } };
-var TC_DI = {name:"Dieback", code:"Di", rules:function(world) { return world.uwp.popul == 0 && world.uwp.gov == 0 && world.uwp.law == 0 && world.uwp.TL > 0; } };
-var TC_BA = {name:"Barren", code:"Ba",  rules:function(world) { return world.uwp.popul == 0 && world.uwp.gov == 0 && world.uwp.law == 0 && world.uwp.TL == 0; } };
-var TC_LO = {name:"Low Population", code:"Lo", rules:function(world) { return world.uwp.popul < 4 && world.uwp.popul > 0; } };
-var TC_NI = {name:"Non Industrial", code:"Ni", rules:function(world) { return world.uwp.popul > 3 && world.uwp.popul < 7; } };
-var TC_PH = {name:"Pre High Population", code:"Ph", rules:function(world) { return world.uwp.popul == 8; } };
-var TC_HI = {name:"High Population", code:"Hi", rules:function(world) { return world.uwp.popul > 8; } };
-var TC_PA = {name:"Pre-Agricultural", code:"Pa", rules:function(world) { return world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 3 && world.uwp.hydro < 9 && (world.uwp.popul == 4 || world.uwp.popul == 8); } };
-var TC_AG = {name:"Agricultural", code:"Ag", rules:function(world) { return world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 3 && world.uwp.hydro < 9 && world.uwp.popul > 4 && world.uwp.popul < 8; } };
-var TC_NA = {name:"Non-Agricultural", code:"Na", rules:function(world) { return world.uwp.atmos < 4 && world.uwp.hydro < 4 && world.uwp.popul > 5} };
-var TC_PX = {name:"Prison or Exile Camp", code:"Px", rules:function(world) { return world.isMainWorld && (world.uwp.atmos == 2 || world.uwp.atmos == 3 || world.uwp.atmos == 10 || world.uwp.atmos == 11) && world.uwp.hydro > 0 && world.uwp.hydro < 6 && world.uwp.popul > 2 && world.uwp.popul < 7 && world.uwp.law > 5 && world.uwp.law < 10; } };
-var TC_PI = {name:"Pre-Industrial", code:"Pi", rules:function(world) { return (world.uwp.atmos == 0 || world.uwp.atmos == 1 || world.uwp.atmos == 2 || world.uwp.atmos == 4 || world.uwp.atmos == 7 || world.uwp.atmos == 9) && (world.uwp.popul == 7 || world.uwp.popul == 8); } };
-var TC_IN = {name:"Industrial", code:"In", rules:function(world) { return (world.uwp.atmos == 0 || world.uwp.atmos == 1 || world.uwp.atmos == 2 || world.uwp.atmos == 4 || world.uwp.atmos == 7 || (world.uwp.atmos > 8  && world.uwp.atmos < 13)) && world.uwp.popul > 8; } };
-var TC_PO = {name:"Poor", code:"Po", rules:function(world) { return world.uwp.atmos > 1 && world.uwp.atmos < 6 && world.uwp.hydro < 4; } };
-var TC_PR = {name:"Pre-Rich", code:"Pr", rules:function(world) { return (world.uwp.atmos == 6 || world.uwp.atmos == 8) && (world.uwp.popul == 5 || world.uwp.popul == 9); } };
-var TC_RI = {name:"Rich", code:"Ri", rules:function(world) { return (world.uwp.atmos == 6 || world.uwp.atmos == 8) && (world.uwp.popul > 5 && world.uwp.popul < 9); } };
-var TC_FR = {name:"Frozen", code:"Fr", rules:function(world) { return world.zone == "O" && world.uwp.size > 1 && world.uwp.size < 10 && world.uwp.hydro > 0; } };
-var TC_HO = {name:"Hot", code:"Ho", rules:function(world) { return world.hz_rel == -1; } };
-var TC_CO = {name:"Cold", code:"Co", rules:function(world) { return world.hz_rel == 1; } };
-var TC_TR = {name:"Tropic", code:"Tr", rules:function(world) { return world.hz_rel == -1 && world.uwp.size > 5 && world.uwp.size < 10 && world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 2 && world.uwp.hydro < 8; } };
-var TC_TU = {name:"Tundra", code:"Tu", rules:function(world) { return world.hz_rel == 1 && world.uwp.size > 5 && world.uwp.size < 10 && world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 2 && world.uwp.hydro < 8; } };
-var TC_TZ = {name:"Twilight Zone", code:"Tz", rules:function(world) { return (world.systemOrbit == 0 || world.systemOrbit == 1) && world.uwp.size > 0; } };
-var TC_FA = {name:"Farming", code:"Fa", rules:function(world) { return !world.isMainWorld && world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 3 && world.uwp.hydro < 9 && world.uwp.popul > 1 && world.uwp.popul < 7 && world.zone == "H"; } };
-var TC_MI = {name:"Mining", code:"Mi", rules:function(world) { return world.uwp.popul > 1 && world.uwp.popul < 7 && !world.isMainWorld && world.mainWorld.tcs.has("In"); } };
-var TC_MR = {name:"Military Rule", code:"Mr", rules:function(world) {return false} };
-var TC_PE = {name:"Penal Colony", code:"Pe", rules:function(world) { return !world.isMainWorld && (world.uwp.atmos ==2 || world.uwp.atmos ==3 || world.uwp.atmos == 10 || world.uwp.atmos == 11) && world.uwp.hydro > 0 && world.uwp.hydro < 6 && world.uwp.popul > 2 && world.uwp.popul < 7 && world.uwp.gov == 6 && world.uwp.law > 5 && world.uwp.law < 10; } };
-var TC_RE = {name:"Reserve", code:"Re", rules:function(world) { return world.uwp.popul > 0 && world.uwp.popul < 5 && world.uwp.gov == 6 && (world.uwp.law ==4 || world.uwp.law ==5); } };
-var TC_CY = {name:"Colony", code:"Cy", rules:function(world) { return world.uwp.popul > 4 && world.uwp.popul < 11 && world.uwp.gov == 6 && world.uwp.law < 4; } };
-var TC_SA = {name:"Satellite", code:"Sa", rules:function(world) {return world.isSatellite} };
-var TC_LK = {name:"Locked", code:"Lk", rules:function(world) {return world.isSatellite && (world.orbit && world.orbit.baseOrbit.m < 70)} };
-var TC_PZ = {name:"Puzzle", code:"Pz", rules:function(world) { return world.travelZone == "A" && world.uwp.popul > 6; } };
-var TC_DA = {name:"Dangerous", code:"Da", rules:function(world) { return world.travelZone == "A" && world.uwp.popul < 7; } };
-var TC_FO = {name:"Forbidden", code:"Fo", rules:function(world) { return world.travelZone == "R"; } };
+var TC_AS = {name:"Asteroid Belt", code:"As", rules:function(world) { return world.uwp.size == 0 && world.uwp.atmos == 0 && world.uwp.hydro == 0; }, mod:-3 };
+var TC_DE = {name:"Desert", code:"De", rules:function(world) { return world.uwp.atmos > 1 && world.uwp.atmos < 10 && world.uwp.hydro == 0; }, mod:-2 };
+var TC_FL = {name:"Fluid Oceans", code:"Fl", rules:function(world) { return world.uwp.atmos > 9 && world.uwp.atmos < 13 && world.uwp.hydro > 0; }, mod:-3 };
+var TC_GA = {name:"Garden World", code:"Ga", rules:function(world) { return world.uwp.size > 5 && world.uwp.size < 9 && (world.uwp.atmos == 5 || world.uwp.atmos == 6 || world.uwp.atmos == 8) && world.uwp.hydro > 4 && world.uwp.hydro < 8; }, mod:2 };
+var TC_HE = {name:"Hell World", code:"He", rules:function(world) { return world.uwp.size > 2 && world.uwp.size < 13 && (world.uwp.atmos == 2 || world.uwp.atmos == 4 || world.uwp.atmos == 7 || world.uwp.atmos == 9 || world.uwp.atmos == 10 || world.uwp.atmos == 11 || world.uwp.atmos == 12) && world.uwp.hydro < 3; }, mod:-2};
+var TC_IC = {name:"Ice capped", code:"Ic", rules:function(world) { return world.uwp.atmos < 2 && world.uwp.hydro > 0 }, mod:-2 };
+var TC_OC = {name:"Ocean World", code:"Oc", rules:function(world) { return world.uwp.size > 9 && ((world.uwp.atmos > 3 && world.uwp.atmos < 10) || world.uwp.atmos > 12) && world.uwp.hydro == 10; }, mod:-1 };
+var TC_VA = {name:"Vacuum World", code:"Va", rules:function(world) { return world.uwp.size > 0 && world.uwp.atmos == 0; }, mod:-3 };
+var TC_WA = {name:"Water World", code:"Wa", rules:function(world) { return world.uwp.size > 2 && world.uwp.size < 10 && ((world.uwp.atmos > 3 && world.uwp.atmos < 10) || world.uwp.atmos > 12) && world.uwp.hydro == 10; }, mod:-1 };
+var TC_DI = {name:"Dieback", code:"Di", rules:function(world) { return world.uwp.popul == 0 && world.uwp.gov == 0 && world.uwp.law == 0 && world.uwp.TL > 0; }, mod:0 };
+var TC_BA = {name:"Barren", code:"Ba",  rules:function(world) { return world.uwp.popul == 0 && world.uwp.gov == 0 && world.uwp.law == 0 && world.uwp.TL == 0; }, mod:0 };
+var TC_LO = {name:"Low Population", code:"Lo", rules:function(world) { return world.uwp.popul < 4 && world.uwp.popul > 0; }, mod:-1 };
+var TC_NI = {name:"Non Industrial", code:"Ni", rules:function(world) { return world.uwp.popul > 3 && world.uwp.popul < 7; }, mod:-1 };
+var TC_PH = {name:"Pre High Population", code:"Ph", rules:function(world) { return world.uwp.popul == 8; }, mod:-1 };
+var TC_HI = {name:"High Population", code:"Hi", rules:function(world) { return world.uwp.popul > 8; }, mod:-1 };
+var TC_PA = {name:"Pre-Agricultural", code:"Pa", rules:function(world) { return world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 3 && world.uwp.hydro < 9 && (world.uwp.popul == 4 || world.uwp.popul == 8); }, mod:1 };
+var TC_AG = {name:"Agricultural", code:"Ag", rules:function(world) { return world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 3 && world.uwp.hydro < 9 && world.uwp.popul > 4 && world.uwp.popul < 8; }, mod:2 };
+var TC_NA = {name:"Non-Agricultural", code:"Na", rules:function(world) { return world.uwp.atmos < 4 && world.uwp.hydro < 4 && world.uwp.popul > 5}, mod:-2 };
+var TC_PX = {name:"Prison or Exile Camp", code:"Px", rules:function(world) { return world.isMainWorld && (world.uwp.atmos == 2 || world.uwp.atmos == 3 || world.uwp.atmos == 10 || world.uwp.atmos == 11) && world.uwp.hydro > 0 && world.uwp.hydro < 6 && world.uwp.popul > 2 && world.uwp.popul < 7 && world.uwp.law > 5 && world.uwp.law < 10; }, mod:0 };
+var TC_PI = {name:"Pre-Industrial", code:"Pi", rules:function(world) { return (world.uwp.atmos == 0 || world.uwp.atmos == 1 || world.uwp.atmos == 2 || world.uwp.atmos == 4 || world.uwp.atmos == 7 || world.uwp.atmos == 9) && (world.uwp.popul == 7 || world.uwp.popul == 8); }, mod:-1 };
+var TC_IN = {name:"Industrial", code:"In", rules:function(world) { return (world.uwp.atmos == 0 || world.uwp.atmos == 1 || world.uwp.atmos == 2 || world.uwp.atmos == 4 || world.uwp.atmos == 7 || (world.uwp.atmos > 8  && world.uwp.atmos < 13)) && world.uwp.popul > 8; }, mod:-1 };
+var TC_PO = {name:"Poor", code:"Po", rules:function(world) { return world.uwp.atmos > 1 && world.uwp.atmos < 6 && world.uwp.hydro < 4; }, mod:-2 };
+var TC_PR = {name:"Pre-Rich", code:"Pr", rules:function(world) { return (world.uwp.atmos == 6 || world.uwp.atmos == 8) && (world.uwp.popul == 5 || world.uwp.popul == 9); }, mod:1 };
+var TC_RI = {name:"Rich", code:"Ri", rules:function(world) { return (world.uwp.atmos == 6 || world.uwp.atmos == 8) && (world.uwp.popul > 5 && world.uwp.popul < 9); }, mod:2 };
+var TC_FR = {name:"Frozen", code:"Fr", rules:function(world) { return world.zone == "O" && world.uwp.size > 1 && world.uwp.size < 10 && world.uwp.hydro > 0; }, mod:-1 };
+var TC_HO = {name:"Hot", code:"Ho", rules:function(world) { return world.hz_rel == -1; }, mod:0 };
+var TC_CO = {name:"Cold", code:"Co", rules:function(world) { return world.hz_rel == 1; }, mod:0 };
+var TC_TR = {name:"Tropic", code:"Tr", rules:function(world) { return world.hz_rel == -1 && world.uwp.size > 5 && world.uwp.size < 10 && world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 2 && world.uwp.hydro < 8; }, mod:0 };
+var TC_TU = {name:"Tundra", code:"Tu", rules:function(world) { return world.hz_rel == 1 && world.uwp.size > 5 && world.uwp.size < 10 && world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 2 && world.uwp.hydro < 8; }, mod:0 };
+var TC_TZ = {name:"Twilight Zone", code:"Tz", rules:function(world) { return (world.systemOrbit == 0 || world.systemOrbit == 1) && world.uwp.size > 0; }, mod:-1 };
+var TC_FA = {name:"Farming", code:"Fa", rules:function(world) { return !world.isMainWorld && world.uwp.atmos > 3 && world.uwp.atmos < 10 && world.uwp.hydro > 3 && world.uwp.hydro < 9 && world.uwp.popul > 1 && world.uwp.popul < 7 && world.zone == "H"; }, mod:1 };
+var TC_MI = {name:"Mining", code:"Mi", rules:function(world) { return world.uwp.popul > 1 && world.uwp.popul < 7 && !world.isMainWorld && world.mainWorld.tcs.has("In"); }, mod:0 };
+var TC_MR = {name:"Military Rule", code:"Mr", rules:function(world) {return false}, mod:0 };
+var TC_PE = {name:"Penal Colony", code:"Pe", rules:function(world) { return !world.isMainWorld && (world.uwp.atmos ==2 || world.uwp.atmos ==3 || world.uwp.atmos == 10 || world.uwp.atmos == 11) && world.uwp.hydro > 0 && world.uwp.hydro < 6 && world.uwp.popul > 2 && world.uwp.popul < 7 && world.uwp.gov == 6 && world.uwp.law > 5 && world.uwp.law < 10; }, mod:0 };
+var TC_RE = {name:"Reserve", code:"Re", rules:function(world) { return world.uwp.popul > 0 && world.uwp.popul < 5 && world.uwp.gov == 6 && (world.uwp.law ==4 || world.uwp.law ==5); }, mod:0 };
+var TC_CY = {name:"Colony", code:"Cy", rules:function(world) { return world.uwp.popul > 4 && world.uwp.popul < 11 && world.uwp.gov == 6 && world.uwp.law < 4; }, mod:0 };
+var TC_SA = {name:"Satellite", code:"Sa", rules:function(world) {return world.isSatellite}, mod:0 };
+var TC_LK = {name:"Locked", code:"Lk", rules:function(world) {return world.isSatellite && (world.orbit && world.orbit.baseOrbit.m < 70)}, mod:0 };
+var TC_PZ = {name:"Puzzle", code:"Pz", rules:function(world) { return world.travelZone == "A" && world.uwp.popul > 6; }, mod:0 };
+var TC_DA = {name:"Dangerous", code:"Da", rules:function(world) { return world.travelZone == "A" && world.uwp.popul < 7; }, mod:0 };
+var TC_FO = {name:"Forbidden", code:"Fo", rules:function(world) { return world.travelZone == "R"; }, mod:0 };
 
 var ALL_TC = [ TC_AS,TC_DE,TC_FL,TC_GA,TC_HE,TC_IC,TC_OC,TC_VA,TC_WA,TC_DI,TC_BA,TC_LO,TC_NI,TC_PH,TC_HI,TC_PA,TC_AG,TC_NA,TC_PX,TC_PI,TC_IN,TC_PO,TC_PR,TC_RI,TC_FR,TC_HO,TC_CO,TC_TR,TC_TU,TC_TZ,TC_FA,TC_MI,TC_MR,TC_PE,TC_RE,TC_CY,TC_PZ,TC_DA,TC_FO,TC_SA,TC_LK];
 
-var NIL_EXN = {name:"Extinct Natives",natives:false,description:"Intelligent Life evolved here, but now extinct.",rules:function(world) { return world.uwp.popul == 0 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL == 0; } };
-var NIL_XXN = {name:"Extinct Exotic Natives",natives:false,description:"Exotic Intelligent Life evolved here, but now extinct.",rules:function(world) { return world.uwp.popul == 0 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL == 0; } };
-var NIL_CEN = {name:"Catastrophic Extinct Natives",natives:false,description:"Evidence of Extinct Natives remains.",rules:function(world) { return world.uwp.popul == 0 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0 } };
-var NIL_XEN = {name:"Catastrophic Extinct Exotic Natives",natives:false,description:"Evidence of Exotic Extinct Natives remains.",rules:function(world) { return world.uwp.popul == 0 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0; } };
-var NIL_TRA = {name:"Transients",natives:false,description:"Temporary commercial or scientific activity.",rules:function(world) { return world.uwp.popul >= 1 && world.uwp.popul <= 3 && world.uwp.TL > 0; } };
-var NIL_SET = {name:"Settlers",natives:false,description:"The initial steps of creating a colony.",rules:function(world) { return world.uwp.popul >= 4 && world.uwp.popul <= 6 && world.uwp.TL > 0; } };
-var NIL_PLA = {name:"Transplants",natives:false,description:"Current locals evolved elsewhere.",rules:function(world) { return (world.uwp.popul >= 7 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL > 0); } };
-var NIL_VPL = {name:"Vanished Transplants",natives:false,description:"Evidence of locals who evolved elsewhere now vanished.",rules:function(world) { return world.uwp.popul == 0 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL > 0; } };
-var NIL_EXO = {name:"Exotic Natives",natives:true,description:"Intelligent life evolved on this world in an environment incompatible with humans.",rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0 } };
-var NIL_NIL = {name:"Natives",natives:true,description:"Intelligent life evolved on this world.",rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0  } };
-var NIL_EST = {name:"Established Transplants",natives:false,description:"Transplants from elsewhere established themselves in an adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0; } };
-var NIL_XES = {name:"Established Exotic Transplants",natives:false,description:"Exotic Transplants from elsewhere established themselves in an adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0; } };
-var NIL_NON = {name:"Never had intelligent life",natives:false,description:"There was never any intelligent life, transplanted or native.",rules:function(world) { return world.uwp.popul == 0 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL == 0; } };
-
-var ALL_NIL = [ NIL_CEN, NIL_EXN, NIL_EXO, NIL_NIL, NIL_PLA, NIL_SET, NIL_TRA, NIL_VPL, NIL_XEN, NIL_XXN, NIL_NON/*, NIL_EST, NIL_XES*/ ];
+var ALL_NIL = 	[ 
+					{name:"Extinct Natives",natives:false,description:"Intelligent Life evolved here, but now extinct.",rules:function(world) { return world.uwp.popul == 0 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL == 0; } },
+					{name:"Extinct Exotic Natives",natives:false,description:"Exotic Intelligent Life evolved here, but now extinct.",rules:function(world) { return world.uwp.popul == 0 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL == 0; } },
+					{name:"Catastrophic Extinct Natives",natives:false,description:"Evidence of Extinct Natives remains.",rules:function(world) { return world.uwp.popul == 0 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0 } },
+					{name:"Catastrophic Extinct Exotic Natives",natives:false,description:"Evidence of Exotic Extinct Natives remains.",rules:function(world) { return world.uwp.popul == 0 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0; } },
+					{name:"Transients",natives:false,description:"Temporary commercial or scientific activity.",rules:function(world) { return world.uwp.popul >= 1 && world.uwp.popul <= 3 && world.uwp.TL > 0; } },
+					{name:"Settlers",natives:false,description:"The initial steps of creating a colony.",rules:function(world) { return world.uwp.popul >= 4 && world.uwp.popul <= 6 && world.uwp.TL > 0; } },
+					{name:"Transplants",natives:false,description:"Current locals evolved elsewhere.",rules:function(world) { return (world.uwp.popul >= 7 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL > 0); } },
+					{name:"Vanished Transplants",natives:false,description:"Evidence of locals who evolved elsewhere now vanished.",rules:function(world) { return world.uwp.popul == 0 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL > 0; } },
+					{name:"Exotic Natives",natives:true,description:"Intelligent life evolved on this world in an environment incompatible with humans.",rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0 } },
+					{name:"Natives",natives:true,description:"Intelligent life evolved on this world.",rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0  } },
+					{name:"Established Transplants",natives:false,description:"Transplants from elsewhere established themselves in an adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0 && !world.nativeLife(); } },
+					{name:"Established Exotic Transplants",natives:false,description:"Exotic Transplants from elsewhere established themselves in an adaptable local environment.", rules:function(world) { return world.uwp.popul >= 7 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL > 0 && !world.nativeLife(); } },
+					{name:"No sign of intelligent life",natives:false,description:"It seems there was never any intelligent life, transplanted or native.",rules:function(world) { return world.uwp.popul == 0 && (world.uwp.atmos == 0 || world.uwp.atmos == 1) && world.uwp.TL == 0; } }
+				];
 
 var MAIN_WORLD_ORBIT_TABLE = {dice: function() { return dice(2); }, min:1, max:13, mods:[], 1:-2, 2:-1, 3:-1, 4:-1, 5:0, 6:0, 7:0, 8:0, 9:0, 10:1, 11:1, 12:1, 13:1 };
 var MAIN_WORLD_SATELLITE_TABLE = {dice: function() { return dice(2); }, min:2, max:12, mods:[], 2:"Sa", 3:"Sa", 4:"Lk", 5:"", 6:"", 7:"", 8:"", 9:"", 10:"", 11:"", 12:"" };
@@ -292,11 +292,12 @@ var LIQUID_HF = {name:"Hydrofluoric Acid", colour:"colorless",odor:"odorless",me
 var LIQUID_HCl = {name:"Hydrochloric Acid", colour:"colorless",odor:"odorless",melts:159,boils:188,molecular_weight:36,inert:false,exotic:false,corrosive:50,insidious:1200,notes:"Hydrochloric acid is found throughout nature - for example, in mammal stomachs.  It is a high reactive acid and eats at metals and dissolves flesh.  If breathed as a gas, it forms an acid immediatley on contact with bodily fluids." };
 var LIQUID_HNO3 = {name:"Nitric Acid", colour:"colorless",odor:"odorless",melts:231,boils:356,molecular_weight:63,inert:false,exotic:false,corrosive:false,insidious:false,notes:"Nitric acid is highly corrosive but is subject to decomposition to Nitrous Dioxide.  It reacts corrosively with many metals and with flesh.  It is a precursor chemical to many explosives."};
 
-var NATIVE_LIFE_AT_MOD = {property:"atmos", 0:-3,4:4,5:4,6:4,7:4,8:4,9:4};
-var NATIVE_LIFE_HY_MOD = {property:"hydro", 0:-2,2:1,3:1,4:1,5:1,6:1,7:1,8:1};
-var NATIVE_LIFE_TBL = { dice: function(){ return dice(2); }, min:2, max:12, mods:[NATIVE_LIFE_AT_MOD,NATIVE_LIFE_HY_MOD], 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:true, 11:true, 12:true};
+var NATIVE_LIFE_AT_MOD = {property:"atmos", 0:-3,4:4,5:4,6:4,7:4,8:4,9:4,10:0,11:0,12:0,13:0,14:0,15:0};
+var NATIVE_LIFE_HY_MOD = {property:"hydro", 0:-2,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:0,10:0};
+var NATIVE_LIFE_TBL = { dice: function(){ return dice(2); }, min:2, max:12, mods:[NATIVE_LIFE_AT_MOD,NATIVE_LIFE_HY_MOD], 2:false, 3:false, 4:false, 5:false, 6:false, 7:false, 8:false, 9:false, 10:false, 11:false, 12:true};
 
-var RESOURCES_ALL = [
+
+var RESOURCES_ALL_old = [
 { name:"Natural Agricultural Resources", id:"agri_check", examples:"wood, meat, spices, fruit, grain",number:{molten:4,rocky:4,icy:-4,atmos_good:1,atmos_bad:-3,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:5,no_life:0} },
 { name:"Natural Ore Resources", id:"ores_check", examples:"iron ore, copper ore, tin ore, silver ore, alumina", number:{molten:7,rocky:3,icy:0,atmos_good:0,atmos_bad:1,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:0,no_life:0} },
 { name:"Natural Radioactive Resources", id:"radi_check", examples:"uranium ore, thorium ore, radium ore", number:{molten:5,rocky:3,icy:0,atmos_good:0,atmos_bad:1,pop_low:0,pop_good:0,tl_low:1,tech_low_mid:0,tech_up_mid:-1,tech_hi:-2,life:0,no_life:0} },
@@ -312,7 +313,25 @@ var RESOURCES_ALL = [
 { name:"Gravitics", id:"grav_check", examples:"anti-grav modules, grav belts, gravitic communicators",number:{molten:4,rocky:4,icy:-1,atmos_good:0,atmos_bad:0,pop_low:-1,pop_good:1,tl_low:-10,tech_low_mid:-10,tech_up_mid:1,tech_hi:2,life:0,no_life:0} }
 ];
 
-var LAT_TEMPS = [	{ size:1, 0:0, 1:21 }, 
+var RESOURCES_ALL = [
+{ name:"Natural Agricultural Resources", id:"agri_check", examples:"wood, meat, spices, fruit, grain", rules:function(world) { return (world.tcs.has("Fa") || world.tcs.has("Ag") || world.tcs.has("Ri")) && world.tcs.has("Ni") && world.economicExt.infrastructure > 0 && world.economicExt.labour > 3 && world.densityType().name != "Icy Body"; } },
+{ name:"Natural Ore Resources", id:"ores_check", examples:"iron ore, copper ore, tin ore, silver ore, alumina", rules:function(world) { return world.tcs.has("Ni") && world.economicExt.infrastructure > 0 && world.economicExt.labour > 3 && world.densityType().name != "Icy Body"; } },
+{ name:"Natural Radioactive Resources", id:"radi_check", examples:"uranium ore, thorium ore, radium ore", rules:function(world) { return world.tcs.has("Ni") && world.economicExt.infrastructure > 5 && world.economicExt.labour > 4 && world.densityType().name != "Icy Body"; } },
+{ name:"Natural Gem and Crystal Resources", id:"gems_check", examples:"diamond, emerald, ruby, quartz, opals, granite, sapphire, amethyst", rules:function(world) { return world.tcs.has("Ni") && world.economicExt.infrastructure > 0 && world.economicExt.labour > 3 && world.densityType().name != "Icy Body"; } },
+{ name:"Natural Petrochemical Resources", id:"chem_check", examples:"natural gas, oil, coal", rules:function(world) { return world.tcs.has("Ni") && world.economicExt.infrastructure > 4 && world.economicExt.labour > 3 && world.densityType.name != "Icy Body" && world.nativeLife(); } },
+{ name:"Processed Agricultural Resources", id:"agripr_check", examples:"liquor, dairy products, canned fruit, frozen vegetables, prepared food and sauces, confectionary, beverages, smoking products", rules:function(world) { return (world.tcs.has("Ag") || world.tcs.has("Ri")) && !world.tcs.has("Ni") && world.economicExt.infrastructure > 4 && world.economicExt.labour > 4 && world.densityType().name != "Icy Body"; } },
+{ name:"Processed Alloy Resources", id:"allo_check", examples:"steel, tungsten, iron, copper, bronze, brass, silver, aluminium", rules:function(world) { return !(world.tcs.has("Ni") || world.tcs.has("Lo")) && world.economicExt.infrastructure > 3 && world.economicExt.labour > 5 && world.densityType().name != "Icy Body"; } },
+{ name:"Processed Agroproducts", id:"agro_check", examples:"textiles, polymers, pharmaceuticals", rules:function(world) { return (world.tcs.has("Ag") || world.tcs.has("Ri")) && !world.tcs.has("Ni") && world.economicExt.infrastructure > 6 && world.economicExt.labour > 6 && world.densityType().name != "Icy Body"; } },
+{ name:"Weapons", id:"weap_check", examples:"firearms, ammunition, blades, body armor", rules:function(world) { return !(world.tcs.has("Lo") || world.tcs.has("Ni")) && world.economicExt.infrastructure > 7; } },
+{ name:"Mechanical Parts and Goods", id:"part_check", examples:"tools, vehicle parts, vacc suits, white goods", rules:function(world) { return !(world.tcs.has("Lo") || world.tcs.has("Ni")) && world.economicExt.infrastructure > 8; } },
+{ name:"Heavy Equipment", id:"equi_check", examples:"aircraft, ATV, AFV, machine tools, farm machinery", rules:function(world) { return world.tcs.has("In") && world.economicExt.infrastructure > 8; } },
+{ name:"Electronics", id:"elec_check", examples:"computers, electronic parts, cybernetic parts, computer parts, security systems, communicators", rules:function(world) { return world.tcs.has("In") && world.economicExt.infrastructure > 7 && world.uwp.TL > 6; } },
+{ name:"Gravitics", id:"grav_check", examples:"anti-grav modules, grav belts, gravitic communicators", rules:function(world) { return world.tcs.has("In") && world.economicExt.infrastructure > 7 && world.uwp.TL > 8; } },
+{ name:"Information", id:"info_check", examples:"government paperwork, laws and regulations, histories, geography, commercial or scientific data, academic papers, experimental data", rules:function(world) { return !world.tcs.has("Lo") && world.economicExt.infrastructure > 2; } }
+];
+
+
+var LAT_TEMPS = [	{ size:1, 0:0, 1:-21 }, 
 					{ size:2, 0:7, 1:0, 2:-14, 3:-28 }, 
 					{ size:3, 0:9, 1:0, 2:-9, 3:-18, 4:-27 }, 
 					{ size:4, 0:13, 1:4, 2:0, 3:-9, 4:-18, 5:-27, 6:-36 },
@@ -333,7 +352,73 @@ var LAT_TEMPS = [	{ size:1, 0:0, 1:21 },
 					{ size:19, 0:36, 1:32, 2:28, 3:24, 4:20, 5:16, 6:12, 7:8, 8:4, 9:0, 10:-4, 11:-8, 12:-12, 13:-16, 14:-20, 15:-24, 16:-28, 17:-32, 18:-36, 19:-40, 20:-44, 21:-48, 22:-52, 23:-56, 24:-60, 25:-64, 26:-68, 27:-72, 28:-76 }
 ];
 
+var HOMOGENEITY_DESCRIPTIONS = [{tm:"N/A",js:"N/A"},
+								{tm:"very monolithic",js:"homogenous"},
+								{tm:"monolithic", js:"united"},
+								{tm:"quite monolithic",js:"harmonious"},
+								{tm:"very harmonious",js:"amicable"},
+								{tm:"harmonious",js:"sympathetic"},
+								{tm:"somewhat harmonious",js:"tolerant"},
+								{tm:"somewhat discordant",js:"varied"},
+								{tm:"quite discordant",js:"disparate"},
+								{tm:"discordant",js:"contrasting"},
+								{tm:"very discordant",js:"dissimilar"},
+								{tm:"extremely discordant",js:"diverse"},
+								{tm:"fragmented",js:"discordant"},
+								{tm:"very fragmented",js:"fractured"},
+								{tm:"extremely fragmented",js:"fragmented"},
+								{tm:"extremely fragmented", js:"atomised"}];
+								
+var ACCEPTANCE_DESCRIPTIONS = [	{tm:"N/A",js:"N/A"},
+								{tm:"extremely xenophobic",js:"isolationist"},
+								{tm:"very xenophobic",js:"xenophobic"},
+								{tm:"xenophobic",js:"hostile"},
+								{tm:"extremely aloof",js:"cold"},
+								{tm:"very aloof",js:"distant"},
+								{tm:"aloof",js:"civil"},
+								{tm:"aloof",js:"cordial"},
+								{tm:"friendly",js:"amiable"},
+								{tm:"friendly",js:"congenial"},
+								{tm:"very friendly",js:"friendly"},
+								{tm:"extremely friendly",js:"welcoming"},
+								{tm:"xenophilic",js:"hospitable"},
+								{tm:"very xenophilic",js:"warm"},
+								{tm:"extremely xenophilic",js:"sycophantic"},
+								{tm:"extremely xenophilic",js:"sycophantic"}];
+								
+var STRANGENESS_DESCRIPTIONS = [{tm:"N/A",js:"N/A",numCustoms:0},
+								{tm:"very typical",js:"unfeatured",numCustoms:0},
+								{tm:"typical",js:"monotonous",numCustoms:0},
+								{tm:"somewhat typical",js:"tedious",numCustoms:0},
+								{tm:"somewhat distinct",js:"banal",numCustoms:1},
+								{tm:"distinct",js:"normal",numCustoms:1},
+								{tm:"very distinct",js:"unusual",numCustoms:2},
+								{tm:"confusing",js:"strange",numCustoms:2},
+								{tm:"very confusing",js:"weird",numCustoms:2},
+								{tm:"extremely confusing",js:"outlandish",numCustoms:3},
+								{tm:"incomprehensible",js:"bizarre",numCustoms:4}];
+
+var SYMBOLS_DESCRIPTIONS = 		[	{level_low:0, level_high:0, symbols:"Totems, Spirits and Gods; Boundary stones; Transmission of information by language, poetry and song; Pictorial representations; Natural numbers; Barter trade; Singing and hand-made instruments."},
+									{level_low:1, level_high:1, symbols:"Creation stories; Moral fables; Writing; Generational transmission of knowledge; Arithmetic operations; Fractional and irrational numbers; History; Legends; Group membership beyond family - e.g. city-state; Flags, banners; Trade records; Figurative language; Mapping by dead reckoning; Abstract reasoning; Sun-dials and water-clocks; Gold or other rare metals as currency; Calendars; Music specialists for the wealthy"},
+									{level_low:2, level_high:2, symbols:"Algebra; Calculus; Widespread literature; Literary allusions; Transformation / challenge of earlier symbols; Nations and Empires; Complex measurements become routine; Early mechanical time pieces; Public music performances by professionals"},
+									{level_low:3, level_high:3, symbols:"Paper / coin currency; Banking, bonds, cheques, ledgers; Calendars in daily life reconciled with sophisticated mechanical time pieces; Rights and liberties - political movements; Exchange and absorption of symbols; Early popular literature; Local musical collectives"},
+									{level_low:4, level_high:4, symbols:"Agreed measuring systems; Time and scheduling in daily life; Mass transport; Mass media ; Universal education begins; World maps consolidated and accurate; Beginnings of mass produced popular music"},
+									{level_low:5, level_high:5, symbols:"Accurate World maps commonplace; Circuit diagrams; Electronic mass media; Psychology and mass manipulation; Music shared by electronic mass media"},
+									{level_low:6, level_high:6, symbols:"Representations of atoms and chemistry; Complex signage at public locations; Routine sampling of literature for education of children; Explosion of art and figurative language; Electronic mass media has thoroughly transformed popular culture; New music possibilities from new technologies thoroughly entrenched"},
+									{level_low:7, level_high:7, symbols:"Mass media communication taken for granted; Computer programming languages; New mathematics exploits new technologies; Universal secondary education; Established mass produced popular culture - drama, music, comedy etc."},
+									{level_low:8, level_high:8, symbols:"Commercial cultural icons; Literature and science icons; Shared platforms of information; Transformation of mass media again, more user interactivity; New forms of art (music, painting, drama, comedy etc.) take advantage of new technological platforms.; Almost universal tertiary education"},
+									{level_low:9, level_high:9, symbols:"Architecture, roads and planning transformed; Perspectives change as more time spent flying or in space"},
+									{level_low:10, level_high:12, symbols:"Representations of planets, stars and star systems; Explosion of cosmological discovery"},
+									{level_low:13, level_high:15, symbols:"Shared dreams and shared direct subconscious lead to symbols incomprehensible to previous societies; Interstellar travel fades into background of most citizen’s lives; Art, sport and culture transformed by abundant energy and anti-grav technology."},
+									{level_low:16, level_high:33, symbols:"Symbols generated directly by AI - that is, symbols are now self-creating.  Magical levels of technology make speculation of concrete examples pointless."}
+								];
+
 // var GAS_ = {name:"", melt:0, boil:0, molecular_weight: 0, exotic:true, corrosive:false, insidious:false, notes:"" };
 // var some_dice_table = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:, 3:, 4:, 5:, 6:, 7:, 8:, 9:, 10:, 11:, 12:};
 // var some_resource = { name:"", examples:"",number:{molten:,rocky:,icy:,atmos_good:,atmos_bad:,pop_low:,pop_good:,tl_low:,tech_low_mid:,tech_up_mid:,tech_hi:,life:,no_life:} };
 
+var matt_stevens_gov_8 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
+var matt_stevens_gov_9 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
+var matt_stevens_gov_A = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Party Machine", 3:"Strongman", 4:"Strongman", 5:"War Hero", 6:"Revolutionary Military", 7:"Revolutionary Military", 8:"Institutional Military", 9:"Elected Tyrant", 10:"Elected Tyrant", 11:"Revolutionary Tyrant", 12:"Revolutionary Tyrant"};
+var matt_stevens_gov_B = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Strongman", 3:"Strongman", 4:"War Hero", 5:"Revolutionary Military", 6:"Institutional Military", 7:"Elected Tyrant", 8:"Elected Tyrant", 9:"Revolutionary Party", 10:"Revolutionary Party", 11:"Revolutionary Tyrant", 12:"Revolutionary Tyrant"};
+var matt_stevens_gov_C = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Party Machine", 3:"Party Machine", 4:"Party Machine", 5:"Revolutionary Military", 6:"Revolutionary Military", 7:"Institutional Military", 8:"Institutional Military", 9:"Institutional Military", 10:"Revolutionary Party", 11:"Revolutionary Party", 12:"Revolutionary Party"};

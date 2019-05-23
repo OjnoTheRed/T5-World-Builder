@@ -1,4 +1,3 @@
-// now to put all dbObj and read_dbObj calls into orbitSet bearing in mind it is both the 'master' and can be contained by other orbit sets as well as the full system.
 var SYSTEM_OBJECT_COUNT = 0;
 var MAIN_WORLD_HZ_ONLY = false;
 var MAIN_WORLD_IS_SAT = false;
@@ -25,6 +24,8 @@ function world()
 	me.isMainWorld = false;
 	me.hex = "";
 	me.sector = "";
+	me.subSector = "";
+	me.nativeIntLife = new nil(me);
 
 	me.nameTextBox = function()
 	{
@@ -34,7 +35,8 @@ function world()
 		textInput.value = me.name;
 		textInput.onchange = function() { me.name = textInput.value };
 		return textInput;
-	}	
+	}
+	
 	me.editDetails = function()
 	{
 		var world_details_div = document.getElementById("world_detail");
@@ -48,6 +50,47 @@ function world()
 																					me.isSatellite ? me.planet.orbit.set.updateTable() : me.orbit.set.updateTable();
 																				};
 												});
+		var uwp_elem = document.getElementsByName("uwp");
+		for(var i=0;i<uwp_elem.length;i++)
+			uwp_elem[i].onchange = function()	{	me.uwp.update(this.id,this.value);
+													me.updateEdits(world_details_div);
+													me.orbit.set.updateTable();
+												};		
+		document.getElementById("tcs").innerHTML = me.tcs;		
+		var cX_div = document.getElementById("cX");
+		var eX_div = document.getElementById("eX");
+		if(me.constructor.name == "mainWorld")
+		{
+			cX_div.hidden = false;
+			cX_details.map(function(item)		{
+													var elem = document.getElementById(item.id);
+													var elem_adj = document.getElementById(item.adj_id)
+													elem.value = item.contents();
+													elem_adj.innerHTML = item.text_string();
+													elem.onchange = function()	{
+																					item.update(elem.value);
+																					elem_adj.innerHTML = item.text_string();
+																				};
+													
+												});
+			updateCultureDescription(); 
+			eX_div.hidden = false;
+			eX_details.map(function(item)		{
+													var elem = document.getElementById(item.id);
+													if(elem.nodeName == "P")
+														elem.innerHTML = item.contents();
+													else
+														elem.value = item.contents();
+													elem.onchange = function()	{
+																					item.update(elem.value);
+																				};				
+												});
+		}
+		else
+		{
+			cX_div.hidden = true;
+			eX_div.hidden = true;
+		}
 		var orbBtns = document.getElementById("orbitButtons"); 
 		while(orbBtns.hasChildNodes())
 			orbBtns.removeChild(orbBtns.childNodes[0]);
@@ -70,6 +113,11 @@ function world()
 			orbBtns.hidden = true;
 			orbSatSel.hidden = false;
 			orbSatSel.value = me.orbit.baseOrbit.o;
+			orbSatSel.onchange = function() {	
+												me.orbit.baseOrbit.o = orbSatSel.value; 
+												me.orbit.calcRowContents(); 
+												me.orbit.set.planet.orbit.set.updateTable(); 
+											};
 		}
 		
 		RESOURCES_ALL.map(function(item,index)	{
@@ -79,12 +127,6 @@ function world()
 																					me.updateEdits(world_details_div);
 																				};
 												});
-		var uwp_elem = document.getElementsByName("uwp");
-		for(var i=0;i<uwp_elem.length;i++)
-			uwp_elem[i].onchange = function()	{	me.uwp[this.id] = this.value;
-													me.updateEdits(world_details_div);
-													me.orbit.set.updateTable();
-												};
 	}
 
 	me.updateEdits = function(editDiv)
@@ -122,6 +164,18 @@ function world()
 			tempTbl.id = "temperatureTbl";
 			editDiv.appendChild(tempTbl);
 		}
+		me.economicExt.update();
+		eX_details.map(function(item)		{
+												var elem = document.getElementById(item.id);
+												if(elem.nodeName == "P")
+													elem.innerHTML = item.contents();
+												else
+													elem.value = item.contents();
+												elem.onchange = function()	{
+																				item.update(elem.value);
+																			};				
+											});		
+		
 	}
 	
 	function rotationPeriodString()
@@ -816,25 +870,9 @@ function world()
 	var NATIVE_LIFE;
 	me.nativeLife = function()
 	{
-		if(NATIVE_LIFE)
+		if(NATIVE_LIFE !== undefined)
 			return NATIVE_LIFE;
-		if(me.nativeIntLife.type.natives)
-		{
-			NATIVE_LIFE = true;
-			return NATIVE_LIFE;
-		}
 		var nativeLifeTbl = new dice_table(NATIVE_LIFE_TBL,me.uwp);
-		nativeLifeTbl.DM += (me.calcTemperatureC() < -20 || me.calcTemperatureC()) > 30 ? -1 : 0;
-		if(me.isSatellite)
-		{
-			nativeLifeTbl.DM += (me.planet.orbit.set.centralStar.spectral_class == "G" || me.planet.orbit.set.centralStar.spectral_class == "K") ? 1 : 0;
-			nativeLifeTbl.DM += (me.planet.orbit.set.centralStar.spectral_class == "F" || me.planet.orbit.set.centralStar.spectral_class == "A" || me.planet.orbit.set.centralStar.spectral_class == "B") ? -1 : 0;			
-		}
-		else
-		{
-			nativeLifeTbl.DM += (me.orbit.set.centralStar.spectral_class == "G" || me.orbit.set.centralStar.spectral_class == "K") ? 1 : 0;
-			nativeLifeTbl.DM += (me.orbit.set.centralStar.spectral_class == "F" || me.orbit.set.centralStar.spectral_class == "A" || me.orbit.set.centralStar.spectral_class == "B") ? -1 : 0;
-		}
 		NATIVE_LIFE = nativeLifeTbl.roll();
 		return NATIVE_LIFE;
 	}
@@ -1051,13 +1089,33 @@ function world()
 	{id:"hydro_perc_edit",units:function() { return "Percentage"; }, name:"Hydrographic Percentage", contents:function() { return me.getHydroPercentage() + "%";}, validate:function(s) { return !isNaN(parseInt(s))}, text_string:function() { return me.getHydroPercentage() + "%"}, update:function(v) { HYDRO_PERCENTAGE = v; }, data_string:function() { return me.getHydroPercentage(); }},
 	{id:"liq_comp_edit",units:function() { return false; }, name:"Surface Liquid Composition", contents:function() { return me.getFluid() }, validate:function() { return true; }, text_string:function() { return me.getFluid(); }, update:function(v) { FLUID_DETAIL = v }, data_string:function() { return me.getFluid(); } },
 	{id:"native_life_select",units:function() { return false; }, name:"Native Life", contents:function() { return me.nativeLife() ? "Yes" : "No" }, update:function(v) { v == "Yes" ? NATIVE_LIFE = true : NATIVE_LIFE = false }, text_string:function() { return me.nativeLife() ? "Yes" : "No" }, data_string:function() { return me.nativeLife() ? "Yes" : "No"; }},
-	{id:"native_int_life_text",units:function() { return false; }, name:"Native Intelligent Life", contents:function() { return me.nativeIntLife.toString() }, update:function() { me.nativeIntLife.generate(); }, text_string:function() { return me.nativeIntLife.toString(); }, data_string:function() { return me.nativeIntLife.toString(); } },
+	{id:"native_int_life_text",units:function() { return false; }, name:"Native Intelligent Life", contents:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString() }, update:function() { me.nativeIntLife.generate(); }, text_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); }, data_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); } },
 	{id:"seismic_edit",units:function() { return false; }, name:"Seismic Stress", contents:function() { return me.getStress() }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return "Stress factor is " + me.getStress() + "<br />Occurence of a volcanic eruption or earthquake in a 24-hour period:<br />Formidable (4D) < " + (me.getStress() - 4) + "<br /><b>Note:</b> DM -2 if on a Volcano hex, DM -2 if on a fault line."}, update:function(v) { STRESS_FACTOR = v; }, data_string:function() { return me.getStress(); }}
 	];
 	
 	all_details.map(function(item, index) { ALL_DETAILS[index] = item.name; });
 	
 	me.all_details = all_details;
+	
+	var cX_details = [
+		{id:"cX_H", adj_id:"cX_H_adj", name:"Heterogeneity",contents:function() { return me.culturalExt.homogeneity; }, text_string:function() { return HOMOGENEITY_DESCRIPTIONS[me.culturalExt.homogeneity].tm; }, data_string:function() { return pseudoHex(me.culturalExt.homogeneity); }, update:function(v) { me.culturalExt.homogeneity = parseInt(v); updateCultureDescription(); } },
+		{id:"cX_A", adj_id:"cX_A_adj", name:"Acceptance",contents:function() { return me.culturalExt.acceptance; }, text_string:function() { return ACCEPTANCE_DESCRIPTIONS[me.culturalExt.acceptance].tm; }, data_string:function() { return pseudoHex(me.culturalExt.acceptance); }, update:function(v) { me.culturalExt.acceptance = parseInt(v); updateCultureDescription(); } },
+		{id:"cX_St", adj_id:"cX_St_adj", name:"Strangeness",contents:function() { return me.culturalExt.strangeness; }, text_string:function() { return STRANGENESS_DESCRIPTIONS[me.culturalExt.strangeness].tm; }, data_string:function() { return pseudoHex(me.culturalExt.strangeness); }, update:function(v) { me.culturalExt.strangeness = parseInt(v); updateCultureDescription(); } },
+		{id:"cX_Sy", adj_id:"cX_Sy_adj", name:"Symbols",contents:function() { return me.culturalExt.symbols; }, text_string:function() { return ""; }, data_string:function() { return pseudoHex(me.culturalExt.symbols); }, update:function(v) { me.culturalExt.symbols = parseInt(v); updateCultureDescription(); } }	
+	];
+	
+	var eX_details = [
+		{id:"eX_R", name:"Resources",contents:function() { return me.economicExt.resources; }, data_string:function(){ return pseudoHex(me.economicExt.resources); }, update:function(v) { me.economicExt.resources = parseInt(v); } },
+		{id:"eX_L", name:"Labor",contents:function() { return me.economicExt.labour; }, data_string:function() { return pseudoHex(me.economicExt.labour); }, update:function(v) { me.economicExt.labour = parseInt(v); } },
+		{id:"eX_I", name:"Infrastructure",contents:function() { return me.economicExt.infrastructure; }, data_string:function() { return pseudoHex(me.economicExt.infrastructure); }, update:function(v) { me.economicExt.infrastructure = parseInt(v); } },
+		{id:"eX_E", name:"Efficiency",contents:function() { return me.economicExt.efficiency; }, data_string:function() { return "" + me.economicExt.efficiency > -1 ? "+" + me.economicExt.efficiency : me.economicExt.efficiency; }, update:function(v) { me.economicExt.efficiency = parseInt(v); } }	
+	];
+	
+	function updateCultureDescription()
+	{
+		var elem = document.getElementById("cX_description");
+		elem.innerHTML = me.culturalExt.statement();
+	}
 	
 	me.dbObj = function()
 	{
@@ -1134,6 +1192,51 @@ function world()
 }
 
 function worldResources(world)
+{
+	var me = this;
+	me.world = world;
+	me.resourceList = [];
+	
+	me.generate = function()
+	{
+		for(var i=0;i<RESOURCES_ALL.length;i++)
+			if(RESOURCES_ALL[i].rules(world))
+				me.resourceList.push(RESOURCES_ALL[i]);
+		return me.resourceList;
+	}
+	
+	me.add = function(resource)
+	{
+		if(me.resourceList.find(function(v) { return v.name == resource.name }) === undefined)
+			me.resourceList.push(resource);
+	}
+	
+	me.erase = function(resource)
+	{
+		var i = me.resourceList.findIndex(function(v) { return v.name == resource.name });
+		if(i !== undefined)
+			me.resourceList.splice(i,1);
+	}
+	
+	me.has = function(resourceID)
+	{
+		return me.resourceList.find(function(v) { return v.id == resourceID }) !== undefined;
+	}
+	
+	me.toString = function()
+	{
+		var s = "The world has ";
+		var r = me.resourceList;
+		if(r.length == 0) return "None.";
+		for(var i=0;i<r.length-1;i++)
+			s += r[i].name + " (for example " + r[i].examples + "); ";
+		s += "and " + r[i].name + " (for example " + r[i].examples + ").";
+		return s;
+	}
+}
+
+/*
+function worldResources_old(world)
 {
 	var me = this;
 	me.world = world;
@@ -1236,6 +1339,7 @@ function worldResources(world)
 		return s;
 	}
 }
+*/
 
 function mainWorld(generationObject)
 {
@@ -1259,7 +1363,6 @@ function mainWorld(generationObject)
 	me.worlds = 0;
 	me.allegiance = "Im";
 	me.stars = new starSystem(me);
-	me.nativeIntLife = new nil(me);
 	me.standardSeed = "";
 		
 	me.buildQuery = function()
@@ -1308,12 +1411,13 @@ function mainWorld(generationObject)
 		me.gas_giants = Math.max(0, Math.floor(dice(2)/2-2));
 		me.bases.generate();
 		me.generateIx();
-		me.economicExt.generate();
+		me.economicExt.generate(); //NB: depends on generateIx
 		me.culturalExt.generate();
 		me.noblesExt.generate();
+		me.nativeLife();
+		me.nativeIntLife.generate();
 		me.worlds = dice(2);
 		me.stars.generate();
-		me.nativeIntLife.generate();
 		me.system = me.name;
 	}
 		
@@ -1425,6 +1529,7 @@ function mainWorld(generationObject)
 
 	me.readDataObj = function(dataObj)
 	{
+		me.subSector = dataObj.ss;
 		me.hex = dataObj.hex;
 		me.name = dataObj.name;
 		me.uwp = new uwp(null,me);
@@ -1501,6 +1606,7 @@ function mainWorld(generationObject)
 		me.noblesExt.readString(o.noblesExt);
 		me.stars = new starSystem();
 		me.stars.read_dbObj(o.stars);
+		me.nativeIntLife.generate();
 	}
 }
 
@@ -1520,9 +1626,9 @@ function minorWorld(genObject, mainWorld, planet)
 	me.hz_rel = me.isSatellite ? planet.hz_rel : 0;
 	me.satelliteMaxSize = me.isSatellite ? (planet.uwp ? planet.uwp.size : planet.size) : 20;
 	me.satelliteSystem = null;
-	me.nativeIntLife = new nil(me);
 	me.has_MW_as_sat = false;
 	me.orbit = null;
+	me.economicExt = new eX(me);
 	if(me.mainWorld)
 	{
 		me.system = mainWorld.name;
@@ -1543,7 +1649,9 @@ function minorWorld(genObject, mainWorld, planet)
 			me.uwp.TL = 0;
 		}
 		me.tcs.generate();
+		me.nativeLife();
 		me.nativeIntLife.generate();
+		me.economicExt.generate();
 	}
 	
 	me.buildGet = function()
@@ -1758,6 +1866,14 @@ function uwp(worldObject)
 			me.genObject[worldStat](me, me.world.populLimit);
 		}
 	}
+	
+	me.update = function(property, value)
+	{
+		if(property == "port")
+			me.port = value;
+		else
+			me[property] = parseInt(value);
+	}
 
 	me.totalTechDM = function()
 	{
@@ -1895,7 +2011,7 @@ function nil(worldObject)
 		if(me.world.gov == 1)
 			s += "Corporate ";
 		if(me.world.gov == 6)
-			s += "Colonist ";
+			s += "Colonial ";
 		s += me.type.name;
 		return s;
 	}
@@ -1977,26 +2093,85 @@ function eX(world)
 {
 	var me = this;
 	me.world = world;
-	me.resources = 0;
-	me.labour = 0;
-	me.infrastructure = 0;
-	me.efficiency = 0;
+	me.resources;
+	me.labour;
+	me.infrastructure;
+	me.efficiency;
 	
 	me.generate = function()
 	{
-		me.resources = dice(2);
-		if(me.world.uwp.TL > 7)
-			me.resources += me.world.belts + me.world.gas_giants;
-		me.labour = Math.max(0,me.world.uwp.popul - 1);
-		if(me.world.tcs.has("Ba"))
-			me.infrastructure = 0;
-		if(me.world.tcs.has("Lo"))
-			me.infrastructure = 1;
-		if(me.world.tcs.has("Ni"))
-			me.infrastructure = Math.max(0, dice(1) + me.world.iX);
-		if(!me.world.tcs.has("Ba") && !me.world.tcs.has("Lo") && !me.world.tcs.has("Ni"))
-			me.infrastructure = Math.max(0,dice(2) + me.world.iX);
-		me.efficiency = flux();
+		if(me.world.isMainWorld)
+		{
+			me.resources = dice(2);
+			if(me.world.uwp.TL > 7)
+				me.resources += me.world.belts + me.world.gas_giants;
+			me.labour = Math.max(0,me.world.uwp.popul - 1);
+			if(me.world.tcs.has("Ba"))
+				me.infrastructure = 0;
+			if(me.world.tcs.has("Lo"))
+				me.infrastructure = 1;
+			if(me.world.tcs.has("Ni"))
+				me.infrastructure = Math.max(0, dice(1) + me.world.iX);
+			if(!me.world.tcs.has("Ba") && !me.world.tcs.has("Lo") && !me.world.tcs.has("Ni"))
+				me.infrastructure = Math.max(0,dice(2) + me.world.iX);
+			me.efficiency = flux();
+		}
+		else
+		{
+			me.resources = dice(2);
+			me.labour = Math.max(0,me.world.uwp.popul - 1);
+			if(me.world.tcs.has("Ba"))
+				me.infrastructure = 0;
+			if(me.world.tcs.has("Lo"))
+				me.infrastructure = 1;
+			if(!me.world.tcs.has("Ba") && !me.world.tcs.has("Lo"))
+				me.infrastructure = Math.max(0,me.world.mainWorld.infrastructure - 1);
+			me.efficiency = me.world.mainWorld.efficiency;
+		}
+	}
+	
+	me.update = function()
+	{
+		if(me.world.isMainWorld)
+		{
+			if(me.resources === undefined)
+			{
+				me.resources = dice(2);
+				if(me.world.uwp.TL > 7)
+					me.resources += me.world.belts + me.world.gas_giants;
+			}
+			me.labour = Math.max(0,me.world.uwp.popul - 1);
+			if(me.infrastructure === undefined)
+			{
+				if(me.world.tcs.has("Ba"))
+					me.infrastructure = 0;
+				if(me.world.tcs.has("Lo"))
+					me.infrastructure = 1;
+				if(me.world.tcs.has("Ni"))
+					me.infrastructure = Math.max(0, dice(1) + me.world.iX);
+				if(!me.world.tcs.has("Ba") && !me.world.tcs.has("Lo") && !me.world.tcs.has("Ni"))
+					me.infrastructure = Math.max(0,dice(2) + me.world.iX);
+			}
+			if(me.efficiency === undefined)
+				me.efficiency = flux();
+		}
+		else
+		{
+			if(me.resources === undefined)
+				me.resources = dice(2);
+			me.labour = Math.max(0,me.world.uwp.popul - 1);
+			if(me.infrastructure === undefined)
+			{
+				if(me.world.tcs.has("Ba"))
+					me.infrastructure = 0;
+				if(me.world.tcs.has("Lo"))
+					me.infrastructure = 1;
+				if(!me.world.tcs.has("Ba") && !me.world.tcs.has("Lo"))
+					me.infrastructure = Math.max(0,me.world.mainWorld.infrastructure - 1);
+			}
+			if(me.efficiency === undefined)
+				me.efficiency = me.world.mainWorld.efficiency;
+		}		
 	}
 	
 	me.getRU = function()
@@ -2108,6 +2283,26 @@ function cX(world)
 	{
 		for(var p in o)
 			me[p] = o[p];
+	}
+	
+	me.statement = function()
+	{
+		var s = me.world.name + "'s culture is ";
+		s += HOMOGENEITY_DESCRIPTIONS[me.homogeneity].tm + ", ";
+		s += ACCEPTANCE_DESCRIPTIONS[me.acceptance].tm + ", and ";
+		s += STRANGENESS_DESCRIPTIONS[me.strangeness].tm + ".  ";
+		s += "It could also be described as ";
+		s += HOMOGENEITY_DESCRIPTIONS[me.homogeneity].js + ", ";
+		s += ACCEPTANCE_DESCRIPTIONS[me.acceptance].js + ", and ";
+		s += STRANGENESS_DESCRIPTIONS[me.strangeness].js + ".  ";
+		s += "Generated by adding a flux roll to Technology Level, symbols are broadly interpreted here as a society's general adoption of technology.  ";
+		s += "For example, a society with a TL of 8 but a Symbols rating of 5 has the technological capability to create computers but they are not adopted into ";
+		s += "the daily symbols used by that society.  This society has a symbols rating of " + me.symbols + " and a technology level of " + me.world.uwp.TL + ".  ";
+		s += "This indicates the society is broadly " + (me.symbols > me.world.uwp.TL ? "looking ahead of" : (me.symbols < me.world.uwp.TL ? "not yet coping with" : "comfortable with"));
+		s += " its available technology.  "
+		s += "The following symbols are the highest level of symbols possibly used by that society: ";
+		s += SYMBOLS_DESCRIPTIONS.find(function(symbolObj) { return symbolObj.level_low <= me.symbols && symbolObj.level_high >= me.symbols; }).symbols;
+		return s;
 	}
 }
 
@@ -2600,11 +2795,12 @@ function fullSystem(mainWorldObj, generate_now)
 	me.stars = me.mainWorld.stars;
 	me.primary = me.stars.stars[0];
 	me.companion = me.stars.companions[0];	
-	me.orbits = new orbitSet(me.primary, me.companion, me.mainWorld);
+	me.orbits = new orbitSet(me.primary, me.companion, me.mainWorld, me);
 	me.orbitSets = [me.orbits];
 	me.name = me.mainWorld.name ? me.mainWorld.name + " system" : "Unnamed system";
 	me.name += me.mainWorld.sector ? (" (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")") : "";
 	me.loadKey = null;
+	me.totalAvailOrb = 0;
 	
 	if(arguments.length < 2)
 		generate_now = true;
@@ -2630,13 +2826,17 @@ function fullSystem(mainWorldObj, generate_now)
 					orbitNumber = dice(1)+11;
 					break;
 			}
-			var newOrbitSet = new orbitSet(me.stars.stars[i],me.stars.companions[i], me.mainWorld);
+			var newOrbitSet = new orbitSet(me.stars.stars[i],me.stars.companions[i], me.mainWorld, me);
 			newOrbitSet.maxOrbit = orbitNumber-3;
 			newOrbitSet.description = PREC_ORDINAL[precedenceCount++];
 			me.orbitSets.push(newOrbitSet);
 			me.orbits.add(orbitNumber, newOrbitSet);
-		}	
-		
+		}
+		me.orbitSets.map(function(orbit_set)
+								{
+									me.totalAvailOrb += orbit_set.availableOrbitCount();
+								});
+		var orbitsNeeded = parseInt(me.mainWorld.gas_giants) + parseInt(me.mainWorld.belts) + parseInt(me.mainWorld.worlds) + 1;
 		if(MAIN_WORLD_IS_SAT && me.mainWorld.uwp.size != 0)
 			me.mainWorld.tcs.add("Sa");
 		if(!MAIN_WORLD_IS_SAT && !MAIN_WORLD_NOT_SAT && me.mainWorld.uwp.size != 0)
@@ -2650,6 +2850,28 @@ function fullSystem(mainWorldObj, generate_now)
 			}
 			if(mwType == "Lk")
 				me.mainWorld.tcs.add("Lk");
+		}
+		if(me.mainWorld.isSatellite)
+			orbitsNeeded--;
+		if(orbitsNeeded > me.totalAvailOrb)
+		{
+			var numObjNerfed = orbitsNeeded - me.totalAvailOrb;
+			if(numObjNerfed <= me.mainWorld.worlds)
+				me.mainWorld.worlds -= numObjNerfed;
+			else
+			{
+				numObjNerfed -= me.mainWorld.worlds;
+				me.mainWorld.worlds = 0;
+				if(numObjNerfed <= me.mainWorld.belts)
+					me.mainWorld.belts -= numObjNerfed;
+				else
+				{
+					numObjNerfed -= me.mainWorld.belts;
+					me.mainWorld.belts = 0;
+					if(numObjNerfed <= me.mainWorld.gas_giants)
+						me.mainWorld.gas_giants -= numObjNerfed;
+				}
+			}
 		}
 		var mainWorldPlaced = false;
 		if(!MAIN_WORLD_HZ_ONLY)
@@ -2806,7 +3028,8 @@ function fullSystem(mainWorldObj, generate_now)
 	
 	me.toPlainHTML = function()
 	{
-		var s = "<html><head></head><body><h1>The " + me.mainWorld.name + " System (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")</h1>";
+		var s = "<body style='background-color:white'>";
+		s += "<div class='transparent'>" + document.getElementById("symbol_map").innerHTML + "</div>";
 		me.orbitSets.map(function(i) { s += i.toPlainHTML(); });
 		if(DOWNLOAD_WORLD_DETAIL)
 			me.orbitSets.map(function(i) { s += i.toPlainHTMLDetails(); });
@@ -2823,8 +3046,9 @@ function fullSystem(mainWorldObj, generate_now)
 	
 	me.toSymbolMap = function()
 	{
-		var map = document.createElement("DIV");
-		map.className = "sys";
+		map = document.getElementById("symbol_map");
+		while(map.hasChildNodes())
+			map.removeChild(map.childNodes[0]);
 		var heading = document.createElement("H1");
 		heading.innerHTML = "The " + me.mainWorld.name + " System (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")";
 		map.appendChild(heading);
@@ -2867,7 +3091,7 @@ function fullSystem(mainWorldObj, generate_now)
 		me.orbitSets = [];
 		o.orbitSets.map(function(orbit_set_dbObj)
 							{
-								var orbit_set = new orbitSet(me.primary, me.companion, me.mainWorld); 
+								var orbit_set = new orbitSet(me.primary, me.companion, me.mainWorld, me); 
 								orbit_set.read_dbObj(orbit_set_dbObj);
 								me.orbitSets.push(orbit_set);
 							});
@@ -2880,11 +3104,12 @@ function fullSystem(mainWorldObj, generate_now)
 
 var ORBIT_SET_COUNT = 0;
 
-function orbitSet(centralStar, companionStar, mainWorld)
+function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 {
 	var me = this;
 	me.centralStar = centralStar;
 	me.companionStar = companionStar;
+	me.systemObj = systemObj;
 	me.maxOrbit = 19;
 	me.orbits = [];
 	if(me.centralStar)
@@ -2954,7 +3179,7 @@ function orbitSet(centralStar, companionStar, mainWorld)
 										c = new gasGiant(me.mainWorld);
 										break;
 									case "orbitSet":
-										c = new orbitSet(null,null, me.mainWorld);
+										c = new orbitSet(null,null, me.mainWorld, me.systemObj);
 								}
 								if(orbit_dbObj.contents.type != "mainWorld") c.read_dbObj(orbit_dbObj.contents);
 								var on = orbit_dbObj.baseOrbit;
@@ -3088,6 +3313,7 @@ function orbitSet(centralStar, companionStar, mainWorld)
 		while(setTable.hasChildNodes())
 			var u = setTable.removeChild(rows[0]);
 		me.appendDataRows(setTable);
+		me.systemObj.toSymbolMap();
 		return setTable;
 	}
 	
@@ -3381,7 +3607,7 @@ function orbit(orbitSet, orbitNumber, contents)
 								{name:"greenhouse",contents:"", isText:true},{name:"temperature",contents:"", isText:true}];
 				break;
 			default:
-				if(me.isSatellite)
+				if(me.contents.isSatellite)
 				{
 					var row_contents_a = [{name:"baseOrbit", contents:"", isText:true},{name:"",contents:"", isText:true},
 											{name:"decimalOrbit", contents:me.baseOrbit.o, isText:true},{name:"",contents:"", isText:true},
@@ -3876,7 +4102,7 @@ function orbit(orbitSet, orbitNumber, contents)
 			s += me.contents.calcTemperatureC();
 		}
 		if((me.contents.constructor.name == "mainWorld" || me.contents.constructor.name == "minorWorld") && DOWNLOAD_WORLD_DETAIL)
-			me.contents.all_details.map(function(item) { s += item.name == "World Name" ? "" : item.data_string() + ","; });
+			me.contents.all_details.map(function(item) { s += item.name == "World Name" ? "" : item.data_string().toString().replace(/,/g," ") + ","; });
 		s += "\r\n";
 		if(me.contents.satelliteSystem)
 		{
@@ -4023,4 +4249,12 @@ function gasMix(world, irritantFlag)
 	me.gasMixObjs.forEach( function(gas_mix) { if((me.world.uwp.atmos == 10 && gas_mix.exotic) || (me.world.uwp.atmos == 10 && gas_mix.corrosive && me.irritant) || (me.world.uwp.atmos == 11 && gas_mix.corrosive) || (me.world.uwp.atmos == 12 && gas_mix.insidious)) gas_mix.possible = true;} );
 	me.gasMixObjs.forEach( function(gas_mix) { if(!me.world.tcs.has("Fr") && me.cold(gas_mix.gasses)) gas_mix.possible = false; } );
 	me.getMix();
+}
+
+function governmentProfile(world)
+{
+	var me = this;
+	me.world = world;
+	
+	
 }

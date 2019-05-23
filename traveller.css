@@ -584,3 +584,10 @@ h6 {
 .sys_symbol_minor_world::before { content: '\25CB';}
 .sys_symbol_belt::before { content: '\2591';}
 .sys_symbol_star::before { content: ')'; }
+
+.cX_adjective {
+	text-transform:capitalize;
+	float:left;
+	font-size:1em;
+	padding:0.1em 0.2em 0.1em 0.2em;
+}

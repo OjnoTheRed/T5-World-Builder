@@ -1908,7 +1908,7 @@ var penalTerrain = {name:"Penal Settlement", code:57, draw:function(aWorldHex)
 															for(i=0;i<2;i++)
 																addLine(l+5,t+9+i*18,l+27,t+9+i*18,"2px",strokeColour,aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false};
-var wasteTerrain = {name:"Waste land", code:75, draw:function(aWorldHex)
+var wasteTerrain = {name:"Wasteland", code:75, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;

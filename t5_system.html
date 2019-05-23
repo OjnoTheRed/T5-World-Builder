@@ -17,7 +17,7 @@
 </head>
 <body onload="initLoad_system();">
 	<div class="container">
-		<h1 class="title">A Traveller5 Generated System</h1>
+		<h1 class="title" id="systemTitle">A Traveller5 Generated System</h1>
 		<h1 class="titleStrap">TRAVELLER<sup style="margin-left:0.25em;color:white;font-weight:bold;font-family:Arial">5</sup></h1>
 		<h1 class="subtitle">Science Fiction Adventure</h1>
 		<h1 class="subtitle">in the Far Future</h1>
@@ -58,25 +58,22 @@
 	</div>
 	</div>
 	<div class="contained-flex">
-	<div class="formItem">
-		<button id="downloadSystem" class="btn1" onclick="downloadSystem();">Download System as HTML</button>
-		<span class="tooltiptext">Get your edited system as a plain HTML file you can edit with your favourite word processor. Probably.</span>
-	</div>
-	<div class="formItem">
-		<button id="downloadSystemAsText" class="btn1" onclick="downloadSystemText();">Download System as Plain Text</button>
-		<span class="tooltiptext">A traditional plain text file formatted with spaces to line up the columns.</span>
-	</div>
-	<div class="formItem">
-		<button id="downloadSystemAsCSV" class="btn1" onclick="downloadSystemCSV();">Download System as CSV</button>
-		<span class="tooltiptext">All data is in rows separated by commas.  You can edit this file using your favourite spreadsheet program.</span>
-	</div>
-	<div class="formItem">
-		<button id="system_map" class="btn1" onclick="systemMap();">Create system symbol map</button>
-		<span class="tooltiptext">Click this button and scroll down to see the system visualised using symbols (not to scale)</span>
-	</div>
+		<div class="formItem">
+			<button id="downloadSystem" class="btn1" onclick="downloadSystem();">Download System as HTML</button>
+			<span class="tooltiptext">Get your edited system as a plain HTML file you can edit with your favourite word processor. Probably.</span>
+		</div>
+		<div class="formItem">
+			<button id="downloadSystemAsText" class="btn1" onclick="downloadSystemText();">Download System as Plain Text</button>
+			<span class="tooltiptext">A traditional plain text file formatted with spaces to line up the columns.</span>
+		</div>
+		<div class="formItem">
+			<button id="downloadSystemAsCSV" class="btn1" onclick="downloadSystemCSV();">Download System as CSV</button>
+			<span class="tooltiptext">All data is in rows separated by commas.  You can edit this file using your favourite spreadsheet program.</span>
+		</div>
 	</div>
 	<p class="white" style="margin-left:0;padding-left:0">Click on any details button next to a planet to generate more details at random.  The details will appear in a new edit box overlaying the web page.</p>
 	</div>
+	<div style="clear:both;" id="symbol_map" class="sys"></div>
 	<div style="clear:both;" id="sys_table"></div>
 	<div id="world_detail" class="worldDetailDiv" hidden>
 		<button onclick="this.parentNode.hidden = true;">Close</button>
@@ -125,6 +122,11 @@
 			<p class="guidelines">TL:</p> 
 			<select class="worldDetails" name="uwp" id="TL"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option></select>
 			<span class="tooltiptext">Technology Level</span>
+			</div>
+			<div class="formItem">
+			<p class="guidelines">Remarks:</p>
+			<p class="worldDetails" id="tcs"></p>
+			<span class="tooltiptext">Trade Classifications and Remarks</span>
 			</div>
 			<div class="formItem" id="orbitFormItem">
 			<p class="guidelines">Orbit:</p>
@@ -360,9 +362,83 @@
 					<span class="guidelines" id="_lbl">Gravitics</span> 
 					<span class="tooltiptext">Anti-grav modules, grav belts, gravitic communicators</span>
 				</div>
+				<div class="formItem">
+					<input class="worldDetails" id="info_check" type="checkbox" name="resource" />
+					<span class="guidelines" id="info_check_lvl">Information</span>
+					<span class="tooltiptext">Scientific, Legal or Commercial data whether in paper or electronic forms.</span>
+				</div>
 			</div>
 		</div>
+		<div class="transparent" id="eX" hidden>
+		<h2>Economic Extension</h2>
+		<div class="contained-flex">
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Resources</p> 
+				<select id="eX_R" style="float:left;"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select>
+				<span class="tooltiptext">The raw resources available to this world.</span>
+			</div>	
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Labor</p> 
+				<p id="eX_L"></p>
+				<span class="tooltiptext">A measure of the labor force available.</span>
+			</div>	
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Infrastructure</p> 
+				<p id="eX_I"></p>
+				<span class="tooltiptext">How sophisticated the infrastructure is.</span>
+			</div>	
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Efficiency</p> 
+				<select id="eX_E" style="float:left;"><option>-5</option><option>-4</option><option>-3</option><option>-2</option><option>-1</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+				<p id="cX_Sy_adj" class="cX_adjective"></p>
+				<span class="tooltiptext">Impediments to or enablers of economic growth; negative efficiency means the world is a net importer.</span>
+			</div>			
+		</div>
+		</div>
+		<div class="transparent" id="cX" hidden>
+		<h2>Cultural Extension</h2> 
+		<div class="contained-flex">
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Heterogeneity</p> 
+				<select id="cX_H" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+				<p id="cX_H_adj" class="cX_adjective"></p>
+				<span class="tooltiptext">Higher is more culturally diverse</span>
+			</div>	
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Acceptance</p> 
+				<select id="cX_A" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+				<p id="cX_A_adj"  class="cX_adjective"></p>
+				<span class="tooltiptext">Higher means a greater acceptance of outsiders</span>
+			</div>	
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Strangeness</p> 
+				<select id="cX_St" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
+				<p id="cX_St_adj" class="cX_adjective"></p>
+				<span class="tooltiptext">Higher means more weird</span>
+			</div>	
+			<div class="formItem" style="min-width:15%;">
+				<p class="guidelines">Symbols</p> 
+				<select id="cX_Sy" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select>
+				<p id="cX_Sy_adj" class="cX_adjective"></p>
+				<span class="tooltiptext">Lower means use of more concrete symbols; higher means more abstract symbols.</span>
+			</div>
+			<div class="formItem">
+			<p class="guidelines">General description</p> 
+			<p id="cX_description"></p>
+			<p>This way of looking at symbols taken from a post by Thomas Jones-Low found <a href="http://www.travellerrpg.com/CotI/Discuss/showpost.php?p=577390&postcount=29">here</a>.
+			<span class="tooltiptext">A general description of the culture.</span>
+			</div>			
+		</div>
+		</div>
+
 <!--
+
+			<div class="formItem">
+			<p class="guidelines">Port:</p> 
+			<select class="worldDetails" name="uwp" id="port"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>X</option><option>Y</option></select>
+			<span class="tooltiptext">Starport or Spaceport</span>
+			</div>
+
 		<div class="contained-flex">
 			<div class="formItem">
 			<p class="guidelines" id="_lbl"></p> 

@@ -133,9 +133,15 @@ function downloadMap(saveAreaName, fileName)
 function downloadSystem()
 {
 	DOWNLOAD_WORLD_DETAIL = document.getElementById("downloadWorldDetails").checked;
+	var styleText = "";
+	loadDoc("traveller.css", finaliseDownloadSystem);
+}
+
+function finaliseDownloadSystem(styleText)
+{
 	var fileName = mySystem.mainWorld.name.replace(/'/g,"") + " UWP " + mySystem.mainWorld.uwp + " generated system.html";
-	var blob = new Blob([mySystem.toPlainHTML()], {type: "text/plain;charset=utf-8"});
-	saveAs(blob, fileName);
+	var blob = new Blob(["<html><head><style>", styleText ,"</style></head>",mySystem.toPlainHTML(),"</html>"], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, fileName);	
 }
 
 function downloadSystemText()
@@ -208,6 +214,8 @@ function initLoad_system()
 	var downloadBtn3 = document.getElementById("downloadSystemAsCSV");
 	var systemMapBtn = document.getElementById("system_map");
 	var sysDiv = document.getElementById("sys_table");
+	var symbolDiv = document.getElementById("symbol_map");
+	var sysTitle = document.getElementById("systemTitle");
 	if(givenWorld)
 	{
 		init_rng(givenWorld.standardSeed);
@@ -215,6 +223,8 @@ function initLoad_system()
 		var sTables = mySystem.toTable();
 		for(var i=0;i<sTables.length;i++)
 			sysDiv.appendChild(sTables[i]);
+		mySystem.toSymbolMap();
+		sysTitle.innerHTML = "The " + mySystem.name;
 	}
 	else
 	{
@@ -320,6 +330,7 @@ function load_sys()
 			sysDiv.removeChild(sysDiv.childNodes[0]);
 		for(var i=0;i<sTables.length;i++)
 			sysDiv.appendChild(sTables[i]);
+		mySystem.toSymbolMap();
 	};	
 }
 
@@ -497,19 +508,23 @@ function giveRandomSeed()
 }
 
 var worldArray;
-function loadWorlds(selectObject)
+function loadWorlds(selectObject, save_fav_sector)
 {
+	if(arguments.length < 2)
+		save_fav_sector = true;
 	var urlString = "https://travellermap.com/data/" + selectObject.value + "/tab";
 	loadDoc(urlString, worldLoadParse, selectObject);
-
-	var new_fav_sector = selectObject.value;
-	var objStore = user_pref_db.transaction(["userPreferences"],"readwrite").objectStore("userPreferences");
-	var request = objStore.get("Default");
-	request.onsuccess = function(event)
+	if(save_fav_sector)
 	{
-		var data = event.target.result;
-		data.fav_sector = new_fav_sector;		
-		var requestUpdate = objStore.put(data);
+		var new_fav_sector = selectObject.value;
+		var objStore = user_pref_db.transaction(["userPreferences"],"readwrite").objectStore("userPreferences");
+		var request = objStore.get("Default");
+		request.onsuccess = function(event)
+		{
+			var data = event.target.result;
+			data.fav_sector = new_fav_sector;		
+			var requestUpdate = objStore.put(data);
+		}
 	}
 }
 

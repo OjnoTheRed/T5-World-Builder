@@ -69,7 +69,7 @@ function checkboxSelect(checkboxSet)
 var E_HEX_STRING = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ?";
 function pseudoHex(someInteger)
 {
-	if(someInteger < 0 || someInteger > 34 || someInteger != Math.floor(someInteger))
+	if(someInteger < 0 || someInteger > 34 || !Number.isInteger(someInteger))
 		throw new Error("Illegal value passed to pseudoHex: " + someInteger + ". A pseudo hexadecimal must be an integer from 0 to 34");
 	return E_HEX_STRING.substr(someInteger,1);
 }
@@ -110,8 +110,7 @@ array_fnc = {
 	copy: function()
 	{
 		var copyOf = [];
-		for(var i=0;i<this.length;i++)
-			copyOf.push(this[i]);
+		this.map(function(item) { copyOf.push(item) });
 		return copyOf;
 	}
 }
