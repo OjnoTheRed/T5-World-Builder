@@ -2567,6 +2567,7 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 	me.map.namedHexes[me.name] = me;
 }
 
+
 function terrainHex(worldHexMapObject, parentObj, left_offset, top_offset)
 {
 	var me = this;
@@ -4224,6 +4225,38 @@ function addPolygon(pointsCoord, strokeWidth, stroke, fill, parentObj)
 	polygon.setAttributeNS(null, "style","stroke:" + stroke + ";stroke-width:" + strokeWidth + ";fill:" + fill);
 	parentObj.appendChild(polygon);
 	return polygon; // needed for references to world hexes for modifying colour for some terrain
+}
+
+function generate_map_sandbox()
+{
+	var sb_div = document.createElement("DIV");
+	sb_div.setAttribute("class","container");
+	document.body.appendChild(sb_div);	
+	var map_SVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	map_SVG.setAttribute("xmlns","http://www.w3.org/2000/svg");
+	map_SVG.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+	map_SVG.setAttribute("xml:space","preserve");
+	map_SVG.setAttribute("id", "svg_sandbox_map");	
+	map_SVG.setAttributeNS(null,"width",600);
+	map_SVG.setAttributeNS(null,"height",600);
+	sb_div.appendChild(map_SVG);
+	sb_div.scrollIntoView({behavior: "smooth", block: "start", inline: "start"});
+	TOP_OFFSET = 20;
+	LEFT_OFFSET = 20;
+	var hexes = [];
+	for(var x=0;x<4;x++)
+	{
+		for(var y=0;y<4;y++)
+		{
+			var left = LEFT_OFFSET + (x%2 == 0 ? 0 : 16) + (x-1)*32;
+			var top = TOP_OFFSET + y*28;
+			hexes.push(new worldHex(null, map_SVG, null, left, top));
+		}
+	}
+	
+	hexes.map(function(h) { h.generate(); h.render(); });
+	//function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offset)
+	
 }
 
 function sort_land_first(a, b) 

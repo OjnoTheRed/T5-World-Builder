@@ -33,7 +33,7 @@ function world()
 		textInput.setAttribute("type","text");
 		textInput.width = NAME_TABLE_WIDTH;
 		textInput.value = me.name;
-		textInput.onchange = function() { me.name = textInput.value };
+		textInput.onchange = function() { me.name = textInput.value; me.orbit.set.systemObj.toSymbolMap(); };
 		return textInput;
 	}
 	
@@ -2556,7 +2556,7 @@ function star(world, isPrimary)
 		textInput.width = NAME_TABLE_WIDTH;
 		textInput.id = "STAR_NAME_" + me.id;
 		textInput.value = me.name;
-		textInput.onchange = function() { me.name = textInput.value };
+		textInput.onchange = function() { me.name = textInput.value; me.orbit.set.systemObj.toSymbolMap(); };
 		return textInput;
 	}
 	

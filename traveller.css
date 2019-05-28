@@ -47,10 +47,10 @@ ul {
 	list-style-type: none;
 	margin-left: 0em;
 	margin-right: 0em;
-	margin-top:0.5em;
-	margin-bottom:0.5em;
+	margin-top:0.1em;
+	margin-bottom:0.1em;
 	padding: 0;
-	background-color: #555555;
+	background-color: #000000;
 	overflow: hidden;
 }
 
@@ -64,6 +64,7 @@ li a {
 	text-align:center;
 	text-decoration:none;
 	padding:14px 16px;
+	font-size:0.7em;
 }
 
 li a:hover:not(.active)	{
@@ -72,8 +73,8 @@ li a:hover:not(.active)	{
 }
 
 .active	{
-	background-color:gray;
 	color:white;
+	font-weight:bold;
 }
 
 ul.normal {
