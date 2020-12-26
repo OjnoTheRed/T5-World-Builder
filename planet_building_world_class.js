@@ -150,6 +150,7 @@ function world()
 
 	me.editDetails = function()
 	{
+		divsToShow(2);
 		me.updateEdits();
 		all_details.map(function(item, index)	{
 													var elem = document.getElementById(item.id);
