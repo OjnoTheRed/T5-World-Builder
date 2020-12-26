@@ -417,6 +417,17 @@ var SYMBOLS_DESCRIPTIONS = 		[	{level_low:0, level_high:0, symbols:"Totems, Spir
 // var some_dice_table = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:, 3:, 4:, 5:, 6:, 7:, 8:, 9:, 10:, 11:, 12:};
 // var some_resource = { name:"", examples:"",number:{molten:,rocky:,icy:,atmos_good:,atmos_bad:,pop_low:,pop_good:,tl_low:,tech_low_mid:,tech_up_mid:,tech_hi:,life:,no_life:} };
 
+var IMPORTANCE_DESCRIPTIONS = {	"-3":"Very Unimportant", 
+								"-2":"Very Unimportant", 
+								"-1":"Unimportant", 
+								"0":"Unimportant", 
+								"1":"Ordinary", 
+								"2":"Ordinary", 
+								"3":"Ordinary", 
+								"4":"Important", 
+								"5":"Very Important"};
+
+
 var matt_stevens_gov_8 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
 var matt_stevens_gov_9 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
 var matt_stevens_gov_A = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Party Machine", 3:"Strongman", 4:"Strongman", 5:"War Hero", 6:"Revolutionary Military", 7:"Revolutionary Military", 8:"Institutional Military", 9:"Elected Tyrant", 10:"Elected Tyrant", 11:"Revolutionary Tyrant", 12:"Revolutionary Tyrant"};

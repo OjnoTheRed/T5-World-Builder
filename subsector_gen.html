@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Traveller Worlds Generator</title>
+	<meta charset="UTF-8">
+	<meta name="description" content="Generates a sector, subsector or individual world that can be sent to TravellerWorlds for more detail" >	
+	<script src="FileSaver.js"></script>
+	<script src="generic.js"></script>
+	<script src="generate.js"></script>
+	<script src="generate_subsector.js"></script>
+	<script src="planet_building_tables.js"></script>
+	<script src="planet_building_world_class.js"></script>
+	<script src="burtle.js"></script>
+	<script src="url-search-params.js"></script>
+	<script src="starData.js"></script>
+	<script src="orbit_data.js"></script>
+	<script src="world_mapping.js"></script>
+	<script src="saveSvgAsPng.js"></script>
+	<link rel="stylesheet" type="text/css" href="traveller.css">
+</head>
+
+<body>
+<h1 class="title">Subsector Generator</h1>
+<p class="white">This is a quick-and-dirty demonstration of setting up a subsector generator that links each randomly generated world to TravellerWorlds for further details.  The names are a fixed set that I randomly generated using an online random word generator that uses Markov chains.</p>
+<p class="white">Future versions will include the ability to modify the density, edit all the values, save/load and export/import sectors you have worked on, and eventually generate a map using TravellerMap.</p>
+<button onclick="generate_subsector();">Generate subsector</button>
+<div id="subsector" class="white" style="font-family:courier"></div>
+
+</body>
+
+</html>

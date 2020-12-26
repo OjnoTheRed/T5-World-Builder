@@ -13,16 +13,6 @@ td {
 	background-color: white;
 }
 
-div {
-	margin: 1.5em;
-	padding: 0.5em;
-	border-width: 3px;
-	border-style: solid;
-	border-color: #555555;
-	background-color: #F3F3F3;
-	font-family: Arial, sans-serif;
-}
-
 div.transparent {
 	background-color: transparent;
 	border-style: none;
@@ -32,15 +22,9 @@ div.transparent {
 }
 
 div.worldDetailDiv {
-	position:fixed;
-	left:0.5%;
-	top:1%;
 	padding: 0.2em 0.2em 0.2em 0.2em;
-	margin: 0 0 0 0;
-	overflow-y: scroll;
-	overflow-x: hidden;
-	width:96%;
-	height:93%;
+	width:100%;
+	background-color: #EEEEEE;
 }
 
 ul {
@@ -88,24 +72,40 @@ li.normal {
 	clear:both;
 }
 
-div.container {
-	margin-left:0.5em;
-	margin-right:0.5em;
-	margin-top:0.2em;
-	margin-bottom:0.5em;
+.container .menuBar .userInput {
 	clear:both;
-	border-style: none;
-	background-color: black;
 	font-family: Arial, sans-serif;
 }
+
+.menuBar {
+	background-color: #1a1a1d;
+	min-height: 1.2em;
+}
+
+.container {
+	background-color: transparent;
+}
+
+.userInput {
+	background-color: gray;
+	border-color: white;
+	border-width: 2px;
+	border-style: solid;
+	padding: 0.2em;
+	display:none;
+	z-index:1;
+	position:fixed;
+}
+
 
 div.subcontainer {
 	margin:0;
 	border-width: 0em;
 	border-style: none;
-	background-color: black;
 	font-family: Arial, sans-serif;
+	background-color: transparent;
 	width:33%;	
+	max-height:100%;
 	padding-left:0;
 	padding-right:5px;
 	float:left;
@@ -117,13 +117,13 @@ div.contained {
 	margin-right:0.2em;
 	margin-top:0;
 	margin-bottom:0;
+	padding: 0.2em 0.2em 0.2em 0.2em;
 	border-width: 3px;
 	border-style: solid;
 	border-color: #555555;
 	background-color: #F3F3F3;
 	font-family: Arial, sans-serif;
 	width: 100%;
-	min-height: 11.5em;
 	box-sizing:border-box;
 }
 
@@ -189,13 +189,15 @@ body {
 	margin-bottom: 0px;
 	font-family: Arial, sans-serif;
 	font-size: 1em;
-	background-color: black;
+	background-color: #1a1a1d;
 }
 
 h1 {
-	margin-top: 0px;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
 	font-family: "Optima", Arial, sans-serif;
 	font-size: 1.5em;
+	color:white;
 }
 
 .titleStrap	{
@@ -237,10 +239,6 @@ h1 {
 
 .white {
 	color: white;
-	margin-top: 0.2em;
-	margin-bottom: 0.2em;
-	margin-left:1.5em;
-	padding-left:0.5em;
 	text-align: left;
 }
 
@@ -308,13 +306,13 @@ h6 {
   -moz-border-radius: 12;
   border-radius: 12px;
   font-family: "Optima", Arial, sans-serif;
-  font-size: 1.3em;
+  font-size: 1em;
   font-weight: bold;
   color: #ffffff;
-  padding: 2px 4px 2px 4px;
+  padding: 1px 2px 1px 2px;
   text-decoration: none;
   margin: auto;
-  min-height: 2.6em;
+  min-height: 2em;
 }
 
 .btn1:hover {
@@ -339,9 +337,17 @@ h6 {
   border-radius: 12px;
   font-family: Arial;
   color: #ffffff;
-  font-size: 20px;
-  padding: 10px 20px 10px 20px;
+  font-size: 12px;
+  padding: 3px 5px 3px 5px;
+  margin: 4px 2px 4px 2px;
   text-decoration: none;
+}
+
+.textBox_btn2 {
+  font-size: 12px;
+  padding: 3px 5px 3px 5px;
+  margin: 7px 2px 4px 2px;
+	
 }
 
 .btn2:hover {
@@ -368,7 +374,6 @@ h6 {
 .tooltip {
     position: relative;
     display: inline-block;
-/*    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
 }
 
 /* Tooltip text */
@@ -591,4 +596,90 @@ h6 {
 	float:left;
 	font-size:1em;
 	padding:0.1em 0.2em 0.1em 0.2em;
+}
+/*
+Charcoal Grey = #1a1a1d
+Grey = #4e4e50
+Subdued darker red = #6f2232
+Pinkish bright red = #950740
+Subdued brighter red = #c3073f
+*/
+
+.dropbtn {
+  background-color: #6f2232;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.dropbtn_div {
+  background-color: #6f2232;
+  color: white;
+  padding:2px 4px 15px 4px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #c3073f;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content button {
+  color: white;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a {
+  color: white;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+
+.dropdown-content button:hover {background-color: #950740}
+
+.dropdown-content a:hover {background-color: #950740}
+
+.dropbtn:hover {
+	background-color: #1a1a1d;
+	border:4px solid #c3073f;
+	padding:12px;
+}
+
+.dropbtn_div:hover {
+	background-color: #1a1a1d;
+	border-style:solid;
+	border-color: #c3073f;
+	border-width: 2px 2px 2px 2px;
+    padding:0px 2px 13px 2px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown_button {
+	color:white;
+	background-color:transparent;
+	border: none;
+	text-decoration: none;
+	width:100%;
+	text-align:left;
+	font-size:12px;
 }
