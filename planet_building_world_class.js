@@ -49,25 +49,25 @@ var defaultPrefs = {
 function userPreferences()
 {
 	var me = this;
-	
+
 	me.prefs = Object.assign({}, defaultPrefs);
-	
+
 	me.toObj = function()
 	{
 		return me.prefs;
 	}
-	
+
 	me.read_dbObj = function(o)
 	{
 		for(p in o)
 			me.prefs[p] = me.coerce(o[p]);
 	}
-	
+
 	me.resetPrefs = function()
 	{
 		me.prefs = Object.assign({}, defaultPrefs);
 	}
-	
+
 	me.readDocument = function()
 	{
 		for(p in me.prefs)
@@ -84,7 +84,7 @@ function userPreferences()
 			}
 
 	}
-	
+
 	me.writeDocument = function()
 	{
 		for(p in me.prefs)
@@ -100,7 +100,7 @@ function userPreferences()
 				}
 			}
 	}
-	
+
 	me.coerce = function(v)
 	{
 		switch(v)
@@ -113,7 +113,7 @@ function userPreferences()
 					return v;
 				else
 					return a;
-		}		
+		}
 	}
 }
 
@@ -312,7 +312,7 @@ function world()
 		}
 		me.createMap();
 	}
-	
+
 	me.createMap = function()
 	{
 		if(me.mapSeed)
@@ -338,8 +338,8 @@ function world()
 			worldMapSVG.removeChild(worldMapSVG.firstChild);
 		me.map = new worldMap(me, worldMapSVG, worldMapDiv);
 		me.map.generate();
-		me.map.render(); 
-		me.map.outline();	
+		me.map.render();
+		me.map.outline();
 	}
 
 	function rotationPeriodString()
@@ -784,7 +784,7 @@ function world()
 			me.isSatellite ? me.tcs.add("Lk") : me.tcs.add("Tz");
 		}
 	}
-	
+
 	me.noTZ = function()
 	{
 		if(!me.tcs.has("Tz"))
@@ -797,7 +797,7 @@ function world()
 		}
 		DAY_PLUS_TEMP = null;
 		NIGHT_MINUS_TEMP = null;
-		SEASON_EFFECT_PER_ROW = null; 
+		SEASON_EFFECT_PER_ROW = null;
 		TEMP_TABLE = null;
 		me.updateEdits();
 	}
@@ -1261,7 +1261,7 @@ function world()
 				break;
 		}
 	}
-	
+
 	var all_details = [
 	{id:"world_name_edit",units:function() {return false},name:"World Name",contents:function() { return (me.name ? me.name : ("Unnamed " + me.generationObject.name)) },validate:function(s) { return s != ""; }, text_string:function() { return me.name;} ,update:function(v) {me.name = v;}, data_string:function() { return me.name; } },
 	{id:"orbit_text", units:function() {return false}, name:"Orbit",contents:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, text_string:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number();}, data_string:function() { return this.text_string(); }},
@@ -1437,18 +1437,18 @@ function worldResources(world)
 		s += "and " + r[i].name + " (for example " + r[i].examples + ").";
 		return s;
 	}
-	
+
 	me.dbObj = function()
 	{
 		var o = [];
 		me.resourceList.map(function(item, index) { o[index] = item.id; });
 		return o;
 	}
-	
+
 	me.read_dbObj = function(o)
 	{
-		o.map(function(resourceID) 
-		{  
+		o.map(function(resourceID)
+		{
 			me.resourceList.push(RESOURCES_ALL.find(function(v) { return v.id == resourceID; }));
 		});
 	}
@@ -1561,12 +1561,12 @@ function mainWorld(generationObject)
 			returnedIX++;
 		return returnedIX;
 	}
-	
+
 	me.iX_desc = function()
 	{
-		return IMPORTANCE_DESCRIPTIONS[me.iX()];		
+		return IMPORTANCE_DESCRIPTIONS[me.iX()];
 	}
-	
+
 	me.iX_string = function()
 	{
 		return " { " + me.iX() + " } ";
@@ -1590,7 +1590,7 @@ function mainWorld(generationObject)
 		s += me.stars;
 		return s;
 	}
-	
+
 	me.toTR = function()
 	{
 		var w_tr = document.createElement("TR");
@@ -1921,7 +1921,7 @@ function gasGiant(mainWorld)
 			me.satelliteSystem.read_dbObj(o.satelliteSystem);
 		}
 	}
-	
+
 	me.updateEdits = function()
 	{
 		return false;
@@ -1969,7 +1969,7 @@ function ring(planet)
 	{
 		me.name = o.name;
 	}
-	
+
 	me.updateEdits = function()
 	{
 		return false;
@@ -2085,7 +2085,7 @@ function tcs(world)
 		if(!me.has(tcCode))
 			me.classes.push(tcCode);
 	}
-	
+
 	me.del = function(tcCode)
 	{
 		var i = me.classes.findIndex(function(v) { return v == tcCode } );
@@ -2240,7 +2240,7 @@ function eX(world)
 	me.labour;
 	me.infrastructure;
 	me.efficiency;
-	
+
 	me.generate = function()
 	{
 		if(me.world.isMainWorld)
@@ -2475,14 +2475,14 @@ function nobles(world)
 		if(me.nobles.length == 0 || !me.nobles.find(function(v) { return v.code == "B" } ))
 			me.nobles.push(nobleKnight);
 	}
-	
+
 	me.allNobles = function()
 	{
 		var s = "";
 		for(var i=0;i<me.nobles.length;i++)
 			s += me.nobles[i].name + ", ";
-		return s.substr(0, s.length-2);		
-	}	
+		return s.substr(0, s.length-2);
+	}
 }
 
 var nobleKnight = {name:"Knight",code:"B",rule:function(world) { return true; } };
@@ -2809,7 +2809,7 @@ function star(world, isPrimary)
 		for(var p in o)
 			me[p] = o[p];
 	}
-	
+
 	me.updateEdits = function()
 	{
 		return false;
@@ -2943,7 +2943,7 @@ function starSystem(world)
 			}
 		}
 	}
-	
+
 	me.updateEdits = function()
 	{
 		return false;
@@ -3274,7 +3274,7 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 	var me = this;
 	me.centralStar = centralStar;
 	if(me.centralStar) // necessary test because reading a db object needs to put this as null for orbit sets and THEN place star from data.
-		me.centralStar.set = me; 
+		me.centralStar.set = me;
 	me.companionStar = companionStar;
 	if(me.companionStar)
 		me.companionStar.set = me;
@@ -3595,7 +3595,7 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 		var symbol = {baseOrbit:me.orbit.baseOrbit, distance:me.orbit.orbitDistance(), uwp:me.toString(), symbol:"sys_symbol_orbitSet", name:""};
 		return symbol;
 	}
-	
+
 	me.updateEdits = function()
 	{
 		if(me.orbit !== undefined)
@@ -3690,7 +3690,7 @@ function satelliteOrbitSet(planet)
 			me.add(me.planet.generateSat());
 		me.sort();
 	}
-	
+
 	me.updateEdits = function()
 	{
 		return false;

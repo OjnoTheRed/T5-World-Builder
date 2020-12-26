@@ -9,7 +9,7 @@
 	width: 40px;
 }
 
-td { 
+td {
 	background-color: white;
 }
 
@@ -104,7 +104,7 @@ div.subcontainer {
 	border-style: none;
 	font-family: Arial, sans-serif;
 	background-color: transparent;
-	width:33%;	
+	width:33%;
 	max-height:100%;
 	padding-left:0;
 	padding-right:5px;
@@ -112,7 +112,7 @@ div.subcontainer {
 	box-sizing:border-box;
 }
 
-div.contained {
+.contained {
 	margin-left:0em;
 	margin-right:0.2em;
 	margin-top:0;
@@ -125,6 +125,25 @@ div.contained {
 	font-family: Arial, sans-serif;
 	width: 100%;
 	box-sizing:border-box;
+}
+
+.loadingAnimation {
+	padding: 1em;
+	font-family: Arial, sans-serif;
+	width: 100%;
+	box-sizing:border-box;
+	color: #6f2232;
+	font-weight:bold;
+	font-family: Optima;
+	font-size: 20pt;
+	animation-name: loading;
+	animation-duration: 1s;
+	animation-iteration-count: infinite;	
+}
+
+@keyframes loading {
+  from {color: transparent;}
+  to {color: #6f2232;}
 }
 
 div.contained_head {
@@ -347,7 +366,7 @@ h6 {
   font-size: 12px;
   padding: 3px 5px 3px 5px;
   margin: 7px 2px 4px 2px;
-	
+
 }
 
 .btn2:hover {
@@ -462,7 +481,7 @@ h6 {
 	padding: 0;
 	border-style: none;
 	background-color: white;
-	font-family: Arial, sans-serif;	
+	font-family: Arial, sans-serif;
 }
 
 .sys_cell {
@@ -519,7 +538,7 @@ h6 {
 	-ms-transform: rotate(-90deg) scale(5,5);
 	-o-transform: rotate(-90deg) scale(5,5);
 	transform: rotate(-90deg) scale(5,5);
-	
+
 }
 
 .sys_symbol_minor_world {

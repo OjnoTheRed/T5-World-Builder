@@ -1,7 +1,7 @@
 var worldMapCounter = 0;
 var SAVED_SYSTEMS = [];
 
-var user_pref_db, mySystem, originalMainWorld, request, sys_db, sysDiv, symbolDiv, detailDiv, upDiv, mapDiv, mapSVG, sysDetailsDiv, genDiv, blankMapDiv; 
+var user_pref_db, mySystem, originalMainWorld, request, sys_db, sysDiv, symbolDiv, detailDiv, upDiv, mapDiv, mapSVG, sysDetailsDiv, genDiv, blankMapDiv;
 
 function initLoad()
 {
@@ -16,29 +16,29 @@ function initLoad()
 	genDiv = document.getElementById("gen_new");
 	blankMapDiv = document.getElementById("blankMapDiv");
 	uPObj = new userPreferences();
-	
-	
+
+
 	if(!window.indexedDB)
 		window.alert("Your browser does not support a stable version of IndexedDB.  Saving of your preferences may not be available.");
 	var r = window.indexedDB.open("traveller_worlds_prefs",4);
-	
-	r.onerror = function(event) 
+
+	r.onerror = function(event)
 	{
 		// no error handling yet
 	};
-	
-	r.onsuccess = function(event) 
+
+	r.onsuccess = function(event)
 	{
 		user_pref_db = event.target.result;
-		user_pref_db.transaction(["userPreferences"]).objectStore("userPreferences").get("Default").onsuccess = function(event) 
+		user_pref_db.transaction(["userPreferences"]).objectStore("userPreferences").get("Default").onsuccess = function(event)
 				{
 					uPObj.read_dbObj(event.target.result.prefs);
 					initialSystem();
 				};
 	};
-	
-	r.onupgradeneeded = function(event) 
-	{ 
+
+	r.onupgradeneeded = function(event)
+	{
 		user_pref_db = event.target.result;
 		if(user_pref_db.objectStoreNames.contains("userPreferences"))
 			user_pref_db.deleteObjectStore("userPreferences");
@@ -52,12 +52,12 @@ function initLoad()
 	};
 
 	request = window.indexedDB.open("saved_systems_db",1);
-	request.onerror = function(event) 
+	request.onerror = function(event)
 	{
 		// no error handling yet
 	};
-			
-	request.onsuccess = function(event) 
+
+	request.onsuccess = function(event)
 	{
 		sys_db = event.target.result;
 		var objS = sys_db.transaction("savedSystems").objectStore("savedSystems");
@@ -72,9 +72,9 @@ function initLoad()
 			}
 		};
 	};
-	
-	request.onupgradeneeded = function(event) 
-	{ 
+
+	request.onupgradeneeded = function(event)
+	{
 		sys_db = event.target.result;
 		var objectStore = sys_db.createObjectStore("savedSystems", { autoIncrement: true });
 	};
@@ -150,7 +150,7 @@ function finaliseDownloadSystem(styleText)
 {
 	var fileName = mySystem.mainWorld.name.replace(/'/g,"") + " UWP " + mySystem.mainWorld.uwp + " generated system.html";
 	var blob = new Blob(["<html><head><style>", styleText ,"</style></head>",mySystem.toPlainHTML(),"</html>"], {type: "text/plain;charset=utf-8"});
-	saveAs(blob, fileName);	
+	saveAs(blob, fileName);
 }
 
 function downloadSystemText()
@@ -227,7 +227,7 @@ function load_sys()
 		mySystem.loadKey = k;
 		init_rng(mySystem.mainWorld.standardSeed);
 		loadSystemOntoPage(mySystem);
-	};	
+	};
 }
 
 function del_sys()
@@ -253,8 +253,8 @@ function export_sys()
 function import_sys(input_file_obj)
 {
 	var selFile = input_file_obj.files[0];
-	var reader = new FileReader();	
-	reader.addEventListener("loadend", function() 
+	var reader = new FileReader();
+	reader.addEventListener("loadend", function()
 	{
 		var sys_obj = JSON.parse(reader.result);
 		var temp_mainWorld = new mainWorld();
@@ -262,15 +262,15 @@ function import_sys(input_file_obj)
 		mySystem = new fullSystem(temp_mainWorld, sysDiv,symbolDiv,detailDiv,false);
 		mySystem.read_dbObj(sys_obj);
 		init_rng(mySystem.mainWorld.standardSeed);
-		loadSystemOntoPage(mySystem);		
+		loadSystemOntoPage(mySystem);
 	},false);
-	
+
 	reader.onerror = function(ev)
 	{
 		console.log("Error encountered: " + ev);
 		reader.abort();
 	}
-	
+
 	reader.readAsText(selFile);
 
 }
@@ -377,7 +377,7 @@ function renegerateMapRS()
 {
 	currentWorld.mapSeed = false;
 	currentWorld.createMap();
-	document.getElementById("mapSeed").value = currentWorld.mapSeed;	
+	document.getElementById("mapSeed").value = currentWorld.mapSeed;
 }
 
 function removeTZ()
@@ -396,6 +396,7 @@ function loadSystemOntoPage(systemObj)
 	document.getElementById("mapSeed").value = systemObj.mainWorld.mapSeed = systemObj.mainWorld.standardSeed;
 	divsToShow(2);
 	systemObj.mainWorld.editDetails();
+	document.getElementById("mapPlaceholder").style.display = "none";
 }
 
 
@@ -408,15 +409,15 @@ function editUserPrefs()
 function saveUserPrefs()
 {
 	uPObj.readDocument();
-			
+
 	var r = window.indexedDB.open("traveller_worlds_prefs",4);
-	
-	r.onerror = function(event) 
+
+	r.onerror = function(event)
 	{
 		// no error handling yet
 	};
-	
-	r.onsuccess = function(event) 
+
+	r.onsuccess = function(event)
 	{
 		user_pref_db = event.target.result;
 		var profileObjectStore = user_pref_db.transaction("userPreferences","readwrite").objectStore("userPreferences");
@@ -445,19 +446,19 @@ function cancelUserPrefs()
 	detailDiv.style.display = divsOpen[1];
 	sysDetailsDiv.style.display = divsOpen[2];
 	genDiv.style.display = divsOpen[3];
-	blankMapDiv.style.display = divsOpen[4];;
+	blankMapDiv.style.display = divsOpen[4];
 }
 
 function divsToShow(optionChosen)
 {
 	sysDetailsDiv.style.display="none";
 	mapDiv.style.display="none";
-	detailDiv.style.display="none";	
+	detailDiv.style.display="none";
 	upDiv.style.display = "none";
 	genDiv.style.display = "none";
 	blankMapDiv.style.display = "none";
 	document.getElementById("APIdoco").style.display = "none";
-	document.getElementById("changeLog").style.display = "none";	
+	document.getElementById("changeLog").style.display = "none";
 	document.getElementById("credits").style.display = "none";
 	document.getElementById("legal").style.display = "none";
 	document.getElementById("contact_me").style.display = "none";
@@ -480,7 +481,7 @@ function divsToShow(optionChosen)
 			blankMapDiv.style.display = "block";
 			break;
 		case 6:
-			document.getElementById("APIdoco").style.display = "block";		
+			document.getElementById("APIdoco").style.display = "block";
 			break;
 		case 7:
 			document.getElementById("changeLog").style.display = "block";
@@ -515,12 +516,12 @@ function giveHelpMessage(helpID)
 	upDiv.style.display = "none";
 	sysDetailsDiv.style.display='none';
 	mapDiv.style.display='block';
-	detailDiv.style.display='none';		
+	detailDiv.style.display='none';
 	mapSVG.style.display = 'none';
 	genDiv.style.display = "none";
 	blankMapDiv.style.display = "none";
 	document.getElementById("APIdoco").style.display = "none";
-	
+
 	switch(helpID)
 	{
 		case 1:
@@ -557,7 +558,7 @@ function loadSectors(sectorListText)
 		myOption.text = sectors.Sectors[i].Names[0].Text.trim();
 		myOption.value = encodeURIComponent(sectors.Sectors[i].Names[0].Text.trim());
 		if(sectorList.find(function(v) {return v.text == myOption.text}) === undefined)
-			sectorList.push(myOption); 
+			sectorList.push(myOption);
 	}
 	sectorList.sort(function(a, b) {return a.text.localeCompare(b.text);});
 	for(i=0;i<sectorList.length;i++)
@@ -601,7 +602,7 @@ function worldLoadParse(worldListDoc, selectObject)
 							return a.hex.localeCompare(b.hex);
 						}
 					);
-	
+
 	for(i=0;i<worldArray.length;i++)
 	{
 		var myOption = document.createElement("option");
@@ -618,7 +619,7 @@ function worldLoadParse(worldListDoc, selectObject)
 		document.getElementById("chooseOTUWorld").disabled = true;
 	}
 	else
-		document.getElementById("chooseOTUWorld").disabled = false;	
+		document.getElementById("chooseOTUWorld").disabled = false;
 }
 
 function readUserInput()
@@ -651,8 +652,8 @@ function readUserInput()
 		seedUsed = Date.now() >>> 0;
 		init_rng(seedUsed);
 		document.getElementById("mapSeed").value = seedUsed;
-	}	
-	
+	}
+
 	var myWorld = new mainWorld();
 	var thereIsAnError = false;
 	myWorld.standardSeed = seedUsed;
@@ -737,7 +738,7 @@ function loadWorld(worldObject)
 	document.getElementById("Worlds").value = worldObject.worlds;
 	document.getElementById("allegiance").value = worldObject.allegiance;
 	document.getElementById("Stellar_Data").value = worldObject.stars.toString();
-	document.getElementById('mapSeed').value = worldObject.standardSeed;	
+	document.getElementById('mapSeed').value = worldObject.standardSeed;
 }
 
 function setAdditionalTCs(worldObj)
@@ -925,7 +926,7 @@ function downloadBlankMapPNG()
 function regenerateSystem()
 {
 	mySystem = new fullSystem(originalMainWorld, sysDiv, symbolDiv, detailDiv, true);
-	loadSystemOntoPage(mySystem);	
+	loadSystemOntoPage(mySystem);
 }
 
 function regenerateSystemRS()

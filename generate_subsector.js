@@ -34,17 +34,17 @@ function generate_subsector()
 			aWorld.sector = secName;
 			allWorlds.push(aWorld);
 		}
-	allWorlds.map(function(w) 
-	{ 
+	allWorlds.map(function(w)
+	{
 		var w_tr = w.toTR();
 		var btn_cell = document.createElement("TD");
 		btn_cell.appendChild(getLink(w));
 		w_tr.appendChild(btn_cell);
 		ssTable.appendChild(w_tr);
 	});
-	
+
 	document.body.appendChild(ssTable);
-	
+
 }
 
 function getHexID(col,row)
@@ -60,7 +60,7 @@ function getLink(w)
 	sysLink.href = "index.htm" + w.buildGet();
 	sysLink.target = "_blank";
 	sysLink.text = "Details";
-	return sysLink;		
+	return sysLink;
 }
 
 /*							if(uPObj.prefs.default_sector == "")
@@ -75,7 +75,7 @@ function getLink(w)
 			<p><select id="WorldSelect" style="max-width:100%;">
 				<option value="ERROR">Error: worlds not loaded</option>
 			</select></p>
-			<p><input id="chooseOTUWorld" type="button" value="Generate This World" class="btn2" onclick="doOTUGeneration();" disabled /> 
+			<p><input id="chooseOTUWorld" type="button" value="Generate This World" class="btn2" onclick="doOTUGeneration();" disabled />
 			(Data imported directly from <a href="https://travellermap.com/">travellermap.com</a>).</p>
 */
 
@@ -93,7 +93,7 @@ function loadSectors(sectorListText)
 		myOption.text = sectors.Sectors[i].Names[0].Text.trim();
 		myOption.value = encodeURIComponent(sectors.Sectors[i].Names[0].Text.trim());
 		if(sectorList.find(function(v) {return v.text == myOption.text}) === undefined)
-			sectorList.push(myOption); 
+			sectorList.push(myOption);
 	}
 	sectorList.sort(function(a, b) {return a.text.localeCompare(b.text);});
 	for(i=0;i<sectorList.length;i++)
@@ -137,7 +137,7 @@ function worldLoadParse(worldListDoc, selectObject)
 							return a.hex.localeCompare(b.hex);
 						}
 					);
-	
+
 	for(i=0;i<worldArray.length;i++)
 	{
 		var myOption = document.createElement("option");
@@ -154,7 +154,7 @@ function worldLoadParse(worldListDoc, selectObject)
 		document.getElementById("chooseOTUWorld").disabled = true;
 	}
 	else
-		document.getElementById("chooseOTUWorld").disabled = false;	
+		document.getElementById("chooseOTUWorld").disabled = false;
 }
 
 function readUserInput()
@@ -187,8 +187,8 @@ function readUserInput()
 		seedUsed = Date.now() >>> 0;
 		init_rng(seedUsed);
 		document.getElementById("seed").value = seedUsed;
-	}	
-	
+	}
+
 	var myWorld = new mainWorld();
 	var thereIsAnError = false;
 	myWorld.standardSeed = seedUsed;

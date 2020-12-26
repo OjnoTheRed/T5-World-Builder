@@ -84,18 +84,18 @@ function readPseudoHex(c)
 	throw new Error("Illegal value '" + c + "' passed to readPseudoHex.");
 }
 
-array_fnc = {	
+array_fnc = {
 	random: function()
 	{
 		var i = rng(this.length)-1;
-		return this[i];		
+		return this[i];
 	},
-	
+
 	randomIndex: function()
 	{
 		return rng(this.length)-1;
 	},
-	
+
 	pushUnique: function(newElement)
 	{
 		if(this.find(function(v) { return v == newElement }) === undefined)
@@ -144,8 +144,8 @@ function dice_table(table_data_object, objWithProperties, specialValue)
 	me.max = table_data_object.max;
 	me.modData = table_data_object.mods;
 	me.DM = 0;
-	me.rollResult = 0;	
-	
+	me.rollResult = 0;
+
 	me.roll = function()
 	{
 		var diceRoll = 0;
@@ -155,18 +155,18 @@ function dice_table(table_data_object, objWithProperties, specialValue)
 		me.rollResult = diceRoll;
 		return me.table[diceRoll];
 	}
-	
+
 	me.selection = function(index)
 	{
 		return me.table[Math.max(me.min, Math.min(me.max, index+me.DM))];
 	}
-	
+
 	me.setDMs = function(objWithProperties)
 	{
 		for(var i=0;i<me.modData.length;i++)
 			me.DM += me.modData[i][objWithProperties[me.modData[i].property]];
 	}
-	
+
 	me.result = function()
 	{
 		return me.table[me.rollResult];
@@ -174,10 +174,10 @@ function dice_table(table_data_object, objWithProperties, specialValue)
 
 	if(arguments.length > 1 && objWithProperties != null)
 		me.setDMs(objWithProperties);
-	
+
 	if(arguments.length > 2)
 		me.specialValue = specialValue;
-	
+
 }
 
 function triangleNumber(n)
@@ -188,15 +188,15 @@ function triangleNumber(n)
 		return 0;
 }
 
-function loadDoc(urlString, parseFunc, parseArg) 
+function loadDoc(urlString, parseFunc, parseArg)
 {
   if(arguments.length < 3)
 	  parseArg = null;
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() 
+  xhttp.onreadystatechange = function()
   {
-    if (this.readyState == 4 && this.status == 200) 
-	{  
+    if (this.readyState == 4 && this.status == 200)
+	{
       parseFunc(this.responseText, parseArg);
     }
   };
@@ -227,7 +227,7 @@ function dms(t)
 {
 	var minutes = (t - Math.floor(t)) * 60;
 	var seconds = (minutes - Math.floor(minutes)) * 60;
-	
+
 	return Math.floor(t) + "&deg;C " + Math.floor(minutes) + "' " + Math.floor(seconds) + '"';
 }
 
@@ -235,7 +235,7 @@ function hms(t)
 {
 	var minutes = (t - Math.floor(t)) * 60;
 	var seconds = (minutes - Math.floor(minutes)) * 60;
-	
+
 	return Math.floor(t) + " hours " + Math.floor(minutes) + " minutes " + Math.floor(seconds) + " seconds";
 }
 
@@ -255,7 +255,7 @@ function ydhms(t)
 {
 	var days = (t - Math.floor(t)) * 365;
 	return Math.floor(t) + " years " + dhms(days);
-	
+
 }
 
 var codeDigits = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -274,11 +274,11 @@ function intraSystemTravel(paramObj)
 	me.d = paramObj.d;
 	me.t = paramObj.t;
 	me.a = paramObj.a;
-	
+
 	if((!me.d && !me.t) || (!me.d && !me.a) || (!me.t && !me.a))
 		throw new Error("Calculating Intra System travel requires at least 2 parameters out of time, distance and acceleration.  Time = " + me.t + " Distance = " + me.d + " Accelration = " + me.a);
-		
-	
+
+
 	me.solve = function()
 	{
 		if(!me.d)
@@ -288,7 +288,7 @@ function intraSystemTravel(paramObj)
 		if(!me.a)
 			me.a = 4*me.d/Math.pow(me.t,2);
 	}
-	
+
 	me.timeString = function()
 	{
 		if(me.t < 90)
@@ -301,17 +301,17 @@ function intraSystemTravel(paramObj)
 			return Math.floor(me.t/86400) + "d " + Math.floor(me.t%86400/3600) + "h " + Math.floor(me.t%3600/60) + "m " + Math.floor(me.t%60) + "s";
 		return Math.floor(me.t/604800) + "w " + Math.floor(me.t%604800/86400) + "d " + Math.floor(me.t%86400/3600) + "h " + Math.floor(me.t%3600/60) + "m " + Math.floor(me.t%60) + "s";
 	}
-	
+
 	me.accelerationString = function()
 	{
 		return me.a / 9.81 + "G";
 	}
-	
+
 	me.distanceString = function()
 	{
 		return Math.floor(me.d/1000) + "km";
 	}
-	
+
 	me.solve();
 
 }

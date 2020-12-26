@@ -3,7 +3,7 @@
 <head>
 	<title>Traveller Worlds</title>
 	<meta charset="UTF-8">
-	<meta name="description" content="A generator of extended world maps and star systems using the Traveller5 RPG rules, with Official Traveller Universe data drawn from travellermap.com, user entered data, or randomly generated data." >	
+	<meta name="description" content="A generator of extended world maps and star systems using the Traveller5 RPG rules, with Official Traveller Universe data drawn from travellermap.com, user entered data, or randomly generated data." >
 	<script src="FileSaver.js"></script>
 	<script src="generic.js"></script>
 	<script src="generate.js"></script>
@@ -58,7 +58,7 @@
 			</div>
 			<div class="dropbtn_div" style="display:inline-block;">
 				<p class="guidelines" style="color:white">Saved Systems list:</p>
-				<select id="saved_systems"></select>
+				<select id="saved_systems" style="min-width:400px"></select>
 			</div>
 			<div class="dropdown">
 				<button class="dropbtn">System Actions</button>
@@ -82,52 +82,55 @@
 			</div>
 		</div>
 		<div class="container" id="saveArea" style="background-color:#ffffff;" >
+			<div class="contained" style="width:100%;height:800px" id="mapPlaceholder">
+				<p class="loadingAnimation">Rendering ...</p>
+			</div>
 			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="worldMapSVG"></svg>
 		</div>
 		<div id="world_details" class="worldDetailDiv">
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="world_name_lbl">World Name:</p> 
+				<p class="guidelines" id="world_name_lbl">World Name:</p>
 				<input class="worldDetails" id="world_name_edit" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">Name your world here.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">Port:</p> 
+				<p class="guidelines">Port:</p>
 				<select class="worldDetails" name="uwp" id="port"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>X</option><option>Y</option></select>
 				<span class="tooltiptext">Starport or Spaceport</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">Size:</p> 
+				<p class="guidelines">Size:</p>
 				<select class="worldDetails" name="uwp" id="size"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option></select>
 				<span class="tooltiptext">Size</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">Atm::</p> 
+				<p class="guidelines">Atm::</p>
 				<select class="worldDetails" name="uwp" id="atmos"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
 				<span class="tooltiptext">Atmosphere</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">Hyd:</p> 
+				<p class="guidelines">Hyd:</p>
 				<select class="worldDetails" name="uwp" id="hydro"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
 				<span class="tooltiptext">Hydrographics</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">Pop:</p> 
+				<p class="guidelines">Pop:</p>
 				<select class="worldDetails" name="uwp" id="popul"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
 				<span class="tooltiptext">Population</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">Gov:</p> 
+				<p class="guidelines">Gov:</p>
 				<select class="worldDetails" name="uwp" id="gov"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
 				<span class="tooltiptext">Government</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">Law:</p> 
+				<p class="guidelines">Law:</p>
 				<select class="worldDetails" name="uwp" id="law"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
 				<span class="tooltiptext">Law Level</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">TL:</p> 
+				<p class="guidelines">TL:</p>
 				<select class="worldDetails" name="uwp" id="TL"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option></select>
 				<span class="tooltiptext">Technology Level</span>
 				</div>
@@ -158,130 +161,130 @@
 			</div>
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="diameter_lbl">Diameter (km):</p> 
+				<p class="guidelines" id="diameter_lbl">Diameter (km):</p>
 				<input class="worldDetails" id="diameter_edit" type="text" maxlength="5" value=""/>
 				<span class="tooltiptext">Equatorial Diameter of world in km</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="jump_point_lbl">Jump Point (km):</p> 
+				<p class="guidelines" id="jump_point_lbl">Jump Point (km):</p>
 				<p class="worldDetails" id="jump_point_edit"></p>
 				<span class="tooltiptext">Distance required to safely jump.  This distance includes clearing a planet's jump point for satellites, and the star.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="jump_point_timeslbl">Time to Jump Point at ...:</p> 
+				<p class="guidelines" id="jump_point_timeslbl">Time to Jump Point at ...:</p>
 				<p class="worldDetails" id="jump_point_times"></p>
 				<span class="tooltiptext">Time to jump point at standard Gs from Maneuver Drives.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="density_type_lbl">Density Type:</p> 
+				<p class="guidelines" id="density_type_lbl">Density Type:</p>
 				<select class="worldDetails" id="density_type"><option>Heavy Core</option><option>Molten Core</option><option>Rocky Body</option><option>Icy Body</option></select>
 				<span class="tooltiptext">Basic internal materials of world.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="density_lbl">Density (Earth=1):</p> 
+				<p class="guidelines" id="density_lbl">Density (Earth=1):</p>
 				<input class="worldDetails" id="density_edit" type="text" maxlength="4" value=""/>
 				<span class="tooltiptext">Density where Earth = 1</span>
 				</div>
 			</div>
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="mass_lbl">Mass (Earth=1):</p> 
+				<p class="guidelines" id="mass_lbl">Mass (Earth=1):</p>
 				<p class="worldDetails" id="mass_text"></p>
 				<span class="tooltiptext">Mass in Earth Masses - calculated</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="gravity_lbl">Gravity (G):</p> 
+				<p class="guidelines" id="gravity_lbl">Gravity (G):</p>
 				<p class="worldDetails" id="gravity_text"></p>
 				<span class="tooltiptext">Calculated gravity in Gs (Earth=1)</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="orbital_period_lbl">Orbital Period:</p> 
+				<p class="guidelines" id="orbital_period_lbl">Orbital Period:</p>
 				<p class="worldDetails" id="orbital_period_text"></p>
 				<span class="tooltiptext">Calculated Orbital period in Earth Years</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="rotational_period_lbl">Rotational Period (Hours):</p> 
+				<p class="guidelines" id="rotational_period_lbl">Rotational Period (Hours):</p>
 				<input class="worldDetails" id="rotational_period_edit" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">Rotational Period in Earth Hours.  If Tz or Lk, rotation period &amp; orbital period are the same.</span>
 				</div>
 			</div>
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="atmos_pressure_lbl">Atmospheric Pressure</p> 
+				<p class="guidelines" id="atmos_pressure_lbl">Atmospheric Pressure</p>
 				<input class="worldDetails" id="atmos_pressure_edit" type="text" maxlength="5" value=""/>
 				<span class="tooltiptext">Atmospheric Pressure in Earth Atmospheres</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="atmos_compo_lbl">Atmospheric Composition</p> 
+				<p class="guidelines" id="atmos_compo_lbl">Atmospheric Composition</p>
 				<input class="worldDetails" id="atmos_compo_edit" type="text" value=""/>
 				<span class="tooltiptext">Description of Atmopsheric Composition</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="albedo_lbl">Albedo</p> 
+				<p class="guidelines" id="albedo_lbl">Albedo</p>
 				<input class="worldDetails" id="albedo_edit" type="text" maxlength="4" value=""/>
 				<span class="tooltiptext">Albedo is the proportion of energy reflected into space (between 0 and 1)</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="greenhouse_lbl">Greenhouse Effect</p> 
+				<p class="guidelines" id="greenhouse_lbl">Greenhouse Effect</p>
 				<input class="worldDetails" id="greenhouse_edit" type="text" maxlength="4" value=""/>
 				<span class="tooltiptext">The Greenhouse retention of heat by the atmosphere as a multipler (e.g. 1.05 = 5%)</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="tilt_lbl">Axial Tilt (degrees)</p> 
+				<p class="guidelines" id="tilt_lbl">Axial Tilt (degrees)</p>
 				<input class="worldDetails" id="tilt_edit" type="text" maxlength="2" value=""/>
 				<span class="tooltiptext">Axial Tilt - used to calculate seasonal variations</span>
 				</div>
 			</div>
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="base_world_temp_lbl">Base World Temperature</p> 
+				<p class="guidelines" id="base_world_temp_lbl">Base World Temperature</p>
 				<p class="worldDetails" id="base_world_temp_text"></p>
 				<span class="tooltiptext">The average temperature for the world calculated using stellar luminosity, distance from the star, greenhouse effect and albedo.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="average_day_temp_lbl">Average Daytime Temperature</p> 
+				<p class="guidelines" id="average_day_temp_lbl">Average Daytime Temperature</p>
 				<p class="worldDetails" id="average_day_temp_text"></p>
 				<span class="tooltiptext">The base temperature plus the typical temperature rise caused by the sun during the day.  The average daily maximum temperature.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="average_night_temp_lbl">Average Nighttime Temperature</p> 
+				<p class="guidelines" id="average_night_temp_lbl">Average Nighttime Temperature</p>
 				<p class="worldDetails" id="average_night_temp_text"></p>
 				<span class="tooltiptext">The base temperature minus the typical temperature fall during the night.  The average nightly minimum temperature.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="summer_increase_lbl">Summer Increase</p> 
+				<p class="guidelines" id="summer_increase_lbl">Summer Increase</p>
 				<p class="worldDetails" id="summer_increase_text"></p>
 				<span class="tooltiptext">The maximum increase of temperature in summer when a hemisphere is tilted towards the parent star.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="winter_decrease_lbl">Winter Decrease</p> 
+				<p class="guidelines" id="winter_decrease_lbl">Winter Decrease</p>
 				<p class="worldDetails" id="winter_decrease_text"></p>
 				<span class="tooltiptext">The maximum decrease of temperature in winter when a hemisphere is tilted away from the parent star.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="highest_day_temperature_lbl">Upper Temperature Limit</p> 
+				<p class="guidelines" id="highest_day_temperature_lbl">Upper Temperature Limit</p>
 				<p class="worldDetails" id="highest_day_temperature_text"></p>
 				<span class="tooltiptext">Daytime temperature plus summer increase.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="coldest_night_temperature_lbl">Lower Temperature Limit</p> 
+				<p class="guidelines" id="coldest_night_temperature_lbl">Lower Temperature Limit</p>
 				<p class="worldDetails" id="coldest_night_temperature_text"></p>
 				<span class="tooltiptext">Nighttime temperature minus winter decrease.</span>
 				</div>
 			</div>
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="hydro_perc_lbl">Hydrographic Percentage</p> 
+				<p class="guidelines" id="hydro_perc_lbl">Hydrographic Percentage</p>
 				<input class="worldDetails" id="hydro_perc_edit" type="text" maxlength="2" value=""/>
 				<span class="tooltiptext">More precise percentage of planet covered in liquid.</span>
-				</div>		
+				</div>
 				<div class="formItem">
-				<p class="guidelines" id="liq_comp_lbl">Surface Liquid Composition</p> 
+				<p class="guidelines" id="liq_comp_lbl">Surface Liquid Composition</p>
 				<input class="worldDetails" id="liq_comp_edit" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">Are you SURE that's water!?</span>
-				</div>		
+				</div>
 				<div class="formItem">
-				<p class="guidelines" id="native_life_lbl">Native Life?</p> 
+				<p class="guidelines" id="native_life_lbl">Native Life?</p>
 				<select class="worldDetails" id="native_life_select"><option>Yes</option><option>No</option></select>
 				<span class="tooltiptext">The world has or does not have native life.  Regardless, the world may have imported species.</span>
 				</div>
@@ -291,37 +294,37 @@
 				<span class="tooltiptext">Indication of the (Native) Intelligent Life on this world.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="seismic_lbl">Seismic Stress</p> 
+				<p class="guidelines" id="seismic_lbl">Seismic Stress</p>
 				<input class="worldDetails" id="seismic_edit" type="text" maxlength="6" value=""/>
 				<span class="tooltiptext">Seismic Stress minus 4 is the daily chance on 4D for an earthquake, Mod +2 if on a fault line.</span>
-				</div>		
+				</div>
 			</div>
 			<div class="contained-flex">
-				<div class="contained-flex-vertical">		
+				<div class="contained-flex-vertical">
 					<h3>Natural Resources</h3>
 					<div class="formItem">
 						<input class="worldDetails" id="agri_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="agri_lbl">Agricultural</span> 
+						<span class="guidelines" id="agri_lbl">Agricultural</span>
 						<span class="tooltiptext">Wood, meat, spices, fruit, grain</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="ores_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="ore_lbl">Ore</span> 
+						<span class="guidelines" id="ore_lbl">Ore</span>
 						<span class="tooltiptext">Iron ore, copper ore, tin ore, silver ore, alumina, rare earths</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="radi_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="radi_lbl">Radioactive</span> 
+						<span class="guidelines" id="radi_lbl">Radioactive</span>
 						<span class="tooltiptext">Uranium ore, thorium ore, radium ore</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="gems_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="gems_lbl">Gem and Crystal</span> 
+						<span class="guidelines" id="gems_lbl">Gem and Crystal</span>
 						<span class="tooltiptext">Diamond, emerald, ruby, quartz, opals, granite, sapphire, amethyst</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="chem_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="chem_lbl">Petrochemical</span> 
+						<span class="guidelines" id="chem_lbl">Petrochemical</span>
 						<span class="tooltiptext">Natural gas, oil, coal</span>
 					</div>
 				</div>
@@ -329,17 +332,17 @@
 					<h3>Processed Resources</h3>
 					<div class="formItem">
 						<input class="worldDetails" id="agripr_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Agricultural</span> 
+						<span class="guidelines" id="_lbl">Agricultural</span>
 						<span class="tooltiptext">Liquor, dairy products, canned fruit, frozen vegetables, prepared food and sauces, confectionary, beverages, smoking products</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="allo_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Alloys</span> 
+						<span class="guidelines" id="_lbl">Alloys</span>
 						<span class="tooltiptext">Steel, tungsten, iron, copper, bronze, brass, silver, aluminium</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="agro_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Agroproducts</span> 
+						<span class="guidelines" id="_lbl">Agroproducts</span>
 						<span class="tooltiptext">Textiles, polymers, pharmaceuticals</span>
 					</div>
 				</div>
@@ -347,27 +350,27 @@
 					<h3>Manufactured Resources</h3>
 					<div class="formItem">
 						<input class="worldDetails" id="weap_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Weapons</span> 
+						<span class="guidelines" id="_lbl">Weapons</span>
 						<span class="tooltiptext">Firearms, ammunition, blades, body armor</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="part_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Mechanical Parts and Goods</span> 
+						<span class="guidelines" id="_lbl">Mechanical Parts and Goods</span>
 						<span class="tooltiptext">Tools, vehicle parts, vacc suits, white goods</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="equi_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Heavy Equipment</span> 
+						<span class="guidelines" id="_lbl">Heavy Equipment</span>
 						<span class="tooltiptext">Aircraft, ATV, AFV, machine tools, farm machinery</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="elec_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Electronics</span> 
+						<span class="guidelines" id="_lbl">Electronics</span>
 						<span class="tooltiptext">Computers, electronic parts, cybernetic parts, computer parts, security systems, communicators</span>
 					</div>
 					<div class="formItem">
 						<input class="worldDetails" id="grav_check" type="checkbox" name="resource" />
-						<span class="guidelines" id="_lbl">Gravitics</span> 
+						<span class="guidelines" id="_lbl">Gravitics</span>
 						<span class="tooltiptext">Anti-grav modules, grav belts, gravitic communicators</span>
 					</div>
 					<div class="formItem">
@@ -382,67 +385,67 @@
 				<p class="guidelines">Noble Codes</p>
 				<p><span id="nobz_codes"></span></p>
 				<p class="guidelines">Noble Descriptions</p>
-				<p><span id="nobz_descriptions"></span></p>			
+				<p><span id="nobz_descriptions"></span></p>
 			</div>
 			<div class="transparent" id="eX" hidden>
 			<h2>Economic Extension</h2>
 			<div class="contained-flex">
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Resources</p> 
+					<p class="guidelines">Resources</p>
 					<select id="eX_R" style="float:left;"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select>
 					<span class="tooltiptext">The raw resources available to this world.</span>
-				</div>	
+				</div>
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Labor</p> 
+					<p class="guidelines">Labor</p>
 					<p id="eX_L"></p>
 					<span class="tooltiptext">A measure of the labor force available.</span>
-				</div>	
+				</div>
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Infrastructure</p> 
+					<p class="guidelines">Infrastructure</p>
 					<p id="eX_I"></p>
 					<span class="tooltiptext">How sophisticated the infrastructure is.</span>
-				</div>	
+				</div>
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Efficiency</p> 
+					<p class="guidelines">Efficiency</p>
 					<select id="eX_E" style="float:left;"><option>-5</option><option>-4</option><option>-3</option><option>-2</option><option>-1</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
 					<p id="cX_Sy_adj" class="cX_adjective"></p>
 					<span class="tooltiptext">Impediments to or enablers of economic growth; negative efficiency means the world is a net importer.</span>
-				</div>			
+				</div>
 			</div>
 			</div>
 			<div class="transparent" id="cX" hidden>
-			<h2>Cultural Extension</h2> 
+			<h2>Cultural Extension</h2>
 			<div class="contained-flex">
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Heterogeneity</p> 
+					<p class="guidelines">Heterogeneity</p>
 					<select id="cX_H" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
 					<p id="cX_H_adj" class="cX_adjective"></p>
 					<span class="tooltiptext">Higher is more culturally diverse</span>
-				</div>	
+				</div>
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Acceptance</p> 
+					<p class="guidelines">Acceptance</p>
 					<select id="cX_A" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
 					<p id="cX_A_adj"  class="cX_adjective"></p>
 					<span class="tooltiptext">Higher means a greater acceptance of outsiders</span>
-				</div>	
+				</div>
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Strangeness</p> 
+					<p class="guidelines">Strangeness</p>
 					<select id="cX_St" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
 					<p id="cX_St_adj" class="cX_adjective"></p>
 					<span class="tooltiptext">Higher means more weird</span>
-				</div>	
+				</div>
 				<div class="formItem" style="min-width:15%;">
-					<p class="guidelines">Symbols</p> 
+					<p class="guidelines">Symbols</p>
 					<select id="cX_Sy" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select>
 					<p id="cX_Sy_adj" class="cX_adjective"></p>
 					<span class="tooltiptext">Lower means use of more concrete symbols; higher means more abstract symbols.</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines">General description</p> 
+				<p class="guidelines">General description</p>
 				<p id="cX_description"></p>
 				<p>This way of looking at symbols taken from a post by Thomas Jones-Low found <a href="http://www.travellerrpg.com/CotI/Discuss/showpost.php?p=577390&postcount=29">here</a>.
 				<span class="tooltiptext">A general description of the culture.</span>
-				</div>			
+				</div>
 			</div>
 			</div>
 			<div id="iX">
@@ -450,7 +453,7 @@
 				<p class="guidelines">Importance</p>
 				<p><span id="world_ix"></span> <span id="world_ix_desc"></span></p>
 			</div>
-			
+
 		</div>
 	</div>
 	<div class="container" id="systemDetails">
@@ -524,20 +527,20 @@
 			<div class="contained">
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="guide_7">Hex and Sector</p> 
+				<p class="guidelines" id="guide_7">Hex and Sector</p>
 				<input id="element_7" name="element_7" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">e.g. '3005 Spinward Marches'. Used in the map title.</span>
 				</div>
 
 				<div class="formItem">
-				<p class="guidelines" id="guide_1">World Name</p> 
-				<input id="element_1" name="element_1" type="text" maxlength="50" value=""/> 
+				<p class="guidelines" id="guide_1">World Name</p>
+				<input id="element_1" name="element_1" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">e.g. 'Aramanx'.  Used in the map title and to label the mainworld of the system.</span>
 				</div>
 
 				<div class="formItem">
-				<p class="guidelines" id="guide_2">UWP (in the format XNNNNNN-N)</p> 
-				<input id="element_2" name="element_2" type="text" maxlength="9" value=""/> 
+				<p class="guidelines" id="guide_2">UWP (in the format XNNNNNN-N)</p>
+				<input id="element_2" name="element_2" type="text" maxlength="9" value=""/>
 				<span class="tooltiptext">e.g. 'C657874-6'. Used for many aspects of the map.  Inserted into the generated star system.</span>
 				</div>
 
@@ -549,13 +552,13 @@
 			</div>
 			<div class="contained-flex">
 				<div class="formItem">
-				<p class="guidelines" id="guide_6">{Ix}</p> 
+				<p class="guidelines" id="guide_6">{Ix}</p>
 				<p><label for="iX_input">{ </label><input id="iX_input" type="text" maxlength="2" value="" style="width:15px"/><label for="iX_input"> }</label></p>
 				<span class="tooltiptext">T5 World Importance from -4 to +5. Ignored in map and system creation.</span>
 				</div>
-				
+
 				<div class="formItem">
-				<p class="guidelines" id="guide_3">(Ex)</p> 
+				<p class="guidelines" id="guide_3">(Ex)</p>
 				<p><label for="eX_input">(</label><input id="eX_input" type="text" maxlength="5" value="" style="width:40px"/><label for="eX_input">)</label></p>
 				<span class="tooltiptext">T5 Economic Extension; e.g. 'A73-1'. Used for placing Resource hexes on maps.</span>
 				</div>
@@ -570,7 +573,7 @@
 				<p><input id="Nobz" type="text" maxlength="5" value="" style="width:40px"/></p>
 				<span class="tooltiptext">T5 Nobles present; e.g. 'ecB'. Ignored in map and system creation; a Noble Estate is always placed.</span>
 				</div>
-				
+
 				<div class="formItem">
 				<p class="guidelines" id="guide_9">Bases</p>
 				<p><input id="Bases" type="text" maxlength="2" value="" style="width:15px"/></p>
@@ -583,13 +586,13 @@
 				<span class="tooltiptext">A=Amber Zone<br />R=Red Zone<br />B=Balkanized (TNE indicator)<br />F/U=Forbidden/Unabsorbed (non-Imperial)<br />Used to calculate some Trade Classifications.</span>
 				</div>
 			</div>
-			<div class="contained-flex">				
+			<div class="contained-flex">
 				<div class="formItem">
 				<p class="guidelines" id="guide_12">Population<br />Multiplier</p>
 				<p><select id="Pop_Multi"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></p>
 				<span class="tooltiptext">Total world population = <i>Population Multiplier</i> &#215; 10<sup>Population Digit</sup>. Ignored in map and system creation.</span>
 				</div>
-				
+
 				<div class="formItem">
 				<p class="guidelines" id="guide_11">Planetoid<br />Belts</p>
 				<p><select id="Planetoid"><option>0</option><option>1</option><option>2</option><option>3</option></select></p>
@@ -613,7 +616,7 @@
 				<p><input id="allegiance" type="text" maxlength="4" value="" style="width:45px;"/></p>
 				<span class="tooltiptext">Interstellar government code.  Ignored in map and system creation.</span>
 				</div>
-				
+
 				<div class="formItem">
 				<p class="guidelines" id="guide_16"><br />Stellar Data</p>
 				<p><input id="Stellar_Data" type="text" maxlength="40" value=""/></p>
@@ -672,7 +675,7 @@
 				<option value="17">Size H</option>
 				<option value="18">Size J</option>
 				<option value="19">Size K</option>
-				<option value="20">Size L</option>			
+				<option value="20">Size L</option>
 			</select>
 			<button onclick="blankMapGen();" class="btn1">Generate Blank Map</button>
 			<button onclick="downloadBlankMapSVG();" class="btn1">Download map as SVG</button>
@@ -718,7 +721,7 @@
 		</div>
 		<h2 class="white" style="margin-top:0;">26 December 2020</h2>
 		<p class="white"><b>TravellerWorlds launches</b> - I put all of the application onto one page, fixing multiple bugs. This vastly simplified the code.</p>
-		<p class="white"><b>Twilight Zone removal</b> - so many worlds end up being a 'Twilight Zone' because of system generation rules.  The user can now just remove the Twilight Zone from the map so that it is a help utility rather than imposing unexpected outcomes on a world builder.  You can always elect to keep the TZ, of course.  Rob Serling would be proud</p> 
+		<p class="white"><b>Twilight Zone removal</b> - so many worlds end up being a 'Twilight Zone' because of system generation rules.  The user can now just remove the Twilight Zone from the map so that it is a help utility rather than imposing unexpected outcomes on a world builder.  You can always elect to keep the TZ, of course.  Rob Serling would be proud</p>
 		<p class="white"><b>Hex map generation</b> - when World, Terrain and Local hexes are created, they appear on top of the world map rather than appended to the bottom. They can still be downloaded onto a user's computer.</p>
 		<p class="white"><b>User Preferences</b> - you can now save a profile of your preferences - various system and map generation options INCLUDING choice of colours for the map!</p>
 		<h2 class="white">25 May 2019</h2>
@@ -776,7 +779,7 @@
 		<h2 class="white">21 July 2018</h2>
 		<p class="white"><b>Bug Fix:</b> The various 'download' buttons (HTML, Plain Text and CSV) downloaded the actual javascript functions instead of their function results.  Also, having changed from "energy absorption" to "albedo" for worlds, I had forgot to update the information in these downloads and so it would have included Energy Absorption (which is one minus albedo) instead of albedo, leading to confusing figures if you wanted to play with them yourself.</p>
 		<h2 class="white">15 July 2018</h2>
-		<p class="white"><b>Bug Fix:</b> The trade classification "Lk" (i.e. satellite is tidally locked to its planet) was not being correctly applied to satellites.  This had the consequence of the rotational period formula generating rotations much larger than the orbital period because the formula takes into account the planet's mass and distance from it.</p> 
+		<p class="white"><b>Bug Fix:</b> The trade classification "Lk" (i.e. satellite is tidally locked to its planet) was not being correctly applied to satellites.  This had the consequence of the rotational period formula generating rotations much larger than the orbital period because the formula takes into account the planet's mass and distance from it.</p>
 		<p class="white"><b>Display change:</b> Star data (mass, luminosity and radii) is now spread over several columns, making the table look a bit better.</p>
 		<h2 class="white">14 July 2018</h2>
 		<p class="white"><b>Bug Fix:</b> Stars in legacy data drawn from <a href="https://travellermap.com/">travellermap.com</a> include disallowed classifications.  To make the data work, star data is converted as follows:<p class="white">
@@ -803,7 +806,7 @@
 		<p class="white">To help placing the main world where Referees feel it must be a planet or must be a satellite, I have added options to force this choice.  I also added back the option for a black and white map (sorry, Marc, it was taken away by accident!).  I have also added an option to stop the placement of a Nobel Estate if desired.</p>
 		<p class="white">Satellites are now placed in different orbits - except for Ring Systems (fix to come).</p>
 		<p class="white">The BIG change: the system generation table.  Energy Absorption (i.e. one minus Albedo), Greenhouse effect and Average Temperature are now calculated for each world.</p>
-		<p class="white">You can now adjust the orbit or decimal orbit up or down using the arrows. This allows 'fine tuning' of planets positions to suit the temperature you envision is average for that world.  The values are recalculated for you.</p> 
+		<p class="white">You can now adjust the orbit or decimal orbit up or down using the arrows. This allows 'fine tuning' of planets positions to suit the temperature you envision is average for that world.  The values are recalculated for you.</p>
 		<p class="white">The download formats have changed.  You can download the system in HTML format - it is a plain unstyled format of the data (no functioning buttons.  Additionally, the data can be downloaded as plain text, or as CSV which can be opened by spreadsheet programs.</p>
 		<h2 class="white">28 March 2018</h2>
 		<p class="white">Marc Miller's requested feature was an interesting challenge and I dropped working on other code to make it work.</p>
@@ -829,7 +832,7 @@
 		<p class="white">Published a draft Traveller5 extended star system generator.  At present it is little more than a proof-of-concept leveraging the code created for the Map generator.</p>
 		<p class="white">It is published as a separate web page because I'm lazy and I developed it as a separate page in my sandbox.  However, it will be integrated into one page in the near future with a title something like 'Traveller5 World Builder' with buttons for either generating a map or a system.</p>
 		<p class="white">Then the real fun starts: after developing the system format more and clarifying naming conventions for unnamed objects, put a link next to each world (not Gas Giants or Planetoid Belts to generate a map.</p>
-		<p class="white">Any UWP listed as "???????-?" in <a href="https://travellermap.com/">travellermap.com</a> data (see especially <a href="https://travellermap.com/data/corridor">Corridor Sector Data</a> is not added to the World List for selection.</p> 
+		<p class="white">Any UWP listed as "???????-?" in <a href="https://travellermap.com/">travellermap.com</a> data (see especially <a href="https://travellermap.com/data/corridor">Corridor Sector Data</a> is not added to the World List for selection.</p>
 		<p class="white">In generating the extended system, there are some departures from the T5 rules and interpretations.<p class="white">
 		<p class="white">The main world is always placed in the first available Habitable Zone.  This will change in future and the table on p. 408 of the T5.09 rules will be used.  I did this to simplify things while I worked out how to determine system zones and other system related conventions.</p>
 		<p class="white">Determining whether a given Satellite is Close or Far is done using the Book 6: Scouts throw (roll 2D: 7- = close, 8+ = far), and then rolling on the relevant column of table 2c on p. 408 of the T5.09 rules.</p>

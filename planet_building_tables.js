@@ -1,8 +1,8 @@
 var habitableZoneUWP = {
 							name:"Hospitable",
-							size:function(uwp){ uwp.size = dice(2)-2; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } }, 
-							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); }, 
-							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); }, 
+							size:function(uwp){ uwp.size = dice(2)-2; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } },
+							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); },
+							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); },
 							popul:function(uwp, maxPop) { if(arguments.length<2) maxPop = 15; var p = dice(2)-2; if(p==10) p=dice(2)+3; uwp.popul = Math.max(0,Math.min(maxPop,p)); },
 							gov:function(uwp) { uwp.gov = Math.min(15,Math.max(0,flux()+uwp.popul)); },
 							law:function(uwp) { uwp.law = Math.min(18,Math.max(0,flux()+uwp.gov)); },
@@ -10,11 +10,11 @@ var habitableZoneUWP = {
 							tech:function(uwp) { uwp.TL = dice(1) + uwp.totalTechDM(); }
 };
 
-var planetoidsUWP = { 	
+var planetoidsUWP = {
 							name:"Planetoids",
-							size:function(uwp){ uwp.size = 0; }, 
-							atmos:function(uwp){ uwp.atmos = 0; }, 
-							hydro:function(uwp) { uwp.hydro = 0; }, 
+							size:function(uwp){ uwp.size = 0; },
+							atmos:function(uwp){ uwp.atmos = 0; },
+							hydro:function(uwp) { uwp.hydro = 0; },
 							popul:function(uwp,maxPop) { if(arguments.length<2) maxPop = 15; var p = dice(2)-2; if(p==10) p=dice(2)+3; uwp.popul = Math.max(0,Math.min(maxPop,p)); },
 							gov:function(uwp) { uwp.gov = Math.min(15,Math.max(0,flux()+uwp.popul)); },
 							law:function(uwp) { uwp.law = Math.min(18,Math.max(0,flux()+uwp.gov)); },
@@ -24,9 +24,9 @@ var planetoidsUWP = {
 
 var iceWorldUWP = {
 							name:"Ice world",
-							size:function(uwp){ uwp.size = dice(2)-2; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } }, 
-							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); }, 
-							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); }, 
+							size:function(uwp){ uwp.size = dice(2)-2; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } },
+							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); },
+							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); },
 							popul:function(uwp,maxPop) { if(arguments.length<2) maxPop = 15; var p = Math.max(0,dice(2)-10); if(p==10) p=dice(2)+3; uwp.popul = Math.max(0,Math.min(maxPop,p)); },
 							gov:function(uwp) { uwp.gov = Math.min(15,Math.max(0,flux()+uwp.popul)); },
 							law:function(uwp) { uwp.law = Math.min(18,Math.max(0,flux()+uwp.gov)); },
@@ -34,11 +34,11 @@ var iceWorldUWP = {
 							tech:function(uwp) { uwp.TL = dice(1) + uwp.totalTechDM(); }
 };
 
-var radWorldUWP = { 	
+var radWorldUWP = {
 							name:"Rad world",
-							size:function(uwp){ uwp.size = dice(2); if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } }, 
-							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); }, 
-							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); }, 
+							size:function(uwp){ uwp.size = dice(2); if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } },
+							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); },
+							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); },
 							popul:function(uwp,maxPop) { uwp.popul = 0; },
 							gov:function(uwp) { uwp.gov = 0; },
 							law:function(uwp) { uwp.law = 0; },
@@ -48,9 +48,9 @@ var radWorldUWP = {
 
 var infernoWorldUWP = {
 							name:"Inferno",
-							size:function(uwp){ uwp.size = dice(1)+6; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } }, 
-							atmos:function(uwp){ uwp.atmos = 11; }, 
-							hydro:function(uwp) { uwp.hydro = 0; }, 
+							size:function(uwp){ uwp.size = dice(1)+6; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } },
+							atmos:function(uwp){ uwp.atmos = 11; },
+							hydro:function(uwp) { uwp.hydro = 0; },
 							popul:function(uwp,maxPop) { uwp.popul = 0; },
 							gov:function(uwp) { uwp.gov = 0; },
 							law:function(uwp) { uwp.law = 0; },
@@ -58,11 +58,11 @@ var infernoWorldUWP = {
 							tech:function(uwp) { uwp.TL = 0; }
 };
 
-var bigWorldUWP = { 	
+var bigWorldUWP = {
 							name:"Big world",
-							size:function(uwp){ uwp.size = dice(2)+7; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } }, 
-							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); }, 
-							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); }, 
+							size:function(uwp){ uwp.size = dice(2)+7; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } },
+							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); },
+							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); },
 							popul:function(uwp,maxPop) { if(arguments.length<2) maxPop = 15; var p = dice(2)-2; if(p==10) p=dice(2)+3; uwp.popul = Math.max(0,Math.min(maxPop,p)); },
 							gov:function(uwp) { uwp.gov = Math.min(15,Math.max(0,flux()+uwp.popul)); },
 							law:function(uwp) { uwp.law = Math.min(18,Math.max(0,flux()+uwp.gov)); },
@@ -72,9 +72,9 @@ var bigWorldUWP = {
 
 var worldletUWP = {
 							name:"Worldlet",
-							size:function(uwp){ uwp.size = Math.max(0,dice(1)-3); if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } }, 
-							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); }, 
-							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); }, 
+							size:function(uwp){ uwp.size = Math.max(0,dice(1)-3); if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } },
+							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); },
+							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); },
 							popul:function(uwp,maxPop) { if(arguments.length<2) maxPop = 15; var p = dice(2)-2; if(p==10) p=dice(2)+3; uwp.popul = Math.max(0,Math.min(maxPop,p)); },
 							gov:function(uwp) { uwp.gov = Math.min(15,Math.max(0,flux()+uwp.popul)); },
 							law:function(uwp) { uwp.law = Math.min(18,Math.max(0,flux()+uwp.gov)); },
@@ -82,11 +82,11 @@ var worldletUWP = {
 							tech:function(uwp) { uwp.TL = dice(1) + uwp.totalTechDM(); }
 };
 
-var innerWorldUWP = { 
+var innerWorldUWP = {
 							name:"Inner world",
-							size:function(uwp){ uwp.size = dice(2)-2; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } }, 
-							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); }, 
-							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos-4 + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); }, 
+							size:function(uwp){ uwp.size = dice(2)-2; if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size += 0; } },
+							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.max(0,flux()+uwp.size)); },
+							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos-4 + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); },
 							popul:function(uwp,maxPop) { if(arguments.length<2) maxPop = 15; var p = Math.max(0,dice(2)-6); if(p==10) p=dice(2)+3; uwp.popul = Math.max(0,Math.min(maxPop,p)); },
 							gov:function(uwp) { uwp.gov = Math.min(15,Math.max(0,flux()+uwp.popul)); },
 							law:function(uwp) { uwp.law = Math.min(18,Math.max(0,flux()+uwp.gov)); },
@@ -96,9 +96,9 @@ var innerWorldUWP = {
 
 var stormWorldUWP = {
 							name:"Storm world",
-							size:function(uwp){ uwp.size = dice(2); if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size + 0; } }, 
-							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.min(Math.max(0,flux()+uwp.size+4))); }, 
-							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos-4 + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); }, 
+							size:function(uwp){ uwp.size = dice(2); if(uwp.world.isSatellite) { uwp.size >= uwp.world.satelliteMaxSize ? uwp.size = Math.max(0, uwp.world.satelliteMaxSize-3) : uwp.size + 0; } },
+							atmos:function(uwp){ uwp.atmos = uwp.size == 0 ? 0 : Math.min(15,Math.min(Math.max(0,flux()+uwp.size+4))); },
+							hydro:function(uwp) { uwp.hydro = uwp.size < 2 ? 0 : Math.max(0,Math.min(10,flux()+uwp.atmos-4 + (uwp.atmos < 2 ? -4 : 0) + (uwp.atmos > 9 ? -4 : 0))); },
 							popul:function(uwp,maxPop) { if(arguments.length<2) maxPop = 15; var p = Math.max(0,dice(2)-8); if(p==10) p=dice(2)+3; uwp.popul = Math.max(0,Math.min(maxPop,p)); },
 							gov:function(uwp) { uwp.gov = Math.min(15,Math.max(0,flux()+uwp.popul)); },
 							law:function(uwp) { uwp.law = Math.min(18,Math.max(0,flux()+uwp.gov)); },
@@ -172,7 +172,7 @@ var TC_FO = {name:"Forbidden", code:"Fo", rules:function(world) { return world.t
 
 var ALL_TC = [ TC_AS,TC_DE,TC_FL,TC_GA,TC_HE,TC_IC,TC_OC,TC_VA,TC_WA,TC_DI,TC_BA,TC_LO,TC_NI,TC_PH,TC_HI,TC_PA,TC_AG,TC_NA,TC_PX,TC_PI,TC_IN,TC_PO,TC_PR,TC_RI,TC_FR,TC_HO,TC_CO,TC_TR,TC_TU,TC_TZ,TC_FA,TC_MI,TC_MR,TC_PE,TC_RE,TC_CY,TC_PZ,TC_DA,TC_FO,TC_SA,TC_LK];
 
-var ALL_NIL = 	[ 
+var ALL_NIL = 	[
 					{name:"Extinct Natives",natives:false,description:"Intelligent Life evolved here, but now extinct.",rules:function(world) { return world.uwp.popul == 0 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL == 0; } },
 					{name:"Extinct Exotic Natives",natives:false,description:"Exotic Intelligent Life evolved here, but now extinct.",rules:function(world) { return world.uwp.popul == 0 && world.uwp.atmos >= 10 && world.uwp.atmos <= 12 && world.uwp.TL == 0; } },
 					{name:"Catastrophic Extinct Natives",natives:false,description:"Evidence of Extinct Natives remains.",rules:function(world) { return world.uwp.popul == 0 && ((world.uwp.atmos >= 2 && world.uwp.atmos <= 9) || (world.uwp.atmos>=13 && world.uwp.atmos <=15)) && world.uwp.TL > 0 } },
@@ -241,7 +241,7 @@ var ATM_COMPOSITION_TAINT = { dice: function(){ return dice(2); }, min:2, max:12
 var EXOTIC_ATMOS_COMPOSITION = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:{pressure:ATM_PRESSURE_VTHIN, irritant:true}, 3:{pressure:ATM_PRESSURE_VTHIN, irritant:false}, 4:{pressure:ATM_PRESSURE_THIN, irritant:false}, 5:{pressure:ATM_PRESSURE_THIN, irritant:true}, 6:{pressure:ATM_PRESSURE_STD, irritant:false}, 7:{pressure:ATM_PRESSURE_STD, irritant:true}, 8:{pressure:ATM_PRESSURE_DENSE, irritant:false}, 9:{pressure:ATM_PRESSURE_DENSE, irritant:true}, 10:{pressure:ATM_PRESSURE_VDENSE, irritant:false}, 11:{pressure:ATM_PRESSURE_VDENSE, irritant:true}, 12:{pressure:null, irritant:null}}
 var CORROSIVE_ATMOS_COMPOSITION = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:{pressure:ATM_PRESSURE_VTHIN, lowerTemp:-273, higherTemp:-100}, 3:{pressure:ATM_PRESSURE_VTHIN, lowerTemp:-100, higherTemp:-25}, 4:{pressure:ATM_PRESSURE_VTHIN, lowerTemp:-25, higherTemp:50}, 5:{pressure:ATM_PRESSURE_VTHIN, lowerTemp:50, higherTemp:100}, 6:{pressure:ATM_PRESSURE_STD, lowerTemp:-200, higherTemp:-25}, 7:{pressure:ATM_PRESSURE_STD, lowerTemp:-25, higherTemp:50}, 8:{pressure:ATM_PRESSURE_STD, lowerTemp:50, higherTemp:100}, 9:{pressure:ATM_PRESSURE_VDENSE, lowerTemp:-200, higherTemp:-25}, 10:{pressure:ATM_PRESSURE_VDENSE, lowerTemp:-25, higherTemp:50}, 11:{pressure:ATM_PRESSURE_VDENSE, lowerTemp:50, higherTemp:100}, 12:{pressure:ATM_PRESSURE_VDENSE, lowerTemp:100, higherTemp:2300}};
 var INSIDIOUS_ATMOS_COMPOSITION = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:"Gas Mix", 3:"Gas Mix", 4:"Radiation", 5:"Temperature", 6:"Pressure", 7:"Gas Mix", 8:"Pressure", 9:"Temperature", 10:"Radiation", 11:"Gas Mix", 12:"Gas Mix"};
-var INSIDIOUS_ATMOS_PRESSURE = { dice: function() { return dice(1); }, min:1, max:6, mods:[], 1:ATM_PRESSURE_VTHIN, 2:ATM_PRESSURE_THIN, 3:ATM_PRESSURE_STD, 4:ATM_PRESSURE_DENSE, 5:ATM_PRESSURE_VDENSE, 6:ATM_PRESSURE_VDENSE }; 
+var INSIDIOUS_ATMOS_PRESSURE = { dice: function() { return dice(1); }, min:1, max:6, mods:[], 1:ATM_PRESSURE_VTHIN, 2:ATM_PRESSURE_THIN, 3:ATM_PRESSURE_STD, 4:ATM_PRESSURE_DENSE, 5:ATM_PRESSURE_VDENSE, 6:ATM_PRESSURE_VDENSE };
 
 var LIQUID_H2O = {name:"Water",colour:"colorless",odor:"odorless",melts:273,boils:373,molecular_weight:18,inert:false,exotic:true,corrosive:false,insidious:false,notes:"Water is fundamental to life, is known as the universal solvent, and is a powerful greenhouse gas." };
 var LIQUID_H2SO4 = { name:"Sulfuric Acid", colour:"colorless",odor:"odorless",melts:283,boils:610,molecular_weight:98,inert:false,exotic:false,corrosive:false,insidious:false,notes:"Sulfuric acid reacts with water to dehydrate substances and with most bases to produce sulfates.  It is highly dangerous and often in oceans in combination with water."};
@@ -331,14 +331,14 @@ var RESOURCES_ALL = [
 ];
 
 
-var LAT_TEMPS = [	{ size:1, 0:0, 1:-21 }, 
-					{ size:2, 0:7, 1:0, 2:-14, 3:-28 }, 
-					{ size:3, 0:9, 1:0, 2:-9, 3:-18, 4:-27 }, 
+var LAT_TEMPS = [	{ size:1, 0:0, 1:-21 },
+					{ size:2, 0:7, 1:0, 2:-14, 3:-28 },
+					{ size:3, 0:9, 1:0, 2:-9, 3:-18, 4:-27 },
 					{ size:4, 0:13, 1:4, 2:0, 3:-9, 4:-18, 5:-27, 6:-36 },
 					{ size:5, 0:14, 1:7, 2:0, 3:-7, 4:-14, 5:-21, 6:-28, 7:-35 },
 					{ size:6, 0:17, 1:14, 2:7, 3:0, 4:-7, 5:-14, 6:-21, 7:-28, 8:-35, 9:-42 },
 					{ size:7, 0:18, 1:12, 2:6, 3:0, 4:-6, 5:-12, 6:-18, 7:-24, 8:-30, 9:-36, 10:-42 },
-					{ size:8, 0:21, 1:18, 2:12, 3:6, 4:0, 5:-6, 6:-12, 7:-18, 8:-24, 9:-30, 10:-36, 11:-42, 12:-48 }, 
+					{ size:8, 0:21, 1:18, 2:12, 3:6, 4:0, 5:-6, 6:-12, 7:-18, 8:-24, 9:-30, 10:-36, 11:-42, 12:-48 },
 					{ size:9, 0:21, 1:15, 2:10, 3:5, 4:0, 5:-5, 6:-10, 7:-15, 8:-20, 9:-25, 10:-30, 11:-35, 12:-40, 13:-45 },
 					{ size:10, 0:27, 1:24, 2:18, 3:12, 4:6, 5:0, 6:-6, 7:-12, 8:-18, 9:-24, 10:-30, 11:-36, 12:-42, 13:-48, 14:-54, 15:-60 },
 					{ size:11, 0:25, 1:20, 2:15, 3:10, 4:5, 5:0, 6:-5, 7:-10, 8:-15, 9:-20, 10:-25, 11:-30, 12:-35, 13:-40, 14:-45, 15:-50, 16:-55 },
@@ -368,7 +368,7 @@ var HOMOGENEITY_DESCRIPTIONS = [{tm:"N/A",js:"N/A"},
 								{tm:"very fragmented",js:"fractured"},
 								{tm:"extremely fragmented",js:"fragmented"},
 								{tm:"extremely fragmented", js:"atomised"}];
-								
+
 var ACCEPTANCE_DESCRIPTIONS = [	{tm:"N/A",js:"N/A"},
 								{tm:"extremely xenophobic",js:"isolationist"},
 								{tm:"very xenophobic",js:"xenophobic"},
@@ -385,7 +385,7 @@ var ACCEPTANCE_DESCRIPTIONS = [	{tm:"N/A",js:"N/A"},
 								{tm:"very xenophilic",js:"warm"},
 								{tm:"extremely xenophilic",js:"sycophantic"},
 								{tm:"extremely xenophilic",js:"sycophantic"}];
-								
+
 var STRANGENESS_DESCRIPTIONS = [{tm:"N/A",js:"N/A",numCustoms:0},
 								{tm:"very typical",js:"unfeatured",numCustoms:0},
 								{tm:"typical",js:"monotonous",numCustoms:0},
@@ -417,14 +417,14 @@ var SYMBOLS_DESCRIPTIONS = 		[	{level_low:0, level_high:0, symbols:"Totems, Spir
 // var some_dice_table = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:, 3:, 4:, 5:, 6:, 7:, 8:, 9:, 10:, 11:, 12:};
 // var some_resource = { name:"", examples:"",number:{molten:,rocky:,icy:,atmos_good:,atmos_bad:,pop_low:,pop_good:,tl_low:,tech_low_mid:,tech_up_mid:,tech_hi:,life:,no_life:} };
 
-var IMPORTANCE_DESCRIPTIONS = {	"-3":"Very Unimportant", 
-								"-2":"Very Unimportant", 
-								"-1":"Unimportant", 
-								"0":"Unimportant", 
-								"1":"Ordinary", 
-								"2":"Ordinary", 
-								"3":"Ordinary", 
-								"4":"Important", 
+var IMPORTANCE_DESCRIPTIONS = {	"-3":"Very Unimportant",
+								"-2":"Very Unimportant",
+								"-1":"Unimportant",
+								"0":"Unimportant",
+								"1":"Ordinary",
+								"2":"Ordinary",
+								"3":"Ordinary",
+								"4":"Important",
 								"5":"Very Important"};
 
 
