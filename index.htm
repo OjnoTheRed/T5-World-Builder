@@ -38,6 +38,7 @@
 					<button class="dropdown_button" onclick="divsToShow(8);">Credits</button>
 					<button class="dropdown_button" onclick="divsToShow(9);">Legal</button>
 					<button class="dropdown_button" onclick="divsToShow(10);">Contact</button>
+					<button class="dropdown_button" onclick="divsToShow(11);">Tutorial</button>
 				</div>
 			</div>
 			<div class="dropbtn_div" style="display:inline-block;">
@@ -456,11 +457,11 @@
 
 		</div>
 	</div>
-	<div class="container" id="systemDetails">
+	<div class="container" id="systemDetails" style="display:none;">
 		<div style="clear:both;overflow-x:scroll;" id="symbol_map" class="sys"></div>
 		<div style="clear:both;" id="sys_table"></div>
 	</div>
-	<div class="container" id="pref_details">
+	<div class="container" id="pref_details" style="display:none;">
 		<div class="subcontainer" style="width:65%;">
 			<div class="contained" style="font-size:0.8em">
 			<h2 style="margin-top: 0em;">System Generation Preferences</h2>
@@ -508,7 +509,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="container" id="gen_new">
+	<div class="container" id="gen_new" style="display:none;">
 		<div class="subcontainer" style="width:25%">
 			<div class="contained">
 			<p class="guidelines">Default Sector:</p>
@@ -653,7 +654,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="container" id="blankMapDiv">
+	<div class="container" id="blankMapDiv" style="display:none;">
 		<div class="container" style="padding-bottom: 0.5em;">
 			<select id="blankSize">
 				<option value="1">Size 1</option>
@@ -685,7 +686,7 @@
 			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="blankMapSVG"></svg>
 		</div>
 	</div>
-	<div class="container" id="APIdoco">
+	<div class="container" id="APIdoco" style="display:none;">
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>API Documentation</h1>
 		</div>
@@ -715,7 +716,7 @@
 		<p class="white"><b>stellar</b> - all stars in Traveller notation separated by a space, e.g. stellar=F7%20V%20M2%20V.  Default value: randomly generated using T5 rules.
 		<p class="white"><b>seed</b> - the seed used to randomly generate the map. Default value: the hex of the system concatenated to itself.  If the hex is not specified, 'undefined' is used.</p>
 	</div>
-	<div class="container" id="changeLog">
+	<div class="container" id="changeLog" style="display:none;">
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
@@ -911,7 +912,7 @@
 		<h2 class="white">5 July 2017</h2>
 		<p class="white">Map generator first published.  User input a name and UWP and number of resources, and the generator calculated Trade Codes and generated the map.</p>
 	</div>
-	<div class="container" id="contact_me">
+	<div class="container" id="contact_me" style="display:none;">
 		<div style="margin-bottom:0;background-color:#4e4e50">
 			<h1>Contact</h1>
 		</div>
@@ -944,7 +945,7 @@
 			<p class="white">Edit Gas Giant details - size, ice / gas, add other details that help Referees.</p>
 		</div>
 	</div>
-	<div class="container" id="credits">
+	<div class="container" id="credits" style="display:none;">
 		<div style="margin-bottom:0;background-color:#4e4e50">
 			<h1>Credits</h1>
 		</div>
@@ -960,11 +961,14 @@
 			<p class="white">Thinking about Symbols in the Cultural Extension uses ideas by Thomas Jones-Low found <a href="http://www.travellerrpg.com/CotI/Discuss/showpost.php?p=577390&postcount=29">here</a>.</p>
 		</div>
 	</div>
-	<div class="container" id="legal">
+	<div class="container" id="legal" style="display:none;">
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Legal</h1>
 		</div>
 	    <p class="white">The Traveller game in all forms is owned by <a href="http://www.farfuture.net/">Far Future Enterprises</a>. Copyright 1977 - 2020 Far Future Enterprises. Traveller is a registered trademark of Far Future Enterprises. Far Future permits web sites and fanzines for this game, provided it contains this notice, that Far Future is notified, and subject to a withdrawal of permission on 90 days notice. The contents of this site are for personal, non-commercial use only. Any use of Far Future Enterprises's copyrighted material or trademarks anywhere on this web site and its files should not be viewed as a challenge to those copyrights or trademarks. In addition, any program/articles/file on this site cannot be republished or distributed without the consent of the author who contributed it.</p>
+	</div>
+	<div class="container" id="tutorial" style="display:none;">
+		<iframe width="560" height="315" src="https://www.youtube.com/embed/hUmh3Jvnwx4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 	</div>
 
 </body>

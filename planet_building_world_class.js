@@ -3188,7 +3188,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 				planet.satelliteSystem.generate();
 			}
 		}
-		//currentWorld = me.mainWorld;
+		currentWorld = me.mainWorld;
 	}
 
 	me.toTable = function()

@@ -35,6 +35,7 @@ function initLoad()
 				{
 					if(objStoreReq.result !== undefined)
 						uPObj.read_dbObj(objStoreReq.result.prefs);
+					uPObj.writeDocument();
 					initialSystem();
 				};
 	};
@@ -464,6 +465,7 @@ function divsToShow(optionChosen)
 	document.getElementById("credits").style.display = "none";
 	document.getElementById("legal").style.display = "none";
 	document.getElementById("contact_me").style.display = "none";
+	document.getElementById("tutorial").style.display = "none";
 	switch(optionChosen)
 	{
 		case 1:
@@ -497,20 +499,11 @@ function divsToShow(optionChosen)
 		case 10:
 			document.getElementById("contact_me").style.display = "block";
 			break;
+		case 11:
+			document.getElementById("tutorial").style.display = "block";
+			break;
 
 	}
-}
-
-function apiDoco()
-{
-	sysDetailsDiv.style.display='none';
-	mapDiv.style.display='none';
-	detailDiv.style.display='none';
-	upDiv.style.display = "none";
-	genDiv.style.display = "none";
-	blankMapDiv.style.display = "none";
-	document.getElementById("APIdoco").style.display = "none";
-
 }
 
 function giveHelpMessage(helpID)
@@ -891,6 +884,7 @@ function makeMyWorld()
 	if(!myWorld)
 		return;
 	mySystem = new fullSystem(myWorld, sysDiv, symbolDiv, detailDiv, true);
+	originalMainWorld = Object.assign({}, myWorld);
 	loadSystemOntoPage(mySystem);
 	worldDetailsDiv();
 }
