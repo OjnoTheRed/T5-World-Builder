@@ -30,9 +30,11 @@ function initLoad()
 	r.onsuccess = function(event)
 	{
 		user_pref_db = event.target.result;
-		user_pref_db.transaction(["userPreferences"]).objectStore("userPreferences").get("Default").onsuccess = function(event)
+		var objStoreReq = user_pref_db.transaction("userPreferences","readwrite").objectStore("userPreferences").get("Default");
+		objStoreReq.onsuccess = function(event)
 				{
-					uPObj.read_dbObj(event.target.result.prefs);
+					if(objStoreReq.result !== undefined)
+						uPObj.read_dbObj(objStoreReq.result.prefs);
 					initialSystem();
 				};
 	};
@@ -394,8 +396,8 @@ function loadSystemOntoPage(systemObj)
 		systemObj.sysDiv.appendChild(sTables[i]);
 	systemObj.toSymbolMap();
 	document.getElementById("mapSeed").value = systemObj.mainWorld.mapSeed = systemObj.mainWorld.standardSeed;
-	divsToShow(2);
 	systemObj.mainWorld.editDetails();
+	divsToShow(2);
 	document.getElementById("mapPlaceholder").style.display = "none";
 }
 

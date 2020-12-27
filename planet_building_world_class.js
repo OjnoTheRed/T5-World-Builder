@@ -276,15 +276,14 @@ function world()
 		var resource_edits = editDiv.ownerDocument.getElementsByName("resource");
 		for(i=0;i<resource_edits.length;i++)
 			resource_edits[i].checked = me.resources().has(resource_edits[i].id);
-
 		var tempTbl = document.getElementById("temperatureTbl");
 		if(tempTbl)
 			editDiv.removeChild(tempTbl);
-		tempTbl = me.temperatureTblHTML();
-		if(tempTbl)
+		var newTempTbl = me.temperatureTblHTML();
+		if(newTempTbl)
 		{
-			tempTbl.id = "temperatureTbl";
-			editDiv.appendChild(tempTbl);
+			newTempTbl.id = "temperatureTbl";
+			editDiv.appendChild(newTempTbl);
 		}
 		if(me.isMainWorld)
 		{
@@ -1099,8 +1098,6 @@ function world()
 	var TEMP_TABLE;
 	me.temperatureTbl = function()
 	{
-		if(TEMP_TABLE)
-			return TEMP_TABLE;
 		TEMP_TABLE = [];
 		var seasonTbl = me.getSeasonTable();
 		var latitudeTbl = me.latitudeAdj();
@@ -1130,8 +1127,10 @@ function world()
 		if(me.uwp.size == 0)
 			return null;
 		var tempTable = document.createElement("TABLE");
+		tempTable.style.width = "100%";
+		tempTable.style.textAlign = "center";
 		var hdrRow = document.createElement("TR");
-		var metaData;
+		var metaData, metaData2;
 		if(me.tcs.has("Tz"))
 		{
 			metaData = [{title:"Night Side Temperature", contents:(me.calcTemperatureC() + me.maxNightMinus()) + "&deg;C"},
@@ -1141,20 +1140,37 @@ function world()
 		}
 		else
 		{
+			metaData2 = [{title:"", colSpan:"1"},
+						 {title:"Spring / Autumn", colSpan:"3"},
+						 {title:"Summer", colSpan:"3"},
+						 {title:"Winter", colSpan:"3"}];
+			
 			metaData = [{title:"Row",contents:"row"},
-						{title:"Average Temperature",contents:"avg"},
-						{title:"Spring / Autumn Day",contents:"avg_day"},
-						{title:"Spring / Autumn Night",contents:"avg_night"},
-						{title:"Summer Temperature",contents:"summer"},
-						{title:"Summer Day",contents:"summer_day"},
-						{title:"Summer Night",contents:"summer_night"},
-						{title:"Winter Temperature",contents:"winter"},
-						{title:"Winter Day",contents:"winter_day"},
-						{title:"Winter Night",contents:"winter_night"}];
+						{title:"Base",contents:"avg"},
+						{title:"Day",contents:"avg_day"},
+						{title:"Night",contents:"avg_night"},
+						{title:"Base",contents:"summer"},
+						{title:"Day",contents:"summer_day"},
+						{title:"Night",contents:"summer_night"},
+						{title:"Base",contents:"winter"},
+						{title:"Day",contents:"winter_day"},
+						{title:"Night",contents:"winter_night"}];
 		}
 		var tempData = me.temperatureTbl();
 		if(tempData[0].row == 0)
 			tempData.reverse();
+		if(metaData2 !== undefined)
+		{
+			var hdrRow2 = document.createElement("TR");
+			for(var i=0;i<metaData2.length;i++)
+			{
+				var hdrCell2 = document.createElement("TH");
+				hdrCell2.innerHTML = metaData2[i].title;
+				hdrCell2.colSpan = metaData2[i].colSpan;
+				hdrRow2.appendChild(hdrCell2);
+			}
+			tempTable.appendChild(hdrRow2);			
+		}
 		for(var i=0;i<metaData.length;i++)
 		{
 			var hdrCell = document.createElement("TH");
