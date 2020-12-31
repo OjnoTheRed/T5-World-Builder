@@ -38,12 +38,12 @@
 					<button class="dropdown_button" onclick="divsToShow(8);">Credits</button>
 					<button class="dropdown_button" onclick="divsToShow(9);">Legal</button>
 					<button class="dropdown_button" onclick="divsToShow(10);">Contact</button>
-					<button class="dropdown_button" onclick="divsToShow(11);">Tutorial</button>
+					<button class="dropdown_button" onclick="divsToShow(11);">Help</button>
 				</div>
 			</div>
 			<div class="dropbtn_div" style="display:inline-block;">
 				<p class="guidelines" style="color:white">Seed:</p>
-				<input id="mapSeed" type="text" style="width:70px" />
+				<input id="seed" type="text" style="width:70px" />
 			</div>
 			<div class="dropdown">
 				<button class="dropbtn">Map Actions</button>
@@ -52,22 +52,22 @@
 					<button class="dropdown_button" id="downloadMapPNG">Download PNG format</button>
 					<button class="dropdown_button" id="slideLeft" onclick="currentWorld.map.slideTerrain(false);"/>Slide Hexes west</button>
 					<button class="dropdown_button" id="slideRight" onclick="currentWorld.map.slideTerrain(true);">Slide Hexes east</button>
-					<button class="dropdown_button" id="regen" onclick="regenerateMap();">Regenerate Map (current)</button>
+					<button class="dropdown_button" id="regen" onclick="regenerateMap();">Regenerate Map (current seed)</button>
 					<button class="dropdown_button" id="regenRS" onclick="renegerateMapRS();">Regenerate Map (new random seed)</button>
 					<button class="dropdown_button" id="noTZ" onclick="removeTZ();">Remove Twilight Zone</button>
 				</div>
 			</div>
 			<div class="dropbtn_div" style="display:inline-block;">
 				<p class="guidelines" style="color:white">Saved Systems list:</p>
-				<select id="saved_systems" style="min-width:400px"></select>
+				<select id="saved_systems" style="min-width:400px" onchange="load_sys();"></select>
 			</div>
 			<div class="dropdown">
 				<button class="dropbtn">System Actions</button>
 				<div class="dropdown-content">
 					<button class="dropdown_button" id="regenSys" onclick="regenerateSystem();">Regenerate system (current seed)</button>
 					<button class="dropdown_button" id="regenSysRS" onclick="regenerateSystemRS();">Regenerate system (new random seed)</button>
-					<button class="dropdown_button" id="saveSys" onclick="save_sys();" >Save star system</button>
-					<button class="dropdown_button" id="updateSys" onclick="update_sys();" >Update star system</button>
+					<button class="dropdown_button" id="updateSys" onclick="update_sys();" >Save star system</button>
+					<button class="dropdown_button" id="saveSys" onclick="save_sys();" >Save As new star system</button>
 					<button class="dropdown_button" id="loadSys" onclick="load_sys();" >Load currently selected system</button>
 					<button class="dropdown_button" id="delSys" onclick="del_sys();" >Delete currently selected system</button>
 					<button class="dropdown_button" id="exportSys" onclick="export_sys();" >Export the current system as a JSON file</button>
@@ -140,27 +140,51 @@
 				<p class="worldDetails" id="tcs"></p>
 				<span class="tooltiptext">Trade Classifications and Remarks</span>
 				</div>
-				<div class="formItem" id="orbitFormItem">
-				<p class="guidelines">Orbit:</p>
-				<p class="worldDetails" id="orbit_text"></p>
-				<select class="worldDetails" id="satOrbitSel"><option>ay</option><option>bee</option><option>cee</option><option>dee</option><option>ee</option><option>eff</option><option>gee</option><option>aitch</option><option>eye</option><option>jay</option><option>kay</option><option>ell</option><option>em</option><option>en</option><option>oh</option><option>pee</option><option>que</option><option>arr</option><option>ess</option><option>tee</option><option>yu</option><option>vee</option><option>dub</option><option>ex</option><option>wye</option><option>zee</option></select>
-				<p class="guidelines" id="orbitButtons"></p>
-				<span class="tooltiptext">Orbit number (decimal) around parent star.  This can be adjusted with the arrow buttons.</span>
-				</div>
-				<div class="formItem">
-				<p class="guidelines">Orbital Distance:</p>
-				<p class="worldDetails" id="orbit_distance"></p>
+			</div>
+			<div>
+				<h2>Orbit Details</h2>
+				<div class="contained-flex">
+					<div class="formItem" id="orbitFormItem">
+					<p class="guidelines">Orbit:</p>
+					<p class="worldDetails" id="orbit_text"></p>
+					<select class="worldDetails" id="satOrbitSel"><option>ay</option><option>bee</option><option>cee</option><option>dee</option><option>ee</option><option>eff</option><option>gee</option><option>aitch</option><option>eye</option><option>jay</option><option>kay</option><option>ell</option><option>em</option><option>en</option><option>oh</option><option>pee</option><option>que</option><option>arr</option><option>ess</option><option>tee</option><option>yu</option><option>vee</option><option>dub</option><option>ex</option><option>wye</option><option>zee</option></select>
+					<span class="tooltiptext">Orbit number (decimal) around parent star.  This can be adjusted with the arrow buttons.</span>
+					</div>
+					<div class="formItem">
+					<p class="guidelines">Orbital Distance:</p>
+					<p class="worldDetails" id="orbit_distance"></p>
+					</div>
 				</div>
 				<div class="transparent" style="margin-bottom:0.1em;" id="tz_msg" hidden>
 					<h3 style="color:red;">World is Tidally Locked to its star</h3>
-					<p class="guidelines">The world's rotational period is the same as its orbital period and cannot be changed.  The Axial Tilt is zero and cannot be changed.  One side is always facing towards the star and is permanently day, the other is permanently night.  The 'day' and 'night' sides are set to the upper and lower temperature limits which is based on the atmosphere.</p>
+					<p>The world's rotational period is the same as its orbital period and cannot be changed.  The Axial Tilt is zero and cannot be changed.  One side is always facing towards the star and is permanently day, the other is permanently night.  The 'day' and 'night' sides are set to the upper and lower temperature limits which is based on the atmosphere.</p>
 				</div>
 				<div class="transparent" style="margin-bottom:0.1em;" id="lk_msg" hidden>
 					<h3 style="color:red;">World is a satellite Tidally Locked to its planet</h3>
-					<p class="guidelines">The world's rotational period is the same as its orbital period and cannot be changed.  The Axial Tilt represents the inclination of its orbit around the planet relative to the planet's orbit around the star and so there can be seasonal influences.  One side is always facing towards the planet, leading to long days and nights relative to the parent star.  <b>Note:</b> The T5 rules specify that satellite orbits 'em' and closer will be locked to their planet.  If a randomly generated satellite rotation or user entered result is greater than the orbital period, it will be reduced to the orbital period and regarded as tidally locked.</p>
+					<p>The world's rotational period is the same as its orbital period and cannot be changed.  The Axial Tilt represents the inclination of its orbit around the planet relative to the planet's orbit around the star and so there can be seasonal influences.  One side is always facing towards the planet, leading to long days and nights relative to the parent star.  <b>Note:</b> The T5 rules specify that satellite orbits 'em' and closer will be locked to their planet.  If a randomly generated satellite rotation or user entered result is greater than the orbital period, it will be reduced to the orbital period and regarded as tidally locked.</p>
+				</div>
+				<p class="guidelines">Adjust orbit with first up and down arrows; adjust the decimal place with the second:</p>
+				<p id="orbitButtons"></p>
+				<div class="formItem">
+				<p class="guidelines" id="orbital_period_lbl">Orbital Period:</p>
+				<p class="worldDetails" id="orbital_period_text"></p>
+				<span class="tooltiptext">Calculated Orbital period in Earth Years</span>
 				</div>
 			</div>
+			<div>
+				<h2>Port Details</h2>
+				<p class="guidelines">Starport Class</p>
+				<p id="portClass"></p>
+				<p class="guidelines">Starport Facilities</p>
+				<p id="portFacilities"></p>
+			</div>
+			<h2>Size Details</h2>
 			<div class="contained-flex">
+				<div class="formItem">
+				<p class="guidelines" id="diameter_lbl">Size UWP value explanation:</p>
+				<p class="worldDetails" id="sizeUWPexp"></p>
+				<span class="tooltiptext">What the size digit in the UWP means</span>
+				</div>				
 				<div class="formItem">
 				<p class="guidelines" id="diameter_lbl">Diameter (km):</p>
 				<input class="worldDetails" id="diameter_edit" type="text" maxlength="5" value=""/>
@@ -186,8 +210,6 @@
 				<input class="worldDetails" id="density_edit" type="text" maxlength="4" value=""/>
 				<span class="tooltiptext">Density where Earth = 1</span>
 				</div>
-			</div>
-			<div class="contained-flex">
 				<div class="formItem">
 				<p class="guidelines" id="mass_lbl">Mass (Earth=1):</p>
 				<p class="worldDetails" id="mass_text"></p>
@@ -199,16 +221,14 @@
 				<span class="tooltiptext">Calculated gravity in Gs (Earth=1)</span>
 				</div>
 				<div class="formItem">
-				<p class="guidelines" id="orbital_period_lbl">Orbital Period:</p>
-				<p class="worldDetails" id="orbital_period_text"></p>
-				<span class="tooltiptext">Calculated Orbital period in Earth Years</span>
-				</div>
-				<div class="formItem">
 				<p class="guidelines" id="rotational_period_lbl">Rotational Period (Hours):</p>
 				<input class="worldDetails" id="rotational_period_edit" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">Rotational Period in Earth Hours.  If Tz or Lk, rotation period &amp; orbital period are the same.</span>
 				</div>
 			</div>
+			<h2>Atmosphere and Temperature details</h2>
+			<p class="guidelines">Atmosphere UWP digit explanation</p>
+			<p class="worldDetails" id="atmosUWPExpl"></p>
 			<div class="contained-flex">
 				<div class="formItem">
 				<p class="guidelines" id="atmos_pressure_lbl">Atmospheric Pressure</p>
@@ -217,7 +237,7 @@
 				</div>
 				<div class="formItem">
 				<p class="guidelines" id="atmos_compo_lbl">Atmospheric Composition</p>
-				<input class="worldDetails" id="atmos_compo_edit" type="text" value=""/>
+				<input class="worldDetails" id="atmos_compo_edit" type="text" value="" style="width:400px" />
 				<span class="tooltiptext">Description of Atmopsheric Composition</span>
 				</div>
 				<div class="formItem">
@@ -273,6 +293,7 @@
 				<span class="tooltiptext">Nighttime temperature minus winter decrease.</span>
 				</div>
 			</div>
+			<h2>Hydrosphere Details</h2>
 			<div class="contained-flex">
 				<div class="formItem">
 				<p class="guidelines" id="hydro_perc_lbl">Hydrographic Percentage</p>
@@ -288,11 +309,6 @@
 				<p class="guidelines" id="native_life_lbl">Native Life?</p>
 				<select class="worldDetails" id="native_life_select"><option>Yes</option><option>No</option></select>
 				<span class="tooltiptext">The world has or does not have native life.  Regardless, the world may have imported species.</span>
-				</div>
-				<div class="formItem">
-				<p class="guidelines" id="native_int_life_lbl">Intelligent Life Status</p>
-				<p class="worldDetails" id="native_int_life_text"></p>
-				<span class="tooltiptext">Indication of the (Native) Intelligent Life on this world.</span>
 				</div>
 				<div class="formItem">
 				<p class="guidelines" id="seismic_lbl">Seismic Stress</p>
@@ -381,6 +397,26 @@
 					</div>
 				</div>
 			</div>
+			<h2>Population Details</h2>
+			<div class="contained-flex">
+				<div class="formItem">
+					<p class="guidelines">Population Digit from UWP</p>
+					<p class="worldDetails" id="populDigExp"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Population Multiplier</p>
+					<p class="worldDetails" id="popMultiExp"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Total Population</p>
+					<p class="worldDetails" id="populCalc"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines" id="native_int_life_lbl">Intelligent Life Status</p>
+					<p class="worldDetails" id="native_int_life_text"></p>
+					<span class="tooltiptext">Indication of the (Native) Intelligent Life on this world.</span>
+				</div>
+			</div>
 			<div class="transparent" id="nobz" hidden>
 			<h2>Nobles</h2>
 				<p class="guidelines">Noble Codes</p>
@@ -454,7 +490,7 @@
 				<p class="guidelines">Importance</p>
 				<p><span id="world_ix"></span> <span id="world_ix_desc"></span></p>
 			</div>
-
+			<h2>Temperature Table</h2>
 		</div>
 	</div>
 	<div class="container" id="systemDetails" style="display:none;">
@@ -691,7 +727,7 @@
 			<h1>API Documentation</h1>
 		</div>
 		<p class="white">You can encode a link for a particular star system by using a URL.  For example:</p>
-		<p class="white" style="font-family:courier">http://members.ozemail.com.au/~jonoreita/TravellerWorlds//index.html?name=Junidy&uwp=B434ABD-B</p>
+		<p class="white" style="font-family:courier">http://members.ozemail.com.au/~jonoreita/TravellerWorlds/index.htm?name=Junidy&uwp=B434ABD-B</p>
 		<p class="white">This example will put the world name 'Junidy' in the World Name field, the UWP 'B434ABD-B' in the UWP field, and then randomly generate all remaining details before generating a world map and the star system.</p>
 		<p class="white">Note that when a system is generated, the main world map and details are generated and displayed; you can then navigate to each world via the Full Star System View and go to another world by pressing the "Details" button next to that world.</p>
 		<p class="white">All world variables relevant to a world map can be used.  Note that the URI needs to be encoded to ensure it works correctly.  The following is a comprehensive list of variables used and how they are handled.</p>
@@ -968,7 +1004,20 @@
 	    <p class="white">The Traveller game in all forms is owned by <a href="http://www.farfuture.net/">Far Future Enterprises</a>. Copyright 1977 - 2020 Far Future Enterprises. Traveller is a registered trademark of Far Future Enterprises. Far Future permits web sites and fanzines for this game, provided it contains this notice, that Far Future is notified, and subject to a withdrawal of permission on 90 days notice. The contents of this site are for personal, non-commercial use only. Any use of Far Future Enterprises's copyrighted material or trademarks anywhere on this web site and its files should not be viewed as a challenge to those copyrights or trademarks. In addition, any program/articles/file on this site cannot be republished or distributed without the consent of the author who contributed it.</p>
 	</div>
 	<div class="container" id="tutorial" style="display:none;">
-		<iframe width="560" height="315" src="https://www.youtube.com/embed/hUmh3Jvnwx4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+		<div class="subcontainer">
+			<div class="contained">
+				<iframe width="100%" height="315" src="https://www.youtube.com/embed/hUmh3Jvnwx4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+				<p>A quick and dirty 5-minute overview of the features of TravellerWorlds.</p>
+			</div>
+		</div>
+		<div class="subcontainer">
+			<div class="contained">
+				<p>A google doc outlining the rules used by Traveller words can be found here:</p>
+				<p style="font-size:3em"><a href="https://docs.google.com/document/d/1O2P9gN9CkGMo-fAIaZpnb9Cfey5UPl2Xzr5xhQ1EHFg/edit?usp=sharing">LINK</a></p>
+				<p>It also has links to cool sites for world building.</p>
+			</div>
+		</div>
+	</div>
 	</div>
 
 </body>

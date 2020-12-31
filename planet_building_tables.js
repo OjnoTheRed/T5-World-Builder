@@ -427,9 +427,201 @@ var IMPORTANCE_DESCRIPTIONS = {	"-3":"Very Unimportant",
 								"4":"Important",
 								"5":"Very Important"};
 
+var SIZE_DESCRIPTIONS = [ "Planetoids, Asteroids or an object less than 1,000 miles in diameter", "Approximately 1,000 miles diameter", "Approximately 2,000 miles diameter", "Approximately 3,000 miles diameter", "Approximately 4,000 miles diameter", "Approximately 5,000 miles diameter", "Approximately 6,000 miles diameter", "Approximately 7,000 miles diameter", "Approximately 8,000 miles diameter", "Approximately 9,000 miles diameter", "Approximately 10,000 miles diameter", "Approximately 11,000 miles diameter", "Approximately 12,000 miles diameter", "Approximately 13,000 miles diameter", "Approximately 14,000 miles diameter", "Approximately 15,000 miles diameter", "Approximately 16,000 miles diameter", "Approximately 17,000 miles diameter", "Approximately 18,000 miles diameter", "Approximately 19,000 miles diameter", "Approximately 20,000 miles diameter"];
+var ATMOS_DESCRIPTIONS = [ "vacuum - a vacc suit is required.","trace gasses only - a vacc suit is required.","very thin with a taint - a respirator / filter is required.","very thin - a respirator is required.","thin but tainted - breathable with a filter mask.","thin - breathable without protection.","standard - breathable without protection", "standard but tainted - breathable with a filter mask.","dense - breathable without protection","dense but tainted - breathable with a filter mask.","an exotic gas mix - a respirator is required.","a corrosive gas mix - a vacc suit is required.","an insidious gas mix - a vacc suit is required by will be defeated in 2D hours.","dense but high - breathable but only at higher altitudes,","thin but low - breathable only at very low (below sea level) altitudes.","unusual conditions but breathable."];
 
-var matt_stevens_gov_8 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
-var matt_stevens_gov_9 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
-var matt_stevens_gov_A = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Party Machine", 3:"Strongman", 4:"Strongman", 5:"War Hero", 6:"Revolutionary Military", 7:"Revolutionary Military", 8:"Institutional Military", 9:"Elected Tyrant", 10:"Elected Tyrant", 11:"Revolutionary Tyrant", 12:"Revolutionary Tyrant"};
-var matt_stevens_gov_B = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Strongman", 3:"Strongman", 4:"War Hero", 5:"Revolutionary Military", 6:"Institutional Military", 7:"Elected Tyrant", 8:"Elected Tyrant", 9:"Revolutionary Party", 10:"Revolutionary Party", 11:"Revolutionary Tyrant", 12:"Revolutionary Tyrant"};
-var matt_stevens_gov_C = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Party Machine", 3:"Party Machine", 4:"Party Machine", 5:"Revolutionary Military", 6:"Revolutionary Military", 7:"Institutional Military", 8:"Institutional Military", 9:"Institutional Military", 10:"Revolutionary Party", 11:"Revolutionary Party", 12:"Revolutionary Party"};
+// Government Types 2 and 4 stuff
+var numLITbl = {dice:function() { return dice(2); }, min:2, max:12, mods:[], 2:1, 3:1, 4:2, 5:2, 6:2, 7:3, 8:3, 9:3, 10:4, 11:4, 12:4 };
+var LI_Size_Tbl = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, mods:[], 2:"Large group (assembly), 10 or more people", 3:"Large group (assembly), 10 or more people", 4:"Small group (council), 4 to 9 people", 5:"Small group (council), 4 to 9 people", 6:"Triumvirate", 7:"Two people", 8:"One person", 9:"One person", 10:"One person", 11:"One person", 12:"One person" };
+var LI_How_Chosen_Tbl = {dice:function() { return dice(2); }, min:2, max:12, mods:[], 2:{how:"Chosen by lot", appointed:false}, 3:{how:"Elected directly", appointed:false}, 4:{how:"Elected directly",appointed:false}, 5:{how:"Elected directly",appointed:false}, 6:{how:"Elected directly", appointed:false}, 7:{how:"Elected indirectly", appointed:false}, 8:{how:"Appointed by another institution, but given significant job security", appointed:true}, 9:{how:"Appointed by another institution, but given significant job security", appointed:true}, 10:{how:"Appointed by another institution, but given significant job security", appointed:true}, 11:{how:"A hereditary position", appointed:true}, 12:{how:"A hereditary position", appointed:true} };
+var Direct_Democracy_Tbl = {dice:function(world) { return world.uwp.popul + flux(); }, min:4, max:8, mods:[], 4:{desc:"World meeting. All citizens gather at a central meeting place when summoned to vote on legislation.",techVote:false}, 5:{desc:"Regional meetings. Citizens gather together at local or regional meeting-places to vote on legislation of regional or worldwide importance.", techVote:false}, 6:{desc:"Draft-lottery legislature. A random group of citizens is summoned to participate in a legislative body whose approval is necessary for legislation. (These issues may be submitted to the population in referenda when these votes lie within a certain margin of error.)", techVote:false}, 7:{desc:"Draft-lottery legislature. A random group of citizens is summoned to participate in a legislative body whose approval is necessary for legislation. (These issues may be submitted to the population in referenda when these votes lie within a certain margin of error.)", techVote:false}, 8:{desc:"Referenda. Citizens report to their local polling stations and vote on a variety of issues by secret ballot.",techVote:true} };
+var Suffrage_Rolls_Tbl = {dice:function(world) { return me.uwp.law; }, min:1, max:6, 1:1, 2:2, 3:2, 4:3, 5:3, 6:4};
+var Suffrage_Restrictions_Tbl = {dice:function(numDice) { return dice(numDice); }, min:1, max:23, 1:{desc:"No restriction", restriction:false}, 2:{desc:"Must be an adult", restriction:true}, 3:{desc:"Must be an adult", restriction:true}, 4:{desc:"Must be an adult", restriction:true}, 5:{desc:"Must be an adult", restriction:true}, 6:{desc:"Must be a citizen/long-term resident", restriction:true}, 7:{desc:"Must be a citizen/long-term resident", restriction:true}, 8:{desc:"Must be literate", restriction:true}, 9:{desc:"No restriction", restriction:false}, 10:{desc:"Cannot have a criminal record", restriction:true}, 11:{desc:"Must be ", restriction:true, choice:["male","female"]}, 12:{desc:"Must meet property qualifications", restriction:true}, 13:{desc:"No restriction", restriction:false}, 14:{desc:"Must belong to official religion", restriction:true}, 15:{desc:"Must serve in the Army", restriction:true}, 16:{desc:"Must be the child of a citizen", restriction:true}, 17:{desc:"Must be an Imperial noble", restriction:true}, 18:{desc:"No restriction", restriction:false}, 19:{desc:"Cannot belong to a certain ethnic group", restriction:true}, 20:{desc:"Cannot be affiliated with certain political groups", restriction:true}, 21:{desc:"Must 'buy' his or her vote, or pay a special tax", restriction:true}, 22:{desc:"Must 'buy' his or her vote, or pay a special tax", restriction:true}, 23:{desc:"Must pass a test", restriction:true} };
+var Num_Parties_Tbl = {dice:function(world) { return dice(2) - (me.world.law > 8 ? dice(1) : 0 ) }, min:3, max:12, 3:0, 4:1, 5:1, 6:2, 7:2, 8:3, 9:function() { return dice(1)+3;}, 10:function() { return dice(1)+4; }, 11:function() { return dice(2)+4; }, 12:function() { return dice(3)+4; } };
+var Ideology_Tbl = {dice:function(partyObj) { return dice(5) + partyObj.medianSocial; }, min:7, max:42, 7:{desc:"", rollTwice:true, combine:true}, 8:{desc:"Communist", rollTwice:false, combine:false}, 9:{desc:"Anarchist", rollTwice:false, combine:false}, 10:{desc:"Revolutionary", rollTwice:false, combine:false}, 11:{desc:"Worker's", rollTwice:false, combine:false}, 12:{desc:"Socialist", rollTwice:false, combine:false}, 13:{desc:"Labor", rollTwice:false, combine:false}, 14:{desc:"Progressive", rollTwice:false, combine:false}, 15:{desc:["Popular","Populist","People's"], rollTwice:false, combine:true}, 16:{desc:"Radical", rollTwice:false, combine:false}, 17:{desc:["Social","Socialist"], rollTwice:false, combine:true}, 18:{desc:"Reform", rollTwice:false, combine:false}, 19:{desc:"New", rollTwice:false, combine:true}, 20:{desc:["January","February","March","April","May","June","July","August","September","October","November","December"], rollTwice:false, combine:false}, 21:{desc:"(name of country)", rollTwice:false, combine:true}, 22:{desc:"Unusual - make it up!", rollTwice:false, combine:false}, 23:{desc:["Red","Green","Blue","Yellow","White","Black","Pink","Brown","Orange","Purple"], rollTwice:false, combine:false}, 24:{desc:"Democratic", rollTwice:false, combine:false}, 25:{desc:"Democratic", rollTwice:false, combine:true}, 26:{desc:"Republican", rollTwice:false, combine:false}, 27:{desc:["Independent","Independence"], rollTwice:false, combine:true}, 28:{desc:"(region or ethnic group)", rollTwice:false, combine:false}, 29:{desc:["Liberal","Liberty","Liberation","Libertarian"], rollTwice:false, combine:true}, 30:{desc:"(person's name)", rollTwice:false, combine:false}, 31:{desc:["National","Nationalist"], rollTwice:false, combine:false}, 32:{desc:["National","Nationalist"], rollTwice:false, combine:true}, 33:{desc:"(named after religion)", rollTwice:false, combine:false}, 34:{desc:["Popular","Populist","People's"], rollTwice:false, combine:false}, 35:{desc:"Freedom", rollTwice:false, combine:false}, 36:{desc:"Free", rollTwice:false, combine:true}, 37:{desc:["Liberal","Liberation","Liberty","Libertarian"], rollTwice:false, combine:false}, 38:{desc:["Agrarian","Farmer's"], rollTwice:false, combine:false}, 39:{desc:"Conservative", rollTwice:false, combine:false}, 40:{desc:"Fascist", rollTwice:false, combine:false},  41:{desc:"Nazi", rollTwice:false, combine:false}, 42:{desc:"", rollTwice:true, combine:true}  };
+var Org_Type = {dice:function() { return dice(2); }, min:3, max:12, 3:"Alliance",4:"League",5:"Movement",6:"Party",7:"Party",8:"Party",9:"Party",10:"Union",11:"Congress",12:"(other - make it up)"};
+function party()
+{  
+	var me = this;
+	me.medianSocial = dice(2);
+	me.ideology = "";
+	me.type = "";
+	me.name = "";
+	var ideologyTbl = new dice_table(Ideology_Tbl, me);
+	
+	me.generate = function()
+	{
+		var ideologies = me.getIdeology();
+		ideologies.map(function(i)
+		{
+			me.ideology += (typeof(i.desc) == "string" ? i.desc : i.desc[rng(i.desc.length-1)]) + " ";
+			while(i.combine)
+			{
+				i = ideologyTbl.roll();	
+				me.ideology += (typeof(i.desc) == "string" ? i.desc : i.desc[rng(i.desc.length-1)]) + " ";
+			}	
+		});
+		me.type = new dice_table(Org_Type).roll();
+		me.name = me.ideology + me.type;
+	}
+	
+	me.getIdeology()
+	{
+		var ideologyRoll = ideologyTbl.roll();
+		var ideologyRoll2;
+		var returnRolls = [];
+		if(ideologyRoll.rollTwice)
+		{
+			do
+			{
+				ideologyRoll = ideologyTbl.roll();
+				ideologyRoll2 = ideologyTbl.roll();
+			}
+			while(ideologyRoll.rollTwice || ideologyRoll2.rollTwice);
+			returnRolls.push(ideologyRoll);
+			returnRolls.push(ideologyRoll2);
+		}
+		else
+			returnRolls.push(ideologyRoll);
+		return returnRolls;
+	}
+	
+	me.toString = function()
+	{
+		return me.name + " with a median social standing of " + me.medianSocial + ". ";
+	}
+	
+	me.generate();
+}
+
+function MATT_SEVENS_GOV_2_AND_4(world)
+{
+	var me = this;
+	me.world = world;
+	me.leadershipInstitutions = [];
+	me.directDemocracyInst = {};
+	me.suffrageRestrictions = [];
+	me.parties = [];
+	me.partiesDescription = "";
+	me.participation = "";
+	
+	me.generate = function()
+	{
+		var numLI = new dice_table(numLITbl).roll();
+		var all_appointed = true;
+		for(var i=0;i<numLI;i++)
+		{
+			var newLI = {};
+
+			var newLIsizeTbl = new dice_table(LI_Size_Tbl, me.world);
+			newLIsizeTbl.DM -= (i+1);
+			newLI.size = newLIsizeTbl.roll();
+
+			var newLIHowTbl = new dice_table(LI_How_Chosen_Tbl);
+			if(me.world.uwp.gov == 2)
+				newLIHowTbl.DM = -3;
+			newLI.howChosen = newLIHowTbl.roll();
+			if(!newLI.howChosen) all_appointed = false; // if at least any one are not appointed, the flag can be false
+			me.leadershipInstitutions.push(newLI);
+		}
+		if(all_appointed)
+		{
+			var appointedLI = [];
+			me.leadershipInstitutions.map(function(anLI) { if(anLI.howChosen.appointed) appointedLI.push(anLI) });
+			var randomLI = appointedLI[rng(appointedLI.length-1)];
+			do
+			{
+				randomLI = newLIHowTbl.roll();
+			}
+			while(randomLI.howChosen.appointed);
+		}
+		me.directDemocracyInst = new dice_table(Direct_Democracy_Tbl, me.world).roll();
+		if(me.directDemocracyInst.techVote)
+			me.directDemocracyInst.techVote = (dice(2) <= me.world.uwp.TL);
+		var suffrageRolls = new dice_table(Suffrage_Rolls_Tbl, me.world).roll();
+		for(i=0;i<suffrageRolls;i++)
+		{
+			var suffRestTbl = new dice_table(Suffrage_Restrictions_Tbl, (i+1));
+			me.suffrageRestrictions.push(suffRestTbl.roll());
+		}
+		if(dice(1) <= me.world.uwp.popul)
+		{
+			var numPartiesResult = new dice_table(Num_Parties_Tbl, me.world).roll();
+			var numParties = typeof(numPartiesResult) == "function" ? numPartiesResult() : numPartiesResult;
+			var numDetailedParties = Math.max(numParties, 6);
+			for(i=0;i<numDetailedPartiesParties;i++)
+				me.parties.push(new party());
+			switch(numParties)
+			{
+				case 0:
+					me.partiesDescription = "Political Parties are banned.  Candidates run as individuals, without clear ideological position.";
+					break;
+				case 1:
+					me.partiesDescription = "There is one party; either a voluntary union of old parties, or a party that is so overwhelmingly popular that it has no significant opposition."
+					break;
+				default:
+					me.partiesDescription = "There are multiple competing political parties.";
+			}
+		}
+		else
+		{
+			me.partiesDescription = "Candidates run as individuals with no clear political party system.";
+		}
+		var participationRoll = dice(2);
+		if(me.world.uwp.gov == 4)
+			participationRoll++;
+		if(me.world.uwp.gov != 2 && me.world.uwp.gov != 4)
+			participationRoll--;
+		if(numParties==0)
+			participationRoll -= 3;
+		if(numParties==1)
+			participationRoll--;
+		if(numParties > 5)
+			participationRoll++;
+		if(participationRoll < 1)
+			participationRoll = 0.5;
+		participationRoll = Math.max(participationRoll,10);
+		me.participation = "Around " + (participationRoll*10) + "% of the eligible electorate participate. ";
+		if(participationRoll == 10 && dice(2) <= me.world.uwp.law)
+			me.participation += "Voting is mandatory.";
+	}
+	
+	me.toString = function()
+	{
+	
+		var s = "The government is characterised as a " + (me.world.uwp.gov == 2 ? "participatory" : "representative") + " democracy. Leadership institutions include: ";
+		me.leadershipInstitutions.map(function(LI) 
+		{
+			s += LI.size + " which is " + LI.howChosen;
+		});
+		s += "When major laws need to be changed, there is a " + me.directDemocracyInst.desc + ". ";
+		s += me.directDemocracyInst.techVote ? "This takes place electronically. " : "";
+		var suff_rest_string = "";
+		me.suffrageRestrictions.map(function(suff_rest)
+		{
+			if(suff_rest.restriction && suff_rest_string.search(suff_rest.desc) == -1)
+				suff_rest_string += suff_rest.desc + "; ";
+		});
+		if(suff_rest_string == "")
+			s += "There are no restrictions on suffrage. ";
+		else
+			s += "The following restrictions on suffrage apply: " + suff_rest_string.replace(/;\s$/,""); + ". ";
+		s += me.partiesDescription;
+		me.parties.map(function (p) 
+		{
+			s += p;
+		});
+		s += me.participation;
+		return s;
+	}
+	
+	me.generate();
+}
+
+
+
+var MATT_STEVENS_GOV_8 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
+var MATT_STEVENS_GOV_9 = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Participatory Democracy",3:"Representative Democracy",4:"Representative Democracy",5:"Representative Democracy",6:"Representative Democracy",7:"Unusual",8:"Professional Government",9:"Monarchy",10:"Monarchy",11:"Military Government",12:"One-Party Autocracy"};
+var MATT_STEVENS_GOV_A = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Party Machine", 3:"Strongman", 4:"Strongman", 5:"War Hero", 6:"Revolutionary Military", 7:"Revolutionary Military", 8:"Institutional Military", 9:"Elected Tyrant", 10:"Elected Tyrant", 11:"Revolutionary Tyrant", 12:"Revolutionary Tyrant"};
+var MATT_STEVENS_GOV_B = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Strongman", 3:"Strongman", 4:"War Hero", 5:"Revolutionary Military", 6:"Institutional Military", 7:"Elected Tyrant", 8:"Elected Tyrant", 9:"Revolutionary Party", 10:"Revolutionary Party", 11:"Revolutionary Tyrant", 12:"Revolutionary Tyrant"};
+var MATT_STEVENS_GOV_C = {dice:function(world) { return world.uwp.law + flux(); }, min:2, max:12, 2:"Party Machine", 3:"Party Machine", 4:"Party Machine", 5:"Revolutionary Military", 6:"Revolutionary Military", 7:"Institutional Military", 8:"Institutional Military", 9:"Institutional Military", 10:"Revolutionary Party", 11:"Revolutionary Party", 12:"Revolutionary Party"};

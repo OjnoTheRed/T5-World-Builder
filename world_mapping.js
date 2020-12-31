@@ -73,15 +73,15 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			frozenPlanet();
 			tundra();
 			twilightZone();
-			clearTerrainAllocate();
+			cities();
+			rural();
 			chasms();
 			precipices();
 			ruins();
 			cropLand();
 			lowPopulTown();
-			cities();
+			clearTerrainAllocate();
 			arcologies();
-			rural();
 			starport();
 			penal();
 			waste();
@@ -935,7 +935,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			selectedHex = array_fnc.random.call(me.cityHexes);
 		else
 			selectedHex = me.theTown;
-		if(selectedHex == null)
+		if(selectedHex === null)
 			selectedHex = getRandomLandHex();
 		selectedHex.add(starportTerrain);
 	}
@@ -946,7 +946,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		{
 			var selectedHex = array_fnc.random.call(me.hexes);
 		}
-		while(selectedHex.has("Ocean") && !selectedHex.has("Island"));
+		while(selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain));
 		return selectedHex;
 	}
 

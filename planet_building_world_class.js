@@ -9,7 +9,7 @@ var WORLD_MAP_DIV_NAME = "saveArea";
 var WORLD_MAP_SVG_NAME = "worldMapSVG";
 var SYSTEM_DETAILS_DIV_NAME = "systemDetails";
 var WORLD_DETAILS_DIV_NAME = "world_details";
-var MAP_SEED_BOX_NAME = "mapSeed";
+var MAP_SEED_BOX_NAME = "seed";
 var USER_PREF_DIV_NAME = "pref_details"
 var currentWorld;
 var uPObj;
@@ -135,7 +135,8 @@ function world()
 	me.sector = "";
 	me.subSector = "";
 	me.nativeIntLife = new nil(me);
-	me.mapSeed = 0;
+	me.seed = "";
+	me.popMulti = 0;
 	me.map = null;
 
 	me.nameTextBox = function()
@@ -158,6 +159,7 @@ function world()
 																					item.update(elem.value);
 																					me.updateEdits();
 																					me.isSatellite ? me.planet.orbit.set.updateTable() : me.orbit.set.updateTable();
+																					me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 																				};
 												});
 		var uwp_elem = document.getElementsByName("uwp");
@@ -166,6 +168,7 @@ function world()
 													clearData(this.id);
 													me.updateEdits();
 													me.orbit.set.updateTable();
+													me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 												};
 		document.getElementById("tcs").innerHTML = me.tcs;
 		var cX_div = document.getElementById("cX");
@@ -183,6 +186,7 @@ function world()
 													elem.onchange = function()	{
 																					item.update(elem.value);
 																					elem_adj.innerHTML = item.text_string();
+																					me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 																				};
 
 												});
@@ -196,6 +200,7 @@ function world()
 														elem.value = item.contents();
 													elem.onchange = function()	{
 																					item.update(elem.value);
+																					me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 																				};
 												});
 			document.getElementById("world_ix").innerHTML = me.iX();
@@ -237,6 +242,7 @@ function world()
 												me.orbit.baseOrbit.o = orbSatSel.value;
 												me.orbit.calcRowContents();
 												me.orbit.set.planet.orbit.set.updateTable();
+												me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;												
 											};
 		}
 
@@ -245,6 +251,7 @@ function world()
 													elem.onchange = function()	{
 																					elem.checked ? me.resources().add(item) : me.resources().erase(item);
 																					me.updateEdits();
+																					me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 																				};
 												});
 		currentWorld = me;
@@ -314,13 +321,13 @@ function world()
 
 	me.createMap = function()
 	{
-		if(me.mapSeed)
-			init_rng(me.mapSeed);
+		if(me.seed)
+			init_rng(me.seed);
 		else
 		{
 			init_rng(Date.now());
-			me.mapSeed = rng(4294967295);
-			init_rng(me.mapSeed);
+			me.seed = rng(4294967295);
+			init_rng(me.seed);
 		}
 
 		var downloadMapButton = document.getElementById(DOWNLOAD_MAP_BUTTON_NAME);
@@ -388,7 +395,7 @@ function world()
 		all_details.map(function(item) { item.text_string ? s += item.name + ": " + item.text_string + ", " : s += ""; });
 		return s;
 	}
-
+	
 	var WORLD_DIAMETER;
 	me.diameter = function()
 	{
@@ -478,6 +485,7 @@ function world()
 		if(me.constructor.name == "gasGiant")
 			worldTypeTable.DM = 1;
 		var newSat = new minorWorld(worldTypeTable.roll(),(me.isMainWorld ? me : me.mainWorld), me);
+		newSat.system = me.system;
 		newSat.generate();
 		return newSat;
 	}
@@ -1203,6 +1211,18 @@ function world()
 			}
 		return tempTable;
 	}
+	
+	me.portDetails = function()
+	{
+		return new portDetails(me);		
+	}
+	
+	me.populCount = function()
+	{
+		var theCount = me.popMulti*Math.pow(10,me.uwp.popul);
+		var s = "" + theCount + " = " + me.popMulti + " &times; 10<sup>" + me.uwp.popul + "</sup>";
+		return s;
+	}
 
 	function clearData(uwpProperty)
 	{
@@ -1278,40 +1298,45 @@ function world()
 		}
 	}
 
-	var all_details = [
-	{id:"world_name_edit",units:function() {return false},name:"World Name",contents:function() { return (me.name ? me.name : ("Unnamed " + me.generationObject.name)) },validate:function(s) { return s != ""; }, text_string:function() { return me.name;} ,update:function(v) {me.name = v;}, data_string:function() { return me.name; } },
-	{id:"orbit_text", units:function() {return false}, name:"Orbit",contents:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, text_string:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number();}, data_string:function() { return this.text_string(); }},
-	{id:"orbit_distance", units:function() { return (me.isSatellite ? "km" : "AU"); }, name:"Orbital Distance",contents:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, text_string:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, data_string:function() { return me.orbit.orbitDistance(); } },
-	{id:"diameter_edit", units:function() { return "km"; }, name:"Diameter", contents:function() { return me.diameter(); }, validate:function(s){ return !isNaN(parseInt(s)) && parseInt(s) < 1.61*(me.uwp.size*1000 + 500) && parseInt(s) > 1.61*(me.uwp.size*1000 - 500);}, text_string:function() {return me.diameter() + " km"},update:function(v) { WORLD_DIAMETER = v; }, data_string:function() { return me.diameter(); }},
-	{id:"jump_point_edit", units:function() { return "km"; }, name:"Jump Point distance", contents:function() { return me.jumpPoint(); }, validate:function() { return true; }, text_string:function() { return me.jumpPoint() + " km" }, update:function() { me.jumpPoint(); }, data_string:function() { return me.jumpPoint(); }},
-	{id:"jump_point_times",units:function() { return false; }, name:"Time to Jump Point at ...", contents:function() { return me.jumpPointTimes(); }, validate:function() { return true; }, text_string:function() { return me.jumpPointTimes(false); }, update:function() { me.jumpPointTimes(); }, data_string:function() { return this.text_string(); } },
-	{id:"density_type",units:function() { return false; }, name:"Density Type", contents:function() { return me.densityType().name }, validate:function() {return [WORLD_DENSITY_HEAVY_CORE_TABLE.name, WORLD_DENSITY_MOLTEN_CORE_TABLE.name, WORLD_DENSITY_ROCKY_BODY_TABLE.name, WORLD_DENSITY_ICY_BODY_TABLE.name]; }, text_string:function() { return me.densityType().name }, update:function(v) { DENSITY_TYPE = WORLD_DENSITY_TYPES_ALL.find(function(x) { return x.name == v; }) }, data_string:function() { return this.text_string(); }	},
-	{id:"density_edit",units:function() { return "Earth"; }, name:"Density", contents:function() { return me.density() }, validate:function(s) { return !isNaN(parseFloat(s)) }, text_string:function() { return me.density() + " Earth"; }, update:function(v) { WORLD_DENSITY = v; }, data_string:function() { return me.density(); } },
-	{id:"mass_text",units:function() { return "Earth"; },name:"Mass", contents:function() { return me.mass() },  validate:null, text_string:function() { return me.mass() + " Earth" }, update:null, data_string:function() { return me.mass(); } },
-	{id:"gravity_text",units:function() { return "G"; },name:"Surface Gravity (G)", contents:function() { return me.gravity() },  validate:function(s) { return !isNaN(parseFloat(s));}, text_string:function() { return me.gravity() + " G"}, update:null, data_string:function() { return me.gravity(); } },
-	{id:"rotational_period_edit",units:function() { return "hours"; }, name:"Rotation Period", contents:function() { if(me.tcs.has("Tz") || me.tcs.has("Lk")) document.getElementById(this.id).readOnly = true; else document.getElementById(this.id).readOnly = false; return me.rotationalPeriod(); }, validate:function(s) { return !isNaN(parseFloat(s));}, text_string:function() { return rotationPeriodString()}, update:function(v) { ROTATIONAL_PERIOD = v; NIGHT_MINUS_TEMP = false; DAY_PLUS_TEMP = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false; }, data_string:function() { return me.rotationalPeriod(); } },
-	{id:"orbital_period_text",units:function() { return "years"; }, name:"Orbital Period", contents:function() { return orbitalPeriodString(); },  validate:function(s) { return !isNaN(parseFloat(s));}, text_string:function() { return orbitalPeriodString()}, update:null, data_string:function() { return me.orbitalPeriod(); } },
-	{id:"tilt_edit",units:function() { return "degrees"; }, name:"Axial Tilt", contents:function() { return me.axialTilt() }, validate:function(s) { return !isNaN(parseInt(s));}, text_string:function() { return me.axialTilt() & "&deg;"}, update:function(v) { AXIAL_TILT = v; SEASON_SUMMER_PLUS = false; SEASON_WINTER_MINUS = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false; }, data_string:function() { return me.axialTilt(); }},
-	{id:"atmos_pressure_edit",units:function() { return "Atmospheres"; }, name:"Surface Atmospheric Pressure", contents:function() { return me.atmosPressure() }, validate:function(s) { return !isNaN(parseFloat(s)); }, text_string:function() { return me.atmosPressure() + "Atm" }, update:function(v) { ATMOS_PRESSURE = v; }, data_string:function() { return me.atmosPressure(); }},
-	{id:"atmos_compo_edit",units:function() { return false; }, name:"Atmosphere Composition", contents:function() { return me.atmosComposition() }, validate:function(s) { return s != "" }, text_string:function() { return me.atmosComposition()}, update:function(v) { ATMOS_COMPOSITION = v }, data_string:function() { return me.atmosComposition(); }},
-	{id:"albedo_edit",units:function() { return false; }, name:"Albedo", contents:function() { return me.albedo() }, validate:function(s) { return !isNaN(parseInt(s)) }, text_string:function() { return me.albedo().toString() }, update:function(v) { CALC_ALBEDO = v; SEASON_SUMMER_PLUS = false; SEASON_WINTER_MINUS = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false;}, data_string:function() { return me.albedo(); } },
-	{id:"greenhouse_edit",units:function() { return false; }, name:"Greenhouse", contents:function() { return me.greenhouse() }, validate:function(s) { return !isNaN(parseInt(s)) }, text_string:function() { return me.greenhouse().toString() }, update: function(v) { CALC_GREEN_HOUSE = v; SEASON_SUMMER_PLUS = false; SEASON_WINTER_MINUS = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false; }, data_string:function() { return me.greenhouse(); } },
-	{id:"base_world_temp_text",units:function() { return "degrees Celsius"; }, name:"Base Surface Temperature", contents:function() { return me.calcTemperatureC() + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC()) + "&deg;C"}, update:function() {me.calcTemperatureC()}, data_string:function() { return me.calcTemperatureC(); } },
-	{id:"average_day_temp_text",units:function() { return "degrees Celsius"; }, name:"Base Daytime temperature", contents:function() { return Math.round(me.calcTemperatureC() + me.dayPlus()) + "&deg;C"; },  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.dayPlus()) + "&deg;C"}, update:null, data_string:function() { return Math.round(me.calcTemperatureC() + me.dayPlus()); } },
-	{id:"average_night_temp_text",units:function() { return "degrees Celsius"; }, name:"Base Nighttime temperature", contents:function() { return Math.round(me.calcTemperatureC() + me.nightMinus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.nightMinus()) + "&deg;C"}, update:null, data_string:function() { return Math.round(me.calcTemperatureC() + me.nightMinus()); } },
-	{id:"summer_increase_text",units:function() { return "degrees Celsius"; }, name:"Summer temperature increase", contents:function() { return Math.round(me.seasonSummerPlus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.seasonSummerPlus()) + "&deg;C"}, update:null, data_string:function() { return Math.round(me.seasonSummerPlus(false)); } },
-	{id:"winter_decrease_text",units:function() { return "degrees Celsius"; }, name:"Winter temperature decrease", contents:function() { return Math.round(me.seasonWinterMinus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.seasonWinterMinus()) + "&deg;C"}, update:null, data_string:function() { return Math.round(me.seasonWinterMinus()); } },
-	{id:"highest_day_temperature_text",units:function() { return "degrees Celsius"; }, name:"Upper Temperature Limit", contents:function() { return Math.round(me.calcTemperatureC() + me.maxDayPlus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.maxDayPlus()) + "&deg;C"}, update:null, data_string:function() { return Math.round(me.calcTemperatureC() + me.maxDayPlus()); } },
-	{id:"coldest_night_temperature_text",units:function() { return "degrees Celsius"; }, name:"Lower Temperature Limit", contents:function() { return Math.round(me.calcTemperatureC() + me.maxNightMinus())  + "&deg;C";},  validate:null, text_string:function() { return Math.round(me.calcTemperatureC() + me.maxNightMinus()) + "&deg;C"}, update:null, data_string:function() { return Math.round(me.calcTemperatureC() + me.maxNightMinus()); } },
-	{id:"hydro_perc_edit",units:function() { return "Percentage"; }, name:"Hydrographic Percentage", contents:function() { return me.getHydroPercentage() + "%";}, validate:function(s) { return !isNaN(parseInt(s))}, text_string:function() { return me.getHydroPercentage() + "%"}, update:function(v) { HYDRO_PERCENTAGE = v; }, data_string:function() { return me.getHydroPercentage(); }},
-	{id:"liq_comp_edit",units:function() { return false; }, name:"Surface Liquid Composition", contents:function() { return me.getFluid() }, validate:function() { return true; }, text_string:function() { return me.getFluid(); }, update:function(v) { FLUID_DETAIL = v }, data_string:function() { return me.getFluid(); } },
-	{id:"native_life_select",units:function() { return false; }, name:"Native Life", contents:function() { return me.nativeLife() ? "Yes" : "No" }, update:function(v) { v == "Yes" ? NATIVE_LIFE = true : NATIVE_LIFE = false }, text_string:function() { return me.nativeLife() ? "Yes" : "No" }, data_string:function() { return me.nativeLife() ? "Yes" : "No"; }},
-	{id:"native_int_life_text",units:function() { return false; }, name:"Native Intelligent Life", contents:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString() }, update:function() { me.nativeIntLife.generate(); }, text_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); }, data_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); } },
-	{id:"seismic_edit",units:function() { return false; }, name:"Seismic Stress", contents:function() { return me.getStress() }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return "Stress factor is " + me.getStress() + "<br />Occurence of a volcanic eruption or earthquake in a 24-hour period:<br />Formidable (4D) < " + (me.getStress() - 4) + "<br /><b>Note:</b> DM -2 if on a Volcano hex, DM -2 if on a fault line."}, update:function(v) { STRESS_FACTOR = v; }, data_string:function() { return me.getStress(); }}
-	];
-
-	all_details.map(function(item, index) { ALL_DETAILS[index] = item.name; });
-
+var all_details = 
+[
+	{ id:"world_name_edit", units:function() { return false; }, name:"World Name", contents:function() { return (me.name ? me.name : ("Unnamed " + me.generationObject.name)); }, validate:function(s) { return s != ""; }, text_string:function() { return me.name; }, update:function(v) { me.name = v; }, data_string:function() { return me.name; }  }, 
+	{ id:"orbit_text", units:function() { return false }, name:"Orbit", contents:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, text_string:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, data_string:function() { return this.text_string(); }  }, 
+	{ id:"orbit_distance", units:function() { return (me.isSatellite ? "km" : "AU"); }, name:"Orbital Distance", contents:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, text_string:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, data_string:function() { return me.orbit.orbitDistance(); }  }, 
+	{ id:"diameter_edit", units:function() { return "km"; }, name:"Diameter", contents:function() { return me.diameter(); }, validate:function(s) { return !isNaN(parseInt(s)) && parseInt(s) < 1.61*(me.uwp.size*1000 + 500) && parseInt(s) > 1.61*(me.uwp.size*1000 - 500); }, text_string:function() { return (me.diameter() + " km"); }, update:function(v) { WORLD_DIAMETER = v; }, data_string:function() { return me.diameter(); }  }, 
+	{ id:"jump_point_edit", units:function() { return "km"; }, name:"Jump Point distance", contents:function() { return me.jumpPoint(); }, validate:function() { return true; }, text_string:function() { return (me.jumpPoint() + " km"); }, update:function() { me.jumpPoint(); }, data_string:function() { return me.jumpPoint(); }  }, 
+	{ id:"jump_point_times", units:function() { return false; }, name:"Time to Jump Point at ...", contents:function() { return me.jumpPointTimes(); }, validate:function() { return true; }, text_string:function() { return me.jumpPointTimes(false); }, update:function() { me.jumpPointTimes(); }, data_string:function() { return this.text_string(); }  }, 
+	{ id:"density_type", units:function() { return false; }, name:"Density Type", contents:function() { return me.densityType().name }, validate:function() { return [WORLD_DENSITY_HEAVY_CORE_TABLE.name, WORLD_DENSITY_MOLTEN_CORE_TABLE.name, WORLD_DENSITY_ROCKY_BODY_TABLE.name, WORLD_DENSITY_ICY_BODY_TABLE.name]; }, text_string:function() { return me.densityType().name }, update:function(v) { DENSITY_TYPE = WORLD_DENSITY_TYPES_ALL.find(function(x) { return x.name == v; }); }, data_string:function() { return this.text_string(); }  }, 
+	{ id:"density_edit", units:function() { return "Earth"; }, name:"Density", contents:function() { return me.density(); }, validate:function(s) { return !isNaN(parseFloat(s)); }, text_string:function() { return (me.density() + " Earth"); }, update:function(v) { WORLD_DENSITY = v; }, data_string:function() { return me.density(); }  }, 
+	{ id:"mass_text", units:function() { return "Earth"; }, name:"Mass", contents:function() { return me.mass(); }, validate:null, text_string:function() { return (me.mass() + " Earth"); }, data_string:function() { return me.mass(); }  }, 
+	{ id:"gravity_text", units:function() { return "G"; }, name:"Surface Gravity (G)", contents:function() { return me.gravity(); }, validate:function(s) { return !isNaN(parseFloat(s)); }, text_string:function() { return me.gravity() + " G" }, data_string:function() { return me.gravity(); }  }, 
+	{ id:"rotational_period_edit", units:function() { return "hours"; }, name:"Rotation Period", contents:function() { if(me.tcs.has("Tz") || me.tcs.has("Lk")) document.getElementById(this.id).readOnly = true; else document.getElementById(this.id).readOnly = false; return me.rotationalPeriod(); }, validate:function(s) { return !isNaN(parseFloat(s)); }, text_string:function() { return rotationPeriodString() }, update:function(v) { ROTATIONAL_PERIOD = v; NIGHT_MINUS_TEMP = false; DAY_PLUS_TEMP = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false; }, data_string:function() { return me.rotationalPeriod(); } }, 
+	{ id:"orbital_period_text", units:function() { return "years"; }, name:"Orbital Period", contents:function() { return orbitalPeriodString(); }, validate:function(s) { return !isNaN(parseFloat(s)); }, text_string:function() { return orbitalPeriodString(); }, data_string:function() { return me.orbitalPeriod(); } }, 
+	{ id:"tilt_edit", units:function() { return "degrees"; }, name:"Axial Tilt", contents:function() { return me.axialTilt(); }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return (me.axialTilt() & "&deg;"); }, update:function(v) { AXIAL_TILT = v; SEASON_SUMMER_PLUS = false; SEASON_WINTER_MINUS = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false; }, data_string:function() { return me.axialTilt(); }  }, 
+	{ id:"atmos_pressure_edit", units:function() { return "Atmospheres"; }, name:"Surface Atmospheric Pressure", contents:function() { return me.atmosPressure() }, validate:function(s) { return !isNaN(parseFloat(s)); }, text_string:function() { return (me.atmosPressure() + "Atm"); }, update:function(v) { ATMOS_PRESSURE = v; }, data_string:function() { return me.atmosPressure(); }  }, 
+	{ id:"atmos_compo_edit", units:function() { return false; }, name:"Atmosphere Composition", contents:function() { return me.atmosComposition(); }, validate:function(s) { return s != "" }, text_string:function() { return me.atmosComposition(); }, update:function(v) { ATMOS_COMPOSITION = v }, data_string:function() { return me.atmosComposition(); }  }, 
+	{ id:"albedo_edit", units:function() { return false; }, name:"Albedo", contents:function() { return me.albedo(); }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return me.albedo().toString(); }, update:function(v) { CALC_ALBEDO = v; SEASON_SUMMER_PLUS = false; SEASON_WINTER_MINUS = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false; }, data_string:function() { return me.albedo(); }  }, 
+	{ id:"greenhouse_edit", units:function() { return false; }, name:"Greenhouse", contents:function() { return me.greenhouse(); }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return me.greenhouse().toString(); }, update: function(v) { CALC_GREEN_HOUSE = v; SEASON_SUMMER_PLUS = false; SEASON_WINTER_MINUS = false; SEASON_EFFECT_PER_ROW = false; TEMP_TABLE = false; }, data_string:function() { return me.greenhouse(); }  }, 
+	{ id:"base_world_temp_text", units:function() { return "degrees Celsius"; }, name:"Base Surface Temperature", contents:function() { return (me.calcTemperatureC() + "&deg;C"); }, validate:null, text_string:function() { return (Math.round(me.calcTemperatureC()) + "&deg;C"); }, update:function() { me.calcTemperatureC(); }, data_string:function() { return me.calcTemperatureC(); }  }, 
+	{ id:"average_day_temp_text", units:function() { return "degrees Celsius"; }, name:"Base Daytime temperature", contents:function() { return (Math.round(me.calcTemperatureC() + me.dayPlus()) + "&deg;C"); }, text_string:function() { return (Math.round(me.calcTemperatureC() + me.dayPlus()) + "&deg;C"); }, data_string:function() { return Math.round(me.calcTemperatureC() + me.dayPlus()); } }, 
+	{ id:"average_night_temp_text", units:function() { return "degrees Celsius"; }, name:"Base Nighttime temperature", contents:function() { return (Math.round(me.calcTemperatureC() + me.nightMinus())  + "&deg;C"); }, text_string:function() { return (Math.round(me.calcTemperatureC() + me.nightMinus()) + "&deg;C"); }, data_string:function() { return Math.round(me.calcTemperatureC() + me.nightMinus()); }  }, 
+	{ id:"summer_increase_text", units:function() { return "degrees Celsius"; }, name:"Summer temperature increase", contents:function() { return (Math.round(me.seasonSummerPlus())  + "&deg;C"); }, validate:null, text_string:function() { return (Math.round(me.seasonSummerPlus()) + "&deg;C"); }, update:null, data_string:function() { return Math.round(me.seasonSummerPlus(false)); }  }, 
+	{ id:"winter_decrease_text", units:function() { return "degrees Celsius"; }, name:"Winter temperature decrease", contents:function() { return (Math.round(me.seasonWinterMinus())  + "&deg;C"); }, validate:null, text_string:function() { return (Math.round(me.seasonWinterMinus()) + "&deg;C"); }, update:null, data_string:function() { return Math.round(me.seasonWinterMinus()); }  }, 
+	{ id:"highest_day_temperature_text", units:function() { return "degrees Celsius"; }, name:"Upper Temperature Limit", contents:function() { return (Math.round(me.calcTemperatureC() + me.maxDayPlus())  + "&deg;C"); }, validate:null, text_string:function() { return (Math.round(me.calcTemperatureC() + me.maxDayPlus()) + "&deg;C"); }, update:null, data_string:function() { return Math.round(me.calcTemperatureC() + me.maxDayPlus()); }  }, 
+	{ id:"coldest_night_temperature_text", units:function() { return "degrees Celsius"; }, name:"Lower Temperature Limit", contents:function() { return (Math.round(me.calcTemperatureC() + me.maxNightMinus())  + "&deg;C"); }, validate:null, text_string:function() { return (Math.round(me.calcTemperatureC() + me.maxNightMinus()) + "&deg;C"); }, update:null, data_string:function() { return Math.round(me.calcTemperatureC() + me.maxNightMinus()); }  }, 
+	{ id:"hydro_perc_edit", units:function() { return "Percentage"; }, name:"Hydrographic Percentage", contents:function() { return (me.getHydroPercentage() + "%"); }, validate:function(s) { return !isNaN(parseInt(s)) }, text_string:function() { return (me.getHydroPercentage() + "%"); }, update:function(v) { HYDRO_PERCENTAGE = v; }, data_string:function() { return me.getHydroPercentage(); }  }, 
+	{ id:"liq_comp_edit", units:function() { return false; }, name:"Surface Liquid Composition", contents:function() { return me.getFluid(); }, validate:function() { return true; }, text_string:function() { return me.getFluid(); }, update:function(v) { FLUID_DETAIL = v }, data_string:function() { return me.getFluid(); }  }, 
+	{ id:"native_life_select", units:function() { return false; }, name:"Native Life", contents:function() { return (me.nativeLife() ? "Yes" : "No"); }, update:function(v) { v == ("Yes" ? NATIVE_LIFE = true : NATIVE_LIFE = false); }, text_string:function() { return (me.nativeLife() ? "Yes" : "No"); }, data_string:function() { return (me.nativeLife() ? "Yes" : "No"); }  }, 
+	{ id:"native_int_life_text", units:function() { return false; }, name:"Native Intelligent Life", contents:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString() }, update:function() { me.nativeIntLife.generate(); }, text_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); }, data_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); }  }, 
+	{ id:"seismic_edit", units:function() { return false; }, name:"Seismic Stress", contents:function() { return me.getStress(); }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return ("Stress factor is " + me.getStress() + "<br />Occurence of a volcanic eruption or earthquake in a 24-hour period:<br />Formidable (4D) < " + (me.getStress() - 4) + "<br /><b>Note:</b> DM -2 if on a Volcano hex, DM -2 if on a fault line."); }, update:function(v) { STRESS_FACTOR = v; }, data_string:function() { return me.getStress(); }  }, 
+	{ id:"portClass", units:function() { return false; }, name:"Port Class", contents:function() { return me.uwp.port; }, text_string:function() { return me.uwp.port; }, data_string:function() { return me.uwp.port; }  }, 
+	{ id:"portFacilities", units:function() { return false; }, name:"Port Facilities", contents:function() { return me.portDetails(); }, text_string:function() { return me.portDetails(); }, data_string:function() { return me.portDetails(); }  }, 
+	{ id:"sizeUWPexp", units:function() { return false; }, name:"Size UWP Digit Explanation", contents:function() { return SIZE_DESCRIPTIONS[me.uwp.size]; },  text_string:function() { return SIZE_DESCRIPTIONS[me.uwp.size]; }, data_string:function() { return SIZE_DESCRIPTIONS[me.uwp.size]; }  }, 
+	{ id:"atmosUWPExpl", units:function() { return false; }, name:"Atmosphere UWP Digit Explanation", contents:function() { return ("The atmosphere is " + ATMOS_DESCRIPTIONS[me.uwp.atmos]); }, text_string:function() { return ("The atmosphere is " + ATMOS_DESCRIPTIONS[me.uwp.atmos]); }, data_string:function() { return ("The atmosphere is " + ATMOS_DESCRIPTIONS[me.uwp.atmos]); }  }, 
+	{ id:"populDigExp", units:function() { return false; }, name:"Population Digit Explanation", contents:function() { return (me.uwp.popul + " - population is in the order of 10<sup>" + me.uwp.popul + "</sup>."); }, text_string:function() { return (me.uwp.popul + " - population is in the order of 10<sup>" + me.uwp.popul + "</sup>."); }, data_string:function() { return (me.uwp.popul + " - population is in the order of 10<sup>" + me.uwp.popul + "</sup>."); }  }, 
+	{ id:"popMultiExp", units:function() { return false; }, name:"Population Multipler", contents:function() { return me.popMulti; }, text_string:function() { return me.popMulti; }, data_string:function() { return me.popMulti; } }, 
+	{ id:"populCalc", units:function() { return false; }, name:"Total Population Calculation", contents:function() { return me.populCount(); },  text_string:function() { return me.populCount(); }, data_string:function() { return me.populCount(); } }
+ ];
 	me.all_details = all_details;
 
 	var cX_details = [
@@ -1348,6 +1373,7 @@ function world()
 		o.density = me.density();
 		o.rotationalPeriod = me.rotationalPeriod();
 		o.axialTilt = me.axialTilt();
+		o.atmosPressureTbl = me.atmosPressureTable().name;
 		o.atmosPressure = me.atmosPressure();
 		o.atmosComposition = me.atmosComposition();
 		o.albedo = me.albedo();
@@ -1356,11 +1382,11 @@ function world()
 		o.surfaceLiquid = me.getFluid();
 		o.nativeLife = me.nativeLife();
 		o.stressFactor = me.getStress();
-		o.standardSeed = me.standardSeed;
+		o.seed = me.seed;
 		o.populLimit = me.populLimit;
 		o.isSatellite = me.isSatellite;
 		o.zone = me.zone;
-		o.system = me.isMainWorld ? me.name : me.mainWorld.name;
+		o.system = me.system;
 		o.sector = me.sector;
 		o.hex = me.hex;
 		if(me.satelliteSystem)
@@ -1373,7 +1399,7 @@ function world()
 	{
 		me.name = o.name;
 		me.isMainWorld = o.isMainWorld;
-		me.standardSeed = o.standardSeed;
+		me.seed = o.seed;
 		me.generationObject = ALL_GENERATION_OBJECTS.find(function(v) { return v.name == o.generationObject });
 		me.populLimit = o.populLimit;
 		WORLD_DIAMETER = o.diameter;
@@ -1383,6 +1409,7 @@ function world()
 		AXIAL_TILT = o.axialTilt;
 		ATMOS_PRESSURE = o.atmosPressure;
 		ATMOS_COMPOSITION = o.atmosComposition;
+		ATMOS_PRESSURE_TABLE = ATM_PRESSURE_TABLE.find(function(tbl) { return tbl.name == o.atmosPressureTbl; });
 		CALC_ALBEDO = o.albedo;
 		CALC_GREEN_HOUSE = o.greenhouse;
 		HYDRO_PERCENTAGE = o.hydroPercentage;
@@ -1491,9 +1518,8 @@ function mainWorld(generationObject)
 	me.worlds = 0;
 	me.allegiance = "Im";
 	me.stars = new starSystem(me);
-	me.standardSeed = "";
 
-	me.buildQuery = function()
+/*	me.buildQuery = function()
 	{
 		var newURL, url = window.location.href;
 		var queryEnd = url.indexOf("?");
@@ -1503,7 +1529,7 @@ function mainWorld(generationObject)
 			newURL = url;
 		newURL += me.buildGet();
 		return newURL;
-	}
+	} */
 
 	me.buildGet = function()
 	{
@@ -1524,7 +1550,7 @@ function mainWorld(generationObject)
 		newURL += "&" + encodeURIComponent("worlds") + "=" + encodeURIComponent(me.worlds);
 		newURL += "&" + encodeURIComponent("allegiance") + "=" + encodeURIComponent(me.allegiance);
 		newURL += "&" + encodeURIComponent("stellar") + "=" + encodeURIComponent(me.stars);
-		newURL += "&" + encodeURIComponent("seed") + "=" + encodeURIComponent(me.standardSeed);
+		newURL += "&" + encodeURIComponent("seed") + "=" + encodeURIComponent(me.seed);
 		newURL += "&" + encodeURIComponent("genMissData") + "=" + encodeURIComponent(0);
 		return newURL;
 	}
@@ -1537,8 +1563,7 @@ function mainWorld(generationObject)
 		me.belts = Math.max(0, dice(1)-3);
 		me.gas_giants = Math.max(0, Math.floor(dice(2)/2-2));
 		me.bases.generate();
-		//me.generateIx();
-		me.economicExt.generate(); //NB: depends on generateIx
+		me.economicExt.generate();
 		me.culturalExt.generate();
 		me.noblesExt.generate();
 		me.nativeLife();
@@ -1727,6 +1752,7 @@ function mainWorld(generationObject)
 		o.noblesExt = me.noblesExt.toString();
 		o.stars = me.stars.dbObj();
 		o.bases = me.bases.toString();
+		o.seed = me.seed;
 		return o;
 	}
 
@@ -1777,18 +1803,20 @@ function minorWorld(genObject, mainWorld, planet)
 		me.hex = mainWorld.hex;
 		me.sector = mainWorld.sector;
 		me.populLimit = Math.max(0,me.mainWorld.uwp.popul-1);
-		me.standardSeed = me.mainWorld.standardSeed;
+		me.seed = me.mainWorld.seed;
 	}
 
 	me.generate = function()
 	{
 		me.uwp.createUWP();
+		me.popMulti = rng(9);
 		if(uPObj.prefs.barren_sys && me.populLimit == 0 && me.mainWorld.uwp.popul == 0)
 		{
 			me.uwp.popul = 0;
 			me.uwp.gov = 0;
 			me.uwp.law = 0;
 			me.uwp.TL = 0;
+			me.popMulti = 0;
 		}
 		me.tcs.generate();
 		me.nativeLife();
@@ -1804,7 +1832,7 @@ function minorWorld(genObject, mainWorld, planet)
 		newURL += "&" + encodeURIComponent("system") + "=" + encodeURIComponent(me.mainWorld.name + " (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")");
 		newURL += "&" + encodeURIComponent("uwp") + "=" + encodeURIComponent(me.uwp);
 		newURL += me.tcs.toURI();
-		newURL += "&" + encodeURIComponent("seed") + "=" + encodeURIComponent(me.standardSeed);
+		newURL += "&" + encodeURIComponent("seed") + "=" + encodeURIComponent(me.seed);
 		return newURL;
 	}
 
@@ -2824,6 +2852,7 @@ function star(world, isPrimary)
 	{
 		for(var p in o)
 			me[p] = o[p];
+		me.getData();
 	}
 
 	me.updateEdits = function()
@@ -2975,19 +3004,23 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	me.companion = me.stars.companions[0];
 	me.orbits = new orbitSet(me.primary, me.companion, me.mainWorld, me);
 	me.orbitSets = [me.orbits];
-	me.name = me.mainWorld.name ? me.mainWorld.name + " system" : "Unnamed system";
-	me.name += me.mainWorld.sector ? (" (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")") : "";
+	me.name = "";
 	me.loadKey = null;
 	me.totalAvailOrb = 0;
 	me.sysDiv = sysDiv;
 	me.symbolDiv = symbolDiv;
 	me.detailsDiv = detailsDiv;
+	me.detailsSaved = false;
+	me.seed = me.mainWorld.seed ? me.mainWorld.seed : rng(4294967295);
 
 	if(arguments.length < 4)
 		generate_now = true;
 
 	me.generate = function()
 	{
+		me.name = me.mainWorld.name ? (me.mainWorld.name + " system") : "Unnamed system";
+		me.name += me.mainWorld.sector ? (" (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")") : "";
+		init_rng(me.seed);
 		STAR_COUNT = 0;
 		var precedenceCount = 1;
 		for(var i=1;i<me.stars.stars.length;i++)
@@ -3125,6 +3158,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 				giant.iceGiant = ice_g;
 				ice_g = !ice_g;
 			}
+			giant.system = me.name;
 			var pTable = new dice_table(giant.placementTable());
 			var o = hz + parseInt(pTable.roll());
 			while(!me.orbitSets[orbit_set].add(o,giant))
@@ -3135,6 +3169,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 		for(i=0;i<me.mainWorld.belts;i++)
 		{
 			var belt = new minorWorld(planetoidsUWP, me.mainWorld);
+			belt.system = me.name;
 			var pbTable = new dice_table(BELT_PLACE_TABLE);
 			var o = hz + parseInt(pbTable.roll());
 			while(!me.orbitSets[orbit_set].add(o,belt))
@@ -3160,7 +3195,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 			if(o > hz+1)
 				wpTable = new dice_table(WORLD_TYPE_OUTER_PLANET);
 			var planet = new minorWorld(wpTable.roll(),me.mainWorld);
-
+			planet.system = me.name;
 			var success = false;
 			do
 			{
@@ -3241,7 +3276,10 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	me.dbObj = function()
 	{
 		var o = {};
+		me.name = me.mainWorld.name ? (me.mainWorld.name + " system") : "Unnamed system";
+		me.name += me.mainWorld.sector ? (" (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")") : "";
 		o.name = me.name;
+		o.seed = me.seed;
 		o.mainWorld = me.mainWorld.dbObj();
 		o.stars = me.stars.dbObj();
 		o.primary = me.primary.dbObj();
@@ -3258,6 +3296,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	me.read_dbObj = function(o)
 	{
 		me.name = o.name;
+		me.seed = o.seed;
 		me.mainWorld = new mainWorld();
 		me.mainWorld.read_dbObj(o.mainWorld);
 		me.stars = new starSystem(me.mainWorld)
@@ -3364,7 +3403,7 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 										c = new gasGiant(me.mainWorld);
 										break;
 									case "orbitSet":
-										c = new orbitSet(null,null, me.mainWorld, me.systemObj);
+										c = new orbitSet(me.centralStar, me.companionStar, me.mainWorld, me.systemObj);
 								}
 								if(orbit_dbObj.contents.type != "mainWorld") c.read_dbObj(orbit_dbObj.contents);
 								var on = orbit_dbObj.baseOrbit;
@@ -3582,7 +3621,7 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 		if(!uPObj.prefs.download_world_detail)
 			headings = headings.concat(["Albedo","Greenhouse Multiplier","Average Temperature"]);
 		else
-			ALL_DETAILS.map(function(item) { if(item != "World Name") headings.push(item); });
+			me.all_details.map(function(item) { if(item.name != "World Name") headings.push(item); });
 		var s = headings.join(",") + "\r\n";
 		s += me.centralStar.toCSV();
 		if(me.companionStar !== undefined)
@@ -3815,7 +3854,6 @@ function orbit(orbitSet, orbitNumber, contents)
 											{name:"decimalOrbit", contents:me.number(), isText:true},{name:"orbitAdjBtns",contents:"", isText:true},
 											{name:"distance", contents:me.orbitDistance() + " AU", isText:true}];
 				}
-				me.contents.tcs.generate();
 				var row_contents_b = [{name:"name", contents:me.contents.nameTextBox(),isText:false},
 								{name:"description",contents:me.contents.generationObject.name, isText:true},
 								{name:"uwp",contents:me.contents.uwp, isText:true},{name:"tc",contents:me.contents.tcs, isText:true},
@@ -3838,21 +3876,6 @@ function orbit(orbitSet, orbitNumber, contents)
 		detailsBtn.innerHTML = "Details";
 		detailsBtn.onclick = me.contents.editDetails;
 		return detailsBtn;
-	}
-
-	me.getMaplink = function()
-	{
-		var s = document.getElementById("seed").value;
-		if(s.trim() == "" || isNaN(parseInt(s)))
-			me.contents.standardSeed = rng(4294967295);
-		else
-			me.contents.standardSeed = parseInt(s);
-		document.getElementById("seed").value = me.contents.standardSeed;
-		var mapLink = document.createElement("A");
-		mapLink.href = "t5_map.html" + me.contents.buildGet();
-		mapLink.target = "_blank";
-		mapLink.text = "Map";
-		return mapLink;
 	}
 
 	me.toTableRow = function()
@@ -4419,6 +4442,112 @@ function gasMix(world, irritantFlag)
 	me.gasMixObjs.forEach( function(gas_mix) { if((me.world.uwp.atmos == 10 && gas_mix.exotic) || (me.world.uwp.atmos == 10 && gas_mix.corrosive && me.irritant) || (me.world.uwp.atmos == 11 && gas_mix.corrosive) || (me.world.uwp.atmos == 12 && gas_mix.insidious)) gas_mix.possible = true;} );
 	me.gasMixObjs.forEach( function(gas_mix) { if(!me.world.tcs.has("Fr") && me.cold(gas_mix.gasses)) gas_mix.possible = false; } );
 	me.getMix();
+}
+
+var portData = [
+{type:"A", which:"starport", quality:"Excellent", refined:true, raw:true, yard:"starships", repairs:"a complete overhaul", downport:true},
+{type:"B", which:"starport", quality:"Good", refined:true, raw:true, yard:"spacecraft", repairs:"a complete overhaul", downport:true},
+{type:"C", which:"starport", quality:"Routine", refined:false, raw:true, yard:false, repairs:"major repairs", downport:true},
+{type:"D", which:"starport", quality:"Poor", refined:false, raw:true, yard:false, repairs:"minor repairs", downport:true},
+{type:"E", which:"starport", quality:"Frontier", refined:false, raw:false, yard:false, repairs:"no repairs", downport:"beacon"},
+{type:"X", which:"starport", quality:"None", refined:false, raw:false, yard:false, repairs:"no repairs", downport:false},
+{type:"F", which:"spaceport", quality:"Good", refined:false, raw:true, yard:"No", repairs:"minor repairs", downport:true},
+{type:"G", which:"spaceport", quality:"Poor", refined:false, raw:true, yard:"No", repairs:"slight repairs", downport:true},
+{type:"H", which:"spaceport", quality:"Basic", refined:false, raw:false, yard:"No", repairs:"no repairs", downport:true},
+{type:"Y", which:"spaceport", quality:"None", refined:false, raw:false, yard:"No", repairs:"no repairs", downport:false}
+];
+function portDetails(world)
+{
+	var me = this;
+	me.world = world;
+	me.type = "";
+	me.which = "";
+	me.quality = "";
+	me.which = "";
+	me.refined = false;
+	me.raw = false;
+	me.radioact = false;
+	me.antimatter = false;
+	me.collector = false;
+	me.yard = "";
+	me.repairs = "";
+	me.downport = true;
+	me.highport = false;
+	
+	me.generate = function()
+	{
+		var data = portData.find(function(v) { return v.type == me.world.uwp.port; });
+		for(var d in data)
+			me[d] = data[d];
+		me.highport = me.genHighPort();
+		me.radioact = me.genRadioAct();
+		me.antimatter = me.genAntiMatter();
+		me.collector = me.genCollector();
+	}
+	
+	me.toString = function()
+	{
+		var s = "The " + me.which + " is type " + me.type + " - " + me.quality + ". ";
+		s += "There is " + (me.downport ? "a" : "no") + " downport, and " + (me.highport ? "a" : "no") + " highport in orbit. ";
+		s += me.yard ? ("The port has shipyards capable of building " + me.yard) + ". " : "The port has no shipyards and cannot build ships. ";
+		s += "Visiting ships can receive " + me.repairs + " at this port. ";
+		s += me.raw ? ("Fuels the port can supply include unrefined hydrogen, " + (me.refined ? "refined hydrogen, " : "") + (me.radioact ? "fissionable radioactives, " : "") + (me.antimatter ? "anti-matter fuel slugs, " : "") + (me.collector ? "replacement collector canopies, " : "")) : "No fuel is available.";
+		s = s.replace(/,\s$/g,".");
+		return s;
+	}
+
+	me.genHighPort = function()
+	{
+		switch(me.type)
+		{
+			case "A":
+				return me.world.uwp.popul >= 7;
+			case "B":
+				return me.world.uwp.popul >= 8;
+			case "C":
+				return me.world.uwp.popul >= 9;
+			default:
+				return false;
+		}
+	}
+	
+	me.genRadioAct = function()
+	{
+		switch(me.type)
+		{
+			case "A":
+			case "B":
+				return me.world.uwp.TL >= 8;
+			default:
+				return false;
+		}
+	}
+	
+	me.genAntiMatter = function()
+	{
+		switch(me.type)
+		{
+			case "A":
+			case "B":
+				return me.world.uwp.TL >= 18;
+			default:
+				return false;
+		}
+	}
+	
+	me.genCollector = function()
+	{
+		switch(me.type)
+		{
+			case "A":
+			case "B":
+				return me.world.uwp.TL >= 14;
+			default:
+				return false;
+		}		
+	}
+	
+	me.generate();
 }
 
 function governmentProfile(world)

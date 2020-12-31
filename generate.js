@@ -1,7 +1,7 @@
 var worldMapCounter = 0;
 var SAVED_SYSTEMS = [];
 
-var user_pref_db, mySystem, originalMainWorld, request, sys_db, sysDiv, symbolDiv, detailDiv, upDiv, mapDiv, mapSVG, sysDetailsDiv, genDiv, blankMapDiv;
+var user_pref_db, mySystem, originalMainWorld, request, sys_db, sysDiv, symbolDiv, detailDiv, upDiv, mapDiv, mapSVG, sysDetailsDiv, genDiv, blankMapDiv, seedEdit;
 
 function initLoad()
 {
@@ -15,11 +15,12 @@ function initLoad()
 	sysDetailsDiv = document.getElementById(SYSTEM_DETAILS_DIV_NAME);
 	genDiv = document.getElementById("gen_new");
 	blankMapDiv = document.getElementById("blankMapDiv");
+	seedEdit = document.getElementById("seed");
 	uPObj = new userPreferences();
 
 
 	if(!window.indexedDB)
-		window.alert("Your browser does not support a stable version of IndexedDB.  Saving of your preferences may not be available.");
+		window.alert("Your browser does not support a stable version of IndexedDB.  Saving of your preferences and work may not be available.");
 	var r = window.indexedDB.open("traveller_worlds_prefs",4);
 
 	r.onerror = function(event)
@@ -92,7 +93,7 @@ function worldLoadSpin(worldListDoc)
 		aWorld = new mainWorld();
 		aWorld.readDataObj(worldList[worldEntry]);
 		aWorld.sector = "Spinward Marches";
-		aWorld.standardSeed = aWorld.hex + aWorld.hex;
+		aWorld.seed = aWorld.hex + aWorld.hex;
 		aWorld.system = aWorld.name + " (" + aWorld.hex + " " + aWorld.sector + ")";
 		worldArray.push(aWorld);
 	}
@@ -184,10 +185,26 @@ function load_saved_systems()
 
 }
 
+function findSavedSystem(sysName)
+{
+	var s = document.getElementById("saved_systems");
+	for(var x=0;x<s.length;x++)
+		if(s.options[x].text == sysName)
+			return s.options[x];
+	return false;		
+}
+
 function save_sys()
 {
 	if(!mySystem)
 		return;
+	var s = document.getElementById("saved_systems");
+	var i = 1;
+	var oName = mySystem.name;
+	while(findSavedSystem(mySystem.name))
+	{
+		mySystem.name = oName + " copy" + (i++ == 1 ? "" : " " + i);
+	}
 	var sysObjStore = sys_db.transaction("savedSystems","readwrite").objectStore("savedSystems");
 	var sys_obj = mySystem.dbObj();
 	var r = sysObjStore.add(sys_obj);
@@ -195,6 +212,7 @@ function save_sys()
 	{
 		SAVED_SYSTEMS[event.target.result] = sys_obj;
 		load_saved_systems();
+		mySystem.detailsSaved = true;
 	}
 }
 
@@ -208,6 +226,7 @@ function update_sys()
 		objStore.get(mySystem.loadKey).onsuccess = function(event)
 		{
 			objStore.put(mySystem.dbObj(), mySystem.loadKey);
+			mySystem.detailsSaved = true;
 		}
 	}
 	else
@@ -217,19 +236,23 @@ function update_sys()
 function load_sys()
 {
 	var s = document.getElementById("saved_systems");
-	var downloadBtn = document.getElementById("downloadSystem");
 	var k = parseInt(s.options[s.selectedIndex].value);
 	var sys_obj;
+	if(mySystem.detailsSaved == false && confirm("Current system not saved.  Press OK to save, Cancel to abandon changes.") == true)
+		update_sys();
 	sys_db.transaction("savedSystems").objectStore("savedSystems").get(k).onsuccess = function(event)
 	{
 		sys_obj = event.target.result;
 		var temp_mainWorld = new mainWorld();
 		temp_mainWorld.read_dbObj(sys_obj.mainWorld);
+		temp_mainWorld.system = temp_mainWorld.name + " (" + temp_mainWorld.hex + " " + temp_mainWorld.sector + ")";
 		mySystem = new fullSystem(temp_mainWorld, sysDiv, symbolDiv, detailDiv, false);
 		mySystem.read_dbObj(sys_obj);
 		mySystem.loadKey = k;
-		init_rng(mySystem.mainWorld.standardSeed);
+		originalMainWorld = Object.assign({}, mySystem.mainWorld);
+		currentWorld = mySystem.mainWorld;
 		loadSystemOntoPage(mySystem);
+		divsToShow(1);
 	};
 }
 
@@ -239,11 +262,11 @@ function del_sys()
 		return;
 	var s = document.getElementById("saved_systems");
 	var k = parseInt(s.options[s.selectedIndex].value);
-	sys_db.transaction("savedSystems","readwrite").objectStore("savedSystems").delete(k).onsuccess = function(event)
+	var t = sys_db.transaction("savedSystems","readwrite").objectStore("savedSystems").delete(k).onsuccess = function(event)
 	{
 		SAVED_SYSTEMS.splice(k,1);
 		load_saved_systems();
-	}
+	};
 }
 
 function export_sys()
@@ -264,7 +287,9 @@ function import_sys(input_file_obj)
 		temp_mainWorld.read_dbObj(sys_obj.mainWorld);
 		mySystem = new fullSystem(temp_mainWorld, sysDiv,symbolDiv,detailDiv,false);
 		mySystem.read_dbObj(sys_obj);
-		init_rng(mySystem.mainWorld.standardSeed);
+		originalMainWorld = Object.assign({}, mySystem.mainWorld);
+		currentWorld = mySystem.mainWorld;
+		init_rng(mySystem.mainWorld.seed);
 		loadSystemOntoPage(mySystem);
 	},false);
 
@@ -281,7 +306,7 @@ function import_sys(input_file_obj)
 function giveRandomSeed()
 {
 	var newSeed = rng(4294967295);
-	document.getElementById('mapSeed').value = newSeed;
+	document.getElementById('seed').value = newSeed;
 }
 
 function svgToPng(worldMapSVGID, fileName)
@@ -362,25 +387,27 @@ function readURL()
 	else
 		if(stellar)
 			myWorld.stars.readString(stellar);
-	myWorld.standardSeed = URLParams.get("seed") || ("" + myWorld.hex + myWorld.hex);
+	myWorld.seed = URLParams.get("seed") || ("" + myWorld.hex + myWorld.hex);
 	myWorld.travelZone = URLParams.get("travelZone");
-	myWorld.system = URLParams.get("system") || (myWorld.name + " (" + myWorld.hex + " " + myWorld.sector + ")");
+	var systemName = URLParams.get("system");
+	if(systemName === null)
+		myWorld.system = myWorld.name + " (" + myWorld.hex + " " + myWorld.sector + ")";
 	myWorld.nativeIntLife.generate();
 	return myWorld;
 }
 
 function regenerateMap()
 {
-	currentWorld.mapSeed = parseInt(document.getElementById("mapSeed").value);
+	currentWorld.seed = parseInt(document.getElementById("seed").value);
 	currentWorld.createMap();
-	document.getElementById("mapSeed").value = currentWorld.mapSeed;
+	document.getElementById("seed").value = currentWorld.seed;
 }
 
 function renegerateMapRS()
 {
-	currentWorld.mapSeed = false;
+	currentWorld.seed = false;
 	currentWorld.createMap();
-	document.getElementById("mapSeed").value = currentWorld.mapSeed;
+	document.getElementById("seed").value = currentWorld.seed;
 }
 
 function removeTZ()
@@ -396,7 +423,7 @@ function loadSystemOntoPage(systemObj)
 	for(var i=0;i<sTables.length;i++)
 		systemObj.sysDiv.appendChild(sTables[i]);
 	systemObj.toSymbolMap();
-	document.getElementById("mapSeed").value = systemObj.mainWorld.mapSeed = systemObj.mainWorld.standardSeed;
+	document.getElementById("seed").value = systemObj.mainWorld.seed;
 	systemObj.mainWorld.editDetails();
 	divsToShow(2);
 	document.getElementById("mapPlaceholder").style.display = "none";
@@ -470,10 +497,12 @@ function divsToShow(optionChosen)
 	{
 		case 1:
 			sysDetailsDiv.style.display="block";
+			seedEdit.value = mySystem.seed;
 			break;
 		case 2:
 			mapDiv.style.display="block";
 			detailDiv.style.display="block";
+			seedEdit.value = currentWorld.seed;
 			break;
 		case 3:
 			upDiv.style.display = "block";
@@ -586,7 +615,7 @@ function worldLoadParse(worldListDoc, selectObject)
 		aWorld = new mainWorld();
 		aWorld.readDataObj(worldList[worldEntry]);
 		aWorld.sector = selectObject.options[selectObject.selectedIndex].text.replace(/\s+\(.+\)/g,"");
-		aWorld.standardSeed = aWorld.hex + aWorld.hex;
+		aWorld.seed = aWorld.hex + aWorld.hex;
 		aWorld.system = aWorld.name + " (" + aWorld.hex + " " + aWorld.sector + ")";
 		worldArray.push(aWorld);
 	}
@@ -636,7 +665,7 @@ function readUserInput()
 	var worlds = parseInt(document.getElementById("Worlds").value);
 	var allegiance = document.getElementById("allegiance").value;
 	var stellar_data = document.getElementById("Stellar_Data").value;
-	var userSeed = document.getElementById("mapSeed").value;
+	var userSeed = document.getElementById("seed").value;
 	if(userSeed)
 	{
 		init_rng(userSeed);
@@ -646,15 +675,16 @@ function readUserInput()
 	{
 		seedUsed = Date.now() >>> 0;
 		init_rng(seedUsed);
-		document.getElementById("mapSeed").value = seedUsed;
+		document.getElementById("seed").value = seedUsed;
 	}
 
 	var myWorld = new mainWorld();
 	var thereIsAnError = false;
-	myWorld.standardSeed = seedUsed;
+	myWorld.seed = seedUsed;
 	myWorld.hex = worldHex;
 	myWorld.sector = sectorName;
 	myWorld.name = worldName;
+	myWorld.system = "The " + myWorld.name + " System (" + myWorld.hex + " " + myWorld.sector + ")";
 	try
 	{
 		myWorld.uwp.readUWP(uwpString);
@@ -668,7 +698,6 @@ function readUserInput()
 	myWorld.tcs.generate();
 	for(var i=0;i<additionalTradeCodes.length;i++)
 		myWorld.tcs.add(additionalTradeCodes[i]);
-	myWorld.iX = iX;
 	try
 	{
 		myWorld.economicExt.readString(eX);
@@ -733,7 +762,7 @@ function loadWorld(worldObject)
 	document.getElementById("Worlds").value = worldObject.worlds;
 	document.getElementById("allegiance").value = worldObject.allegiance;
 	document.getElementById("Stellar_Data").value = worldObject.stars.toString();
-	document.getElementById('mapSeed').value = worldObject.standardSeed;
+	document.getElementById('seed').value = worldObject.seed;
 }
 
 function setAdditionalTCs(worldObj)
@@ -886,7 +915,6 @@ function makeMyWorld()
 	mySystem = new fullSystem(myWorld, sysDiv, symbolDiv, detailDiv, true);
 	originalMainWorld = Object.assign({}, myWorld);
 	loadSystemOntoPage(mySystem);
-	worldDetailsDiv();
 }
 
 function blankMapGen()
@@ -922,17 +950,21 @@ function downloadBlankMapPNG()
 function regenerateSystem()
 {
 	mySystem = new fullSystem(originalMainWorld, sysDiv, symbolDiv, detailDiv, true);
+	currentWorld = mySystem.mainWorld;
 	loadSystemOntoPage(mySystem);
+	divsToShow(1);
+
 }
 
 function regenerateSystemRS()
 {
-	init_rng(Date.now() + rng(10000));
+	init_rng(Date.now());
 	var newSeed = rng(4294967295);
-	document.getElementById("mapSeed").value = newSeed;
-	originalMainWorld.standardSeed = newSeed;
-	originalMainWorld.mapSeed = newSeed;
-	init_rng(newSeed);
-	mySystem = new fullSystem(originalMainWorld, sysDiv, symbolDiv, detailDiv, true);
+	document.getElementById("seed").value = newSeed;
+	mySystem = new fullSystem(originalMainWorld, sysDiv, symbolDiv, detailDiv, false);
+	mySystem.seed = newSeed;
+	mySystem.generate();
+	currentWorld = mySystem.mainWorld;
 	loadSystemOntoPage(mySystem);
+	divsToShow(1);
 }
