@@ -2910,7 +2910,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 
 
 
-	var userSeed = document.getElementById("mapSeed").value;
+	var userSeed = document.getElementById("seed").value;
 	var seedUsed = userSeed;
 	if(userSeed)
 		init_rng(seedUsed);
@@ -2918,7 +2918,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 	{
 		seedUsed = Date.now() >>> 0;
 	}
-	document.getElementById("mapSeed").value = seedUsed;
+	document.getElementById("seed").value = seedUsed;
 
 	var map = new mapClass(hexMapSVG, parentHex);
 	map.generate();

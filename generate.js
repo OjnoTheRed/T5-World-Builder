@@ -285,6 +285,7 @@ function import_sys(input_file_obj)
 		var sys_obj = JSON.parse(reader.result);
 		var temp_mainWorld = new mainWorld();
 		temp_mainWorld.read_dbObj(sys_obj.mainWorld);
+		temp_mainWorld.system = temp_mainWorld.name + " (" + temp_mainWorld.hex + " " + temp_mainWorld.sector + ")";
 		mySystem = new fullSystem(temp_mainWorld, sysDiv,symbolDiv,detailDiv,false);
 		mySystem.read_dbObj(sys_obj);
 		originalMainWorld = Object.assign({}, mySystem.mainWorld);

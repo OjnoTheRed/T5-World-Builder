@@ -4489,7 +4489,7 @@ function portDetails(world)
 	{
 		var s = "The " + me.which + " is type " + me.type + " - " + me.quality + ". ";
 		s += "There is " + (me.downport ? "a" : "no") + " downport, and " + (me.highport ? "a" : "no") + " highport in orbit. ";
-		s += me.yard ? ("The port has shipyards capable of building " + me.yard) + ". " : "The port has no shipyards and cannot build ships. ";
+		s += me.yard ? ("The port has shipyards capable of building " + me.yard + ". ") : "The port has no shipyards and cannot build ships. ";
 		s += "Visiting ships can receive " + me.repairs + " at this port. ";
 		s += me.raw ? ("Fuels the port can supply include unrefined hydrogen, " + (me.refined ? "refined hydrogen, " : "") + (me.radioact ? "fissionable radioactives, " : "") + (me.antimatter ? "anti-matter fuel slugs, " : "") + (me.collector ? "replacement collector canopies, " : "")) : "No fuel is available.";
 		s = s.replace(/,\s$/g,".");
