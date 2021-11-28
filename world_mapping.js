@@ -39,28 +39,24 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	me.worldOceans = [];
 	me.worldContinents = [];
 	me.skipSeas = false;
+	me.saveObj = [];
 	me.blank = arguments.length < 4 ? false : blankMap;
 
 	me.generate = function()
 	{
-		triangleID = 0;
 		var worldSize = me.world.uwp.size;
 		if(worldSize == 0)
 			return;
-		var northPole = new worldHex(me, me.parentObj, null, -1, -1);
+		var northPole = new worldHex(me, me.parentObj, null, -1, -1, -1);
 		northPole.renderFlag = false;
-		var southPole = new worldHex(me, me.parentObj, null, -2, -2);
+		var southPole = new worldHex(me, me.parentObj, null, -2, -2, -2);
 		southPole.renderFlag = false;
 
-		for(var i=0;i<5;i++)
+		for(var i=0;i<20;i++)
 		{
-			me.worldTriangles.push(new worldTriangle(me, worldSize, me.parentObj, MAP_LEFT_OFFSET+16+(i*worldSize*32), MAP_TOP_OFFSET, UP_TRIANGLE, SMALL_TRIANGLE));
-			me.worldTriangles.push(new worldTriangle(me, worldSize, me.parentObj, MAP_LEFT_OFFSET+16+(i*worldSize*32), MAP_TOP_OFFSET+(worldSize-2)*28, DOWN_TRIANGLE, LARGE_TRIANGLE));
-			me.worldTriangles.push(new worldTriangle(me, worldSize, me.parentObj, MAP_LEFT_OFFSET+worldSize*16+i*worldSize*32, MAP_TOP_OFFSET+(worldSize)*28, UP_TRIANGLE, LARGE_TRIANGLE));
-			me.worldTriangles.push(new worldTriangle(me, worldSize, me.parentObj, MAP_LEFT_OFFSET+worldSize*16+i*worldSize*32+32, MAP_TOP_OFFSET+(worldSize)*56-28, DOWN_TRIANGLE, SMALL_TRIANGLE));
+			me.worldTriangles[i] = new worldTriangle(me, worldSize, me.parentObj, i);
+			//me.worldTriangles[i].generate();
 		}
-		for(var i=0;i<me.worldTriangles.length;i++)
-			me.worldTriangles[i].generate();
 		if(!me.blank)
 		{
 			desert();
@@ -97,38 +93,47 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	me.genSaveObj = function()
 	{
 		me.saveObj = [];
-		me.worldTriangles.forEach(function(worldTri) { me.saveObj.push(worldTri.saveObj()) } );
-		var poles = me.saveObj[20] = {};;
-		poles.north = [];
+		if(me.world.uwp.size == 0)
+		{
+			me.saveObj.push("Planetoids");
+			return me.saveObj;
+		}
+		for(var i=0;i<me.worldTriangles.length;i++)
+			me.saveObj[i] = me.worldTriangles[i].saveObj();
+		me.saveObj[20] = {};
+		me.saveObj[20].north = [];
 		me.hexes[0].terrainTypes.map(function(t)
 										{
-											poles.north.push(t.code);
+											me.saveObj[20].north.push(t.code);
 										});
-		poles.south = [];
+		me.saveObj[20].south = [];
 		me.hexes[1].terrainTypes.map(function(t)
 										{
-											poles.south.push(t.code);
+											me.saveObj[20].south.push(t.code);
 										});
 		return me.saveObj;
 	}
 
 	me.loadObj = function(saveObj)
 	{
+		if(me.saveObj[0] == "Planetoids")
+			return;
 		me.blank = true;
 		me.generate();
 		me.blank = false;
 		me.saveObj = saveObj;
-		saveObj.poles.north.forEach(function(t)
+		saveObj[20].north.map(function(t)
 									{
-										me.hexes[0].terrainTypes.push(allTerrain[t]);
+										me.getHex(-1,-1).terrainTypes.push(allTerrain[t]);
 									});
-		saveObj.poles.south.forEach(function(t)
+		saveObj[20].south.map(function(t)
 									{
-										me.hexes[1].terrainTypes.push(allTerrain[t]);
+										me.getHex(-2,-2).terrainTypes.push(allTerrain[t]);
 									});
 		saveObj.forEach(function(tsObj, i)
 									{
-										me.worldTriangles[i].loadObj(tsObj)
+										if(i != 20)
+											me.worldTriangles[i].loadObj(tsObj);
 									});
 	}
 
@@ -179,7 +184,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			{
 				selectedHex = me.getHex(x,y);
 				new_left_offset = selectedHex.left_offset + (worldSize-y-1)*32;
-				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset);
+				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 				copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
 				copyOfIt.render();
 				x++;
@@ -196,7 +201,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 					new_left_offset = selectedHex.left_offset + (worldSize-(me.totalRows-y))*32 - worldSize*160;
 				else
 					new_left_offset = selectedHex.left_offset + (worldSize-(me.totalRows-y))*32;
-				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset);
+				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 				copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
 				copyOfIt.render();
 				x++;
@@ -204,7 +209,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		}
 		selectedHex = me.worldTriangles[18].hexes[me.worldTriangles[18].hexes.length-1];
 		new_left_offset = selectedHex.left_offset - worldSize*160;
-		copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset);
+		copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 		copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
 		copyOfIt.render();
 		if(worldSize == 1)
@@ -213,7 +218,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			var pole_hex_top_offset = MAP_TOP_OFFSET-28;
 			for(z=0;z<6;z++)
 			{
-				var north_pole_hex = new worldHex(me, me.parentObj, me.worldTriangles[0], pole_hex_left_offset, pole_hex_top_offset);
+				var north_pole_hex = new worldHex(me, me.parentObj, me.worldTriangles[0], pole_hex_left_offset, pole_hex_top_offset, -1);
 				north_pole_hex.terrainTypes = array_fnc.copy.call(me.getHex(-1,-1).terrainTypes);
 				north_pole_hex.render();
 				pole_hex_left_offset+=32;
@@ -222,7 +227,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			pole_hex_top_offset = MAP_TOP_OFFSET+56;
 			for(z=0;z<5;z++)
 			{
-				var south_pole_hex = new worldHex(me, me.parentObj, me.worldTriangles[0], pole_hex_left_offset, pole_hex_top_offset);
+				var south_pole_hex = new worldHex(me, me.parentObj, me.worldTriangles[0], pole_hex_left_offset, pole_hex_top_offset, -2);
 				south_pole_hex.terrainTypes = array_fnc.copy.call(me.getHex(-1,-1).terrainTypes);
 				south_pole_hex.render();
 				pole_hex_left_offset+=32;
@@ -1314,23 +1319,52 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 
 }
 
-var triangleID;
-function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangleTop, upOrDown, largeOrSmall)
+function worldTriangle(worldMapObj, worldSize, parentObj, id)
 {
 	var me = this;
 	me.map = worldMapObj;
+	me.id = id;
 	me.worldSize = worldSize;
 	me.parentObj = parentObj;
-	me.left_offset = triangleLeft;
-	me.top_offset = triangleTop;
-	me.upOrDown = upOrDown;
-	me.largeOrSmall = largeOrSmall;
 	me.hexes = [];
 	me.outlineTriangle = null;
-	me.id = triangleID++;
+	
+	me.init = function()
+	{
+		var base_left = Math.floor(me.id / 4);
+		var verticle_pos = me.id % 4;
+		switch(verticle_pos)
+		{
+			case 0:
+				me.left_offset = MAP_LEFT_OFFSET+16+(base_left*me.worldSize*32);
+				me.top_offset = MAP_TOP_OFFSET;
+				me.upOrDown = UP_TRIANGLE;
+				me.largeOrSmall = SMALL_TRIANGLE;
+				break;
+			case 1:
+				me.left_offset = MAP_LEFT_OFFSET+16+(base_left*me.worldSize*32);
+				me.top_offset = MAP_TOP_OFFSET+(me.worldSize-2)*28;
+				me.upOrDown = DOWN_TRIANGLE;
+				me.largeOrSmall = LARGE_TRIANGLE;
+				break;
+			case 2:
+				me.left_offset = MAP_LEFT_OFFSET+me.worldSize*16+base_left*me.worldSize*32;
+				me.top_offset = MAP_TOP_OFFSET+(me.worldSize)*28;
+				me.upOrDown = UP_TRIANGLE;
+				me.largeOrSmall = LARGE_TRIANGLE;
+				break;
+			case 3:
+				me.left_offset = MAP_LEFT_OFFSET+me.worldSize*16+base_left*me.worldSize*32+32;
+				me.top_offset = MAP_TOP_OFFSET+(me.worldSize)*56-28;
+				me.upOrDown = DOWN_TRIANGLE;
+				me.largeOrSmall = SMALL_TRIANGLE;
+				break;
+		}
+	}
 
 	me.generate = function()
 	{
+		var k = 0;
 		var hexPerSide = ((me.largeOrSmall == LARGE_TRIANGLE) ? me.worldSize : me.worldSize-1);
 		if(me.upOrDown == UP_TRIANGLE)
 		{
@@ -1340,7 +1374,8 @@ function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangle
 				{
 					var hex_left_offset = (me.left_offset + j*32 + (hexPerSide-i)*16);
 					var hex_top_offset = (me.top_offset + i*28);
-					me.hexes.push(new worldHex(me.map, me.parentObj, me, hex_left_offset, hex_top_offset));
+					me.hexes.push(new worldHex(me.map, me.parentObj, me, hex_left_offset, hex_top_offset, k));
+					k++;
 				}
 			}
 		}
@@ -1352,7 +1387,8 @@ function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangle
 				{
 					var hex_left_offset = (me.left_offset + j*32 + i*16);
 					var hex_top_offset = (me.top_offset + (i+1)*28);
-					me.hexes.push(new worldHex(me.map, me.parentObj, me, hex_left_offset, hex_top_offset));
+					me.hexes.push(new worldHex(me.map, me.parentObj, me, hex_left_offset, hex_top_offset, k));
+					k++;
 				}
 			}
 		}
@@ -1360,13 +1396,7 @@ function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangle
 
 	me.saveObj = function()
 	{
-		var sObj = {};
-		sObj.left_offset = me.left_offset;
-		sObj.top_offset = me.top_offset;
-		sObj.upOrDown = me.upOrDown;
-		sObj.largeOrSmall = me.largeOrSmall;
-		sObj.id = me.id;
-		sObj.hexes = [];
+		var sObj = [];
 		me.hexes.forEach ( function(h)
 							{
 								var c_h = [];
@@ -1374,27 +1404,22 @@ function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangle
 													{
 														c_h.push(t.code);
 													});
-								sObj.hexes.push(c_h);
+								sObj.push(c_h);
 							} );
+
 		return sObj;
 	}
 
 	me.loadObj = function(sObj)
 	{
-		me.left_offset = sObj.left_offset;
-		me.top_offset = sObj.top_offset;
-		me.upOrDown = sObj.upOrDown;
-		me.largeOrSmall = sObj.largeOrSmall;
-		me.id = sObj.id;
-
-		sObj.hexes.forEach ( function(h, i)
+		sObj.forEach ( function(h, i)
 							{
 								me.hexes[i].terrainTypes = [];
-								h.terrainTypes.map(function (t)
+								h.map(function (t)
 													{
 														me.hexes[i].terrainTypes.push(allTerrain[t]);
 													});
-							} );
+							} );		
 	}
 
 	me.reposition = function(forward)
@@ -1413,7 +1438,7 @@ function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangle
 		{
 			var pole_hex_left_offset = me.hexes[0].left_offset-16;
 			var pole_hex_top_offset = me.hexes[0].top_offset-28;
-			var northPole = new worldHex(me.map, me.parentObj, me, pole_hex_left_offset, pole_hex_top_offset);
+			var northPole = new worldHex(me.map, me.parentObj, me, pole_hex_left_offset, pole_hex_top_offset, -1);
 			northPole.terrainTypes = array_fnc.copy.call(me.map.getHex(-1,-1).terrainTypes);
 			northPole.render();
 		}
@@ -1421,7 +1446,7 @@ function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangle
 		{
 			var pole_hex_left_offset = me.hexes[me.hexes.length-1].left_offset-16;
 			var pole_hex_top_offset = me.hexes[me.hexes.length-1].top_offset+28;
-			var southPole = new worldHex(me.map, me.parentObj, me, pole_hex_left_offset, pole_hex_top_offset);
+			var southPole = new worldHex(me.map, me.parentObj, me, pole_hex_left_offset, pole_hex_top_offset, -2);
 			southPole.terrainTypes = array_fnc.copy.call(me.map.getHex(-2,-2).terrainTypes);
 			southPole.render();
 		}
@@ -1562,6 +1587,9 @@ function worldTriangle(worldMapObj, worldSize, parentObj, triangleLeft, triangle
 			}
 		}
 	}
+	
+	me.init();
+	me.generate();
 }
 
 var disregardedTerrain = {name:"Disregarded", code:0, draw:function(aWorldHex)
@@ -2271,8 +2299,8 @@ var allTerrain = {
 	108:iceFieldTerrainWest,
 	109:iceFieldTerrainEast,
 	110:nobleTerrainB,
-	110:nobleTerrainc,
-	111:nobleTerrainC,
+	111:nobleTerrainc,
+	112:nobleTerrainC,
 	113:nobleTerrainD,
 	114:nobleTerraine,
 	115:nobleTerrainE,
@@ -2397,10 +2425,11 @@ function mapHex(mapObj, parentObj, left_offset, top_offset)
 	*/
 }
 
-function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offset)
+function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offset, hexID)
 {
 	var me = this;
 	me.parentTriangle = parentTriangle;
+	me.hexID = hexID;
 
 	me.calcRow = function()
 	{
@@ -2446,8 +2475,29 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 
 			me.hexElem.style.fill = fillColour;
 		}
+		//the following is useful debugging code
 		//addText(me.left_offset+2, me.top_offset+16, me.name, "Arial", "10px","black",me.parentObj);
 		//addText(me.left_offset+2, me.top_offset+16, me.latitude + " " + me.hemisphere, "Arial", "12px","black",me.parentObj);
+		// 				me.upOrDown = UP_TRIANGLE;
+//				me.largeOrSmall = SMALL_TRIANGLE;
+/*		if(me.parentTriangle)
+		{
+			if(me.parentTriangle.upOrDown == UP_TRIANGLE)
+			{
+				if(me.parentTriangle.largeOrSmall == SMALL_TRIANGLE)
+					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "red", me.parentObj);
+				else
+					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "blue", me.parentObj);
+			}
+			else
+			{
+				if(me.parentTriangle.largeOrSmall == SMALL_TRIANGLE)
+					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "green", me.parentObj);
+				else
+					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "black", me.parentObj);
+			}
+		}
+*/				
 	}
 	// max col = 2 * 5 * size
 	me.getEastNeighbour = function()
@@ -3998,7 +4048,7 @@ function worldHexMap(parentObj, worldHexToMap)
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 350, OUTLINE_THICKNESS*20, me.world.tcs, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addRectangle(HEX_MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS, me.parentObj.getAttribute("width") - 16, me.parentObj.getAttribute("height") - HEX_MAP_TOP_OFFSET + 28, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 495, OUTLINE_THICKNESS*20-32, "Overall World Hex", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
-		var overallHex = new worldHex(me, me.parentObj, null, 550, OUTLINE_THICKNESS*20+12);
+		var overallHex = new worldHex(me, me.parentObj, null, 550, OUTLINE_THICKNESS*20+12, -3);
 		overallHex.terrainTypes = array_fnc.copy.call(me.parentHex.terrainTypes);
 		overallHex.clickEnabled = false;
 		overallHex.render();
@@ -4009,7 +4059,7 @@ function worldHexMap(parentObj, worldHexToMap)
 		{
 			if(neighbours[i])
 			{
-				overallNeighbours.push(new worldHex(me, me.parentObj, null, overallHex.left_offset+offsets[i].x, overallHex.top_offset+offsets[i].y));
+				overallNeighbours.push(new worldHex(me, me.parentObj, null, overallHex.left_offset+offsets[i].x, overallHex.top_offset+offsets[i].y,-3));
 				overallNeighbours[i].terrainTypes = array_fnc.copy.call(neighbours[i].terrainTypes);
 				overallNeighbours[i].clickEnabled = false;
 				overallNeighbours[i].render();
@@ -4250,7 +4300,7 @@ function mapKey(worldMap)
 		{
 			var top_offset = starting_top_offset + Math.floor(i/HEXES_PER_ROW)*40;
 			var left_offset = starting_left_offset + (i%HEXES_PER_ROW)*250;
-			var keyHex = new worldHex(me.map, me.map.parentObj, null, left_offset, top_offset)
+			var keyHex = new worldHex(me.map, me.map.parentObj, null, left_offset, top_offset, -3)
 			keyHex.terrainTypes.push(me.hexesIncluded[i]);
 			if(me.hexesIncluded[i].name == "Island")
 				keyHex.terrainTypes.push(oceanTerrain);
@@ -4259,7 +4309,7 @@ function mapKey(worldMap)
 		}
 		top_offset = starting_top_offset + Math.floor(i/HEXES_PER_ROW)*40;
 		left_offset = starting_left_offset + (i%HEXES_PER_ROW)*250;
-		var keyHex = new worldHex(me.map, me.map.parentObj, null, left_offset, top_offset)
+		var keyHex = new worldHex(me.map, me.map.parentObj, null, left_offset, top_offset, -3)
 		keyHex.terrainTypes.push(worldHexScale);
 		keyHex.render();
 		addText(keyHex.left_offset+40, keyHex.top_offset+20, "Scale", "Arial, sans-serif","1em", "black", me.parentObj);

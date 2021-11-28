@@ -1,7 +1,7 @@
 var worldMapCounter = 0;
 var SAVED_SYSTEMS = [];
 
-var user_pref_db, mySystem, originalMainWorld, request, sys_db, sysDiv, symbolDiv, detailDiv, upDiv, mapDiv, mapSVG, sysDetailsDiv, genDiv, blankMapDiv, seedEdit;
+var user_pref_db, mySystem, origMWData, request, sys_db, sysDiv, symbolDiv, detailDiv, upDiv, mapDiv, mapSVG, sysDetailsDiv, genDiv, blankMapDiv, seedEdit;
 
 function initLoad()
 {
@@ -98,7 +98,7 @@ function worldLoadSpin(worldListDoc)
 		worldArray.push(aWorld);
 	}
 	var randomWorld = worldArray[rng(worldArray.length-1)];
-	originalMainWorld = Object.assign({}, randomWorld);
+	origMWData = randomWorld.saveDataObj();
 	mySystem = new fullSystem(randomWorld, sysDiv, symbolDiv, detailDiv, true);
 	loadSystemOntoPage(mySystem);
 }
@@ -110,8 +110,8 @@ function initialSystem()
 		loadDoc("https://travellermap.com/data/Spinward%20Marches/tab", worldLoadSpin); // the code under 'else' also runs in worldLoadSpin because loadDoc is asynchronous
 	else // most straightforward case - go ahead and compute the details on the given data
 	{
+		origMWData = givenWorld.saveDataObj();
 		mySystem = new fullSystem(givenWorld, sysDiv, symbolDiv, detailDiv, true);
-		originalMainWorld = Object.assign({}, givenWorld);
 		loadSystemOntoPage(mySystem);
 	}
 }
@@ -143,30 +143,32 @@ function downloadMap(saveAreaName, fileName)
 	saveAs(blob, fileName);
 }
 
-function downloadSystem()
+function downloadMapData(mapObject, fileName)
 {
-	DOWNLOAD_WORLD_DETAIL = document.getElementById("downloadWorldDetails").checked;
-	var styleText = "";
-	loadDoc("traveller.css", finaliseDownloadSystem);
+	var mapData = mapObject.genSaveObj();
+	var saveText = JSON.stringify(mapData);
+	var blob = new Blob([saveText], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, fileName);	
 }
 
-function finaliseDownloadSystem(styleText)
+function downloadSystem()
 {
 	var fileName = mySystem.mainWorld.name.replace(/'/g,"") + " UWP " + mySystem.mainWorld.uwp + " generated system.html";
-	var blob = new Blob(["<html><head><style>", styleText ,"</style></head>",mySystem.toPlainHTML(),"</html>"], {type: "text/plain;charset=utf-8"});
+	var blob = new Blob(["<html><head>></head>",mySystem.toPlainHTML(),"</html>"], {type: "text/plain;charset=utf-8"});
 	saveAs(blob, fileName);
+
 }
+
 
 function downloadSystemText()
 {
-	DOWNLOAD_WORLD_DETAIL = document.getElementById("downloadWorldDetails").checked;
 	var blob = new Blob([mySystem.tofixedWidthText()], {type: "text/plain;charset=utf-8"});
 	saveAs(blob, "The " + mySystem.mainWorld.name + " System.txt");
 }
 
+
 function downloadSystemCSV()
 {
-	DOWNLOAD_WORLD_DETAIL = document.getElementById("downloadWorldDetails").checked;
 	var blob = new Blob([mySystem.toCSV()], {type: "text/plain;charset=utf-8"});
 	saveAs(blob, "The " + mySystem.mainWorld.name + " System.csv");
 }
@@ -207,13 +209,21 @@ function save_sys()
 	}
 	var sysObjStore = sys_db.transaction("savedSystems","readwrite").objectStore("savedSystems");
 	var sys_obj = mySystem.dbObj();
+	//debug_save(JSON.stringify(sys_obj));
 	var r = sysObjStore.add(sys_obj);
 	r.onsuccess = function(event)
 	{
 		SAVED_SYSTEMS[event.target.result] = sys_obj;
 		load_saved_systems();
 		mySystem.detailsSaved = true;
+		alert("System successfully saved.");
 	}
+}
+
+function debug_save(someText)
+{
+	var blob = new Blob([someText], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, "Debug Text.json");	
 }
 
 function update_sys()
@@ -249,7 +259,7 @@ function load_sys()
 		mySystem = new fullSystem(temp_mainWorld, sysDiv, symbolDiv, detailDiv, false);
 		mySystem.read_dbObj(sys_obj);
 		mySystem.loadKey = k;
-		originalMainWorld = Object.assign({}, mySystem.mainWorld);
+		origMWData = temp_mainWorld.saveDataObj();
 		currentWorld = mySystem.mainWorld;
 		loadSystemOntoPage(mySystem);
 		divsToShow(1);
@@ -288,7 +298,7 @@ function import_sys(input_file_obj)
 		temp_mainWorld.system = temp_mainWorld.name + " (" + temp_mainWorld.hex + " " + temp_mainWorld.sector + ")";
 		mySystem = new fullSystem(temp_mainWorld, sysDiv,symbolDiv,detailDiv,false);
 		mySystem.read_dbObj(sys_obj);
-		originalMainWorld = Object.assign({}, mySystem.mainWorld);
+		origMWData = temp_mainWorld.saveDataObj();
 		currentWorld = mySystem.mainWorld;
 		init_rng(mySystem.mainWorld.seed);
 		loadSystemOntoPage(mySystem);
@@ -302,6 +312,90 @@ function import_sys(input_file_obj)
 
 	reader.readAsText(selFile);
 
+}
+
+function convertCSV(input_file_obj)
+{
+	var selFile = input_file_obj.files[0];
+	var reader = new FileReader();
+	reader.addEventListener("loadend", function()
+	{
+		var allRows = reader.result.split(/\r?\n|\r/);
+		var outputRows = ["Hex,Name,UWP,Remarks,{Ix},(Ex),[Cx],N,B,Z,PBG,W,A,Stellar"];
+		for(var i=1;i<allRows.length;i++)
+		{
+			var inputRow = allRows[i].split(",");
+			var worldObj = new mainWorld();
+			worldObj.hex = inputRow[0];
+			worldObj.name = inputRow[1];
+			worldObj.uwp.readUWP(inputRow[2]);
+			worldObj.generate(false);
+			outputRows.push(worldObj.toCSV());
+		}
+		var saveText = outputRows.join("\r\n");
+		var blob = new Blob([saveText], {type: "text/plain;charset=utf-8"});
+		if("name" in selFile)
+			var saveName = selFile.name + " with T5 outputs generated.csv";
+		else
+			var saveName = "Bunch of uploaded UWPs with T5 outputs generated.csv";
+		saveAs(blob, saveName);
+		
+	},false);
+
+	reader.onerror = function(ev)
+	{
+		console.log("Error encountered: " + ev);
+		reader.abort();
+	}
+
+	reader.readAsText(selFile);	
+}
+/*
+Format for the following is fixed width of the following exact format:
+Hex  Name                 UWP      
+---- -------------------- ---------
+0101 Catamaran            A656578-D
+-----------------------------------
+01234567890123456789012345678901234
+0         1         2         3
+*/
+function convertKristoff(input_file_obj)
+{
+	var selFile = input_file_obj.files[0];
+	var reader = new FileReader();
+	reader.addEventListener("loadend", function()
+	{
+		var allRows = reader.result.split(/\r?\n|\r/);
+		var outputRows = ["Hex,Name,UWP,Remarks,{Ix},(Ex),[Cx],N,B,Z,PBG,W,A,Stellar"];
+		for(var i=2;i<allRows.length;i++)
+		{
+			var inputRow = allRows[i];
+			if(inputRow.trim() == "")
+				continue;
+			var worldObj = new mainWorld();
+			worldObj.hex = inputRow.substr(0,4);
+			worldObj.name = inputRow.substr(5,20).trim();
+			worldObj.uwp.readUWP(inputRow.substr(26,9));
+			worldObj.generate(false);
+			outputRows.push(worldObj.toCSV());
+		}
+		var saveText = outputRows.join("\r\n");
+		var blob = new Blob([saveText], {type: "text/plain;charset=utf-8"});
+		if("name" in selFile)
+			var saveName = selFile.name + " with T5 outputs generated.csv";
+		else
+			var saveName = "Bunch of uploaded UWPs with T5 outputs generated.csv";
+		saveAs(blob, saveName);
+		
+	},false);
+
+	reader.onerror = function(ev)
+	{
+		console.log("Error encountered: " + ev);
+		reader.abort();
+	}
+
+	reader.readAsText(selFile);	
 }
 
 function giveRandomSeed()
@@ -424,7 +518,7 @@ function loadSystemOntoPage(systemObj)
 	for(var i=0;i<sTables.length;i++)
 		systemObj.sysDiv.appendChild(sTables[i]);
 	systemObj.toSymbolMap();
-	document.getElementById("seed").value = systemObj.mainWorld.seed;
+	document.getElementById("seed").value = systemObj.seed;
 	systemObj.mainWorld.editDetails();
 	divsToShow(2);
 	document.getElementById("mapPlaceholder").style.display = "none";
@@ -494,6 +588,7 @@ function divsToShow(optionChosen)
 	document.getElementById("legal").style.display = "none";
 	document.getElementById("contact_me").style.display = "none";
 	document.getElementById("tutorial").style.display = "none";
+	document.getElementById("starContainer").style.display = "none";
 	switch(optionChosen)
 	{
 		case 1:
@@ -532,7 +627,9 @@ function divsToShow(optionChosen)
 		case 11:
 			document.getElementById("tutorial").style.display = "block";
 			break;
-
+		case 12:
+			document.getElementById("starContainer").style.display = "block";
+			break;
 	}
 }
 
@@ -914,7 +1011,7 @@ function makeMyWorld()
 	if(!myWorld)
 		return;
 	mySystem = new fullSystem(myWorld, sysDiv, symbolDiv, detailDiv, true);
-	originalMainWorld = Object.assign({}, myWorld);
+	origMWData = myWorld.saveDataObj();
 	loadSystemOntoPage(mySystem);
 }
 
@@ -950,7 +1047,9 @@ function downloadBlankMapPNG()
 
 function regenerateSystem()
 {
-	mySystem = new fullSystem(originalMainWorld, sysDiv, symbolDiv, detailDiv, true);
+	var localMainWorld = new mainWorld();
+	localMainWorld.readDataObj(origMWData);
+	mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
 	currentWorld = mySystem.mainWorld;
 	loadSystemOntoPage(mySystem);
 	divsToShow(1);
@@ -962,10 +1061,35 @@ function regenerateSystemRS()
 	init_rng(Date.now());
 	var newSeed = rng(4294967295);
 	document.getElementById("seed").value = newSeed;
-	mySystem = new fullSystem(originalMainWorld, sysDiv, symbolDiv, detailDiv, false);
+	mySystem = null;
+	var localMainWorld = new mainWorld();
+	localMainWorld.readDataObj(origMWData);
+	mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, false);
 	mySystem.seed = newSeed;
+	mySystem.mainWorld.seed = newSeed;
 	mySystem.generate();
 	currentWorld = mySystem.mainWorld;
 	loadSystemOntoPage(mySystem);
 	divsToShow(1);
+}
+
+function displayMapData(mapData)
+{
+	if(!mapData)
+		return "undefined";
+	var s = "";
+	for(var i=0;i<mapData.length;i++)
+	{
+		s += "" + i + ": ";
+		var tri = mapData[i];
+		if(tri.length)
+			for(var j=0;j<tri.length;j++)
+				s += tri[j] + " ";
+		else
+		{
+			for(p in tri)
+				s += p + ": " + tri[p];
+		}
+	}
+	return s;
 }

@@ -105,7 +105,6 @@ div.subcontainer {
 	font-family: Arial, sans-serif;
 	background-color: transparent;
 	width:33%;
-	max-height:100%;
 	padding-left:0;
 	padding-right:5px;
 	float:left;
@@ -125,6 +124,15 @@ div.subcontainer {
 	font-family: Arial, sans-serif;
 	width: 100%;
 	box-sizing:border-box;
+}
+
+.contained_tbl {
+	margin:0;
+	padding: 0;
+	border-width: 0px;
+	border-color: #F3F3F3;
+	background-color: #F3F3F3;
+	font-family: Arial, sans-serif;
 }
 
 .loadingAnimation {
@@ -201,6 +209,13 @@ p {
 	margin-top: 0px;
 	font-family: Arial, sans-serif;
 	font-size: 0.85em;
+}
+
+label {
+	margin-top: 0px;
+	font-family: Arial, sans-serif;
+	font-size: 0.85em;
+	
 }
 
 body {

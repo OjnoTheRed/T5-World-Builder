@@ -5,88 +5,196 @@
 	<meta charset="UTF-8">
 	<meta name="description" content="A generator of extended world maps and star systems using the Traveller5 RPG rules, with Official Traveller Universe data drawn from travellermap.com, user entered data, or randomly generated data." >
 	<script src="FileSaver.js"></script>
-	<script src="generic.js"></script>
-	<script src="generate.js"></script>
-	<script src="planet_building_tables.js"></script>
-	<script src="planet_building_world_class.js"></script>
 	<script src="burtle.js"></script>
+	<script src="saveSvgAsPng.js"></script>
 	<script src="url-search-params.js"></script>
+	<script src="generic.js"></script>
+	<script src="government_details.js"></script>
 	<script src="starData.js"></script>
 	<script src="orbit_data.js"></script>
+	<script src="planet_building_tables.js"></script>
+	<script src="planet_building_world_class.js"></script>
 	<script src="world_mapping.js"></script>
-	<script src="saveSvgAsPng.js"></script>
+	<script src="generate.js"></script>
 	<link rel="stylesheet" type="text/css" href="traveller.css">
 </head>
-<body onload="initLoad();">
+<body onload="initLoad();" >
 	<div class="container">
 		<h1 class="title"><img src="150px-Imperial_Sunburst-Sun-IISS-Traveller.gif" height="30" width="30">Traveller Worlds</h1>
 		<h1 class="titleStrap">TRAVELLER<sup style="margin-left:0.25em;color:white;font-weight:bold;font-family:Arial">5</sup></h1>
 		<h1 class="subtitle">Science Fiction Adventure</h1>
 		<h1 class="subtitle">in the Far Future</h1>
 	</div>
-	<div class="container" id="worldMapContainer" style="margin-top:0.5em;">
-		<div class="menuBar" id="mapMenuBar">
-			<div class="dropdown">
-				<button class="dropbtn">View</button>
-				<div class="dropdown-content">
-					<button class="dropdown_button" onclick="editUserPrefs();">Your Preferences</button>
-					<button class="dropdown_button" onclick="divsToShow(1);">Full Star System</button>
-					<button class="dropdown_button" onclick="divsToShow(2);">Current World</button>
-					<button class="dropdown_button" onclick="divsToShow(5);">Blank Maps</button>
-					<button class="dropdown_button" onclick="divsToShow(6);">API Documentation</button>
-					<button class="dropdown_button" onclick="divsToShow(7);">Change Log</button>
-					<button class="dropdown_button" onclick="divsToShow(8);">Credits</button>
-					<button class="dropdown_button" onclick="divsToShow(9);">Legal</button>
-					<button class="dropdown_button" onclick="divsToShow(10);">Contact</button>
-					<button class="dropdown_button" onclick="divsToShow(11);">Help</button>
-				</div>
-			</div>
-			<div class="dropbtn_div" style="display:inline-block;">
-				<p class="guidelines" style="color:white">Seed:</p>
-				<input id="seed" type="text" style="width:70px" />
-			</div>
-			<div class="dropdown">
-				<button class="dropbtn">Map Actions</button>
-				<div class="dropdown-content">
-					<button class="dropdown_button" id="downloadMapSVG">Download SVG format</button>
-					<button class="dropdown_button" id="downloadMapPNG">Download PNG format</button>
-					<button class="dropdown_button" id="slideLeft" onclick="currentWorld.map.slideTerrain(false);"/>Slide Hexes west</button>
-					<button class="dropdown_button" id="slideRight" onclick="currentWorld.map.slideTerrain(true);">Slide Hexes east</button>
-					<button class="dropdown_button" id="regen" onclick="regenerateMap();">Regenerate Map (current seed)</button>
-					<button class="dropdown_button" id="regenRS" onclick="renegerateMapRS();">Regenerate Map (new random seed)</button>
-					<button class="dropdown_button" id="noTZ" onclick="removeTZ();">Remove Twilight Zone</button>
-				</div>
-			</div>
-			<div class="dropbtn_div" style="display:inline-block;">
-				<p class="guidelines" style="color:white">Saved Systems list:</p>
-				<select id="saved_systems" style="min-width:400px" onchange="load_sys();"></select>
-			</div>
-			<div class="dropdown">
-				<button class="dropbtn">System Actions</button>
-				<div class="dropdown-content">
-					<button class="dropdown_button" id="regenSys" onclick="regenerateSystem();">Regenerate system (current seed)</button>
-					<button class="dropdown_button" id="regenSysRS" onclick="regenerateSystemRS();">Regenerate system (new random seed)</button>
-					<button class="dropdown_button" id="updateSys" onclick="update_sys();" >Save star system</button>
-					<button class="dropdown_button" id="saveSys" onclick="save_sys();" >Save As new star system</button>
-					<button class="dropdown_button" id="loadSys" onclick="load_sys();" >Load currently selected system</button>
-					<button class="dropdown_button" id="delSys" onclick="del_sys();" >Delete currently selected system</button>
-					<button class="dropdown_button" id="exportSys" onclick="export_sys();" >Export the current system as a JSON file</button>
-					<input class="dropdown_button" id="importSys" onchange="import_sys(this);" type="file" accept="json"><span class="dropdown_button">Import a system from your computer</span></input>
-				</div>
-			</div>
-			<div class="dropdown">
-				<button class="dropbtn">Generate</button>
-				<div class="dropdown-content">
-					<button class="dropdown_button" onclick="generateNew();" >New star system</button>
-					<a class="dropdown_button" href="subsector_gen.html" target="_blank">Subsector (demo only)</a>
-				</div>
+	<div class="menuBar" id="mapMenuBar">
+		<div class="dropdown">
+			<button class="dropbtn">View</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" onclick="editUserPrefs();">Your Preferences</button>
+				<button class="dropdown_button" onclick="divsToShow(1);">Full Star System</button>
+				<button class="dropdown_button" onclick="divsToShow(2);">Current World</button>
+				<button class="dropdown_button" onclick="divsToShow(5);">Blank Maps</button>
+				<button class="dropdown_button" onclick="divsToShow(6);">API Documentation</button>
+				<a class="dropdown_button" target="_blank" href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit?usp=sharing">Map Data documentation</a>
+				<button class="dropdown_button" onclick="divsToShow(7);">Change Log</button>
+				<button class="dropdown_button" onclick="divsToShow(8);">Credits</button>
+				<button class="dropdown_button" onclick="divsToShow(9);">Legal</button>
+				<button class="dropdown_button" onclick="divsToShow(10);">Contact</button>
+				<button class="dropdown_button" onclick="divsToShow(11);">Help</button>
 			</div>
 		</div>
-		<div class="container" id="saveArea" style="background-color:#ffffff;" >
+		<div class="dropbtn_div" style="display:inline-block;">
+			<p class="guidelines" style="color:white">Seed:</p>
+			<input id="seed" type="text" style="width:70px" />
+		</div>
+		<div class="dropdown">
+			<button class="dropbtn">Map Actions</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" id="downloadMapSVG">Download SVG format</button>
+				<button class="dropdown_button" id="downloadMapPNG">Download PNG format</button>
+				<button class="dropdown_button" id="downloadMapData">Download map data</button>
+				<button class="dropdown_button" id="slideLeft" onclick="currentWorld.map.slideTerrain(false);">Slide Hexes west</button>
+				<button class="dropdown_button" id="slideRight" onclick="currentWorld.map.slideTerrain(true);">Slide Hexes east</button>
+				<button class="dropdown_button" id="regen" onclick="regenerateMap();">Regenerate Map (current seed)</button>
+				<button class="dropdown_button" id="regenRS" onclick="renegerateMapRS();">Regenerate Map (new random seed)</button>
+				<button class="dropdown_button" id="noTZ" onclick="removeTZ();">Remove Twilight Zone</button>
+			</div>
+		</div>
+		<div class="dropbtn_div" style="display:inline-block;">
+			<p class="guidelines" style="color:white">Saved Systems list:</p>
+			<select id="saved_systems" style="min-width:400px" onchange="load_sys();"></select>
+		</div>
+		<div class="dropdown">
+			<button class="dropbtn">System Actions</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" id="regenSys" onclick="regenerateSystem();">Regenerate system (current seed)</button>
+				<button class="dropdown_button" id="regenSysRS" onclick="regenerateSystemRS();">Regenerate system (new random seed)</button>
+				<button class="dropdown_button" id="saveAsText" onclick="downloadSystemText();">Download system details as text</button>
+				<button class="dropdown_button" id="saveAsHtml" onclick="downloadSystem();">Download system details as HTML</button>
+				<button class="dropdown_button" id="saveAsCSV" onclick="downloadSystemCSV();">Download system details as CSV</button>
+				<button class="dropdown_button" id="updateSys" onclick="update_sys();" >Save star system</button>
+				<button class="dropdown_button" id="saveSys" onclick="save_sys();" >Save As new star system</button>
+				<button class="dropdown_button" id="loadSys" onclick="load_sys();" >Load currently selected system</button>
+				<button class="dropdown_button" id="delSys" onclick="del_sys();" >Delete currently selected system</button>
+				<button class="dropdown_button" id="exportSys" onclick="export_sys();" >Export the current system as a JSON file</button>
+				<input class="dropdown_button" id="importSys" onchange="import_sys(this);" type="file" accept="json"><span class="dropdown_button">Import a system from your computer</span></input>
+			</div>
+		</div>
+		<div class="dropdown">
+			<button class="dropbtn">Generate</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" onclick="generateNew();" >New star system</button>
+				<a class="dropdown_button" href="subsector_gen.html" target="_blank">Subsector (demo only)</a>
+				<input class="dropdown_button" id="convertKristoff" onchange="convertKristoff(this);" type="file" accept="json"><span class="dropdown_button">Generate all T5 main world details</span></input>				
+			</div>
+		</div>
+	</div>
+	<div class="container" id="starContainer" style="margin-top:0.5em;display:none;">
+		<div class="contained">
+		<h2>Edit Star Details</h2>
+		<button onclick="divsToShow(1);" class="btn2">Return to full system</button>
+		<button onclick="divsToShow(2);" class="btn2">Return to Current World</button>
+		<table class="contained_tbl">
+		<tr><td class="contained_tbl" style="text-align:right;">Star Name:</td><td class="contained_tbl"><input type="text" id="starName" /></td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Spectral Class:</td><td class="contained_tbl">
+		<select class="worldDetails" id="spectralClass">
+			<option>O0</option>
+			<option>O1</option>
+			<option>O2</option>
+			<option>O3</option>
+			<option>O4</option>
+			<option>O5</option>
+			<option>O6</option>
+			<option>O7</option>
+			<option>O8</option>
+			<option>O9</option>
+			<option>B0</option>
+			<option>B1</option>
+			<option>B2</option>
+			<option>B3</option>
+			<option>B4</option>
+			<option>B5</option>
+			<option>B6</option>
+			<option>B7</option>
+			<option>B8</option>
+			<option>B9</option>
+			<option>A0</option>
+			<option>A1</option>
+			<option>A2</option>
+			<option>A3</option>
+			<option>A4</option>
+			<option>A5</option>
+			<option>A6</option>
+			<option>A7</option>
+			<option>A8</option>
+			<option>A9</option>
+			<option>F0</option>
+			<option>F1</option>
+			<option>F2</option>
+			<option>F3</option>
+			<option>F4</option>
+			<option>F5</option>
+			<option>F6</option>
+			<option>F7</option>
+			<option>F8</option>
+			<option>F9</option>
+			<option>G0</option>
+			<option>G1</option>
+			<option>G2</option>
+			<option>G3</option>
+			<option>G4</option>
+			<option>G5</option>
+			<option>G6</option>
+			<option>G7</option>
+			<option>G8</option>
+			<option>G9</option>
+			<option>K0</option>
+			<option>K1</option>
+			<option>K2</option>
+			<option>K3</option>
+			<option>K4</option>
+			<option>K5</option>
+			<option>K6</option>
+			<option>K7</option>
+			<option>K8</option>
+			<option>K9</option>
+			<option>M0</option>
+			<option>M1</option>
+			<option>M2</option>
+			<option>M3</option>
+			<option>M4</option>
+			<option>M5</option>
+			<option>M6</option>
+			<option>M7</option>
+			<option>M8</option>
+			<option>M9</option>
+		</select></td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Spectral Size:</td>
+		<td class="contained_tbl"><select class="worldDetails" id="spectralSize">
+			<option>Ia</option>
+			<option>Ib</option>
+			<option>II</option>
+			<option>III</option>
+			<option>IV</option>
+			<option>V</option>
+			<option>VI</option>
+			<option>D</option>
+		</select></td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Luminosity Multiplier:</td>
+		<td class="contained_tbl"><input type="number" step="0.01" id="luminosityVary" style="width:4em;"></input></td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Size Multiplier:</td>
+		<td class="contained_tbl"><input type="number" step="0.01" id="sizeVary" style="width:4em;"></input></td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Mass Multiplier:</td>
+		<td class="contained_tbl"><input type="number" step="0.01" id="massVary" style="width:4em;"></input></td></tr></table>
+		</div>
+	</div>
+	<div class="container" id="worldMapContainer" style="margin-top:0.5em;">
+		<div class="container" style="background-color:#ffffff;" >
 			<div class="contained" style="width:100%;height:800px" id="mapPlaceholder">
 				<p class="loadingAnimation">Rendering ...</p>
 			</div>
-			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="worldMapSVG"></svg>
+			<div class="container" id="saveArea">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="worldMapSVG"></svg>
+			</div>
 		</div>
 		<div id="world_details" class="worldDetailDiv">
 			<div class="contained-flex">
@@ -415,6 +523,16 @@
 					<p class="guidelines" id="native_int_life_lbl">Intelligent Life Status</p>
 					<p class="worldDetails" id="native_int_life_text"></p>
 					<span class="tooltiptext">Indication of the (Native) Intelligent Life on this world.</span>
+				</div>
+			</div>
+			<h2>Government Details</h2>
+			<div class="contained-flex" style="width:100%;">
+				<div class="formItem">
+					<p class="guidelines">Government Digit from UWP</p>
+					<p class="worldDetails" id="govDigExp"></p>
+					<p class="guidelines">More generated detail about government</p>
+					<textarea class="worldDetails" id="govDetailExp" style="width:100%;" rows="5"></textarea>
+					<p class="worldDetails" id="mattStevensLinkPara" style="display:none;">For more about this government detail, click <a href="" id="mattStevensLink" target="_blank">HERE</a></p>
 				</div>
 			</div>
 			<div class="transparent" id="nobz" hidden>
@@ -756,7 +874,23 @@
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
-		<h2 class="white" style="margin-top:0;">26 December 2020</h2>
+		<h2 class="white" style="margin-top:0;">28 November 2021</h2>
+		<p class="white"><b>Bug fix:</b>When changing orbits of worlds, Trade Classifications and Remarks (in particular: Ho, Co, Tu and Tz) were not updating correctly.  The drawback is only that 'custom' remarks such as Ownership codes (e.g. O:2355) will be removed if you change orbits.</p>
+		<p class="white"><b>Bug fix:</b> Orbits of satellites could be changed and the change of the name would save, but the orbital distance, rotation period and locking status would not change.  Now fixed - changing any satellite's orbit updates the orbital distance, orbital period, and recalculates whether the satellite is locked to its planet and if not randomly generates a rotation period.</p> 
+		<p class="white"><b>Bug fix:</b> When loading a system from a JSON file, TravellerWorlds was regenerating the map using the seed instead of loading the map data.  In theory, a user can edit the JSON file directly and upload the file to show terrain the user has put in such as extra cities, a second starport or other features.</p>
+		<h2 class="white">25 November 2021</h2>
+		<p class="white"><b>Bug fix:</b> Map data was not saving and importing correctly when using expanded noble estates</p>
+		<p class="white"><b>Bug fix:</b> When regenerating the whole system, the main world details were displaying incorrectly in the table showing symbols for each celestial object.</p>
+		<p class="white"><b>Edit Star Details:</b> You may now edit the Spectral Class and Spectral Size of the star, and vary its luminosity, size and mass using a multiplier for the base values.  At present, this still allows you to put in unrealistic values, so no warranties provided as to realism.</p>
+		<h2 class="white">18 May 2021</h2>
+		<p class="white"><b>Generate missing data:</b> upload a CSV file of names and UWPs, and get back a CSV file with all T5 details generated.</p>
+		<h2 class="white" style="margin-top:0;">16 May 2021</h2>
+		<p class="white"><b>Bug Fix:</b> Travel times to jump points were calculating incorrectly because I had forgotten to convert units properly.  Thanks to BasicPassage on Citizens of the Imperium for bringing it to my attention!</p>
+		<h2 class="white">15 May 2021</h2>
+		<p class="white"><b>Map Data download: </b> Terrain data for a world map (only) can be downloaded as a JSON file.  I will be posting a help page to explain how the data works so you can use it in your own projects.  In the background, when you save a system, the actual terrain data is saved and loaded, so you can generate maps until you get one you like before you save the system or download it as a JSON file.  JSON files of the whole system now include generated maps.  The ability to save the actual terrain data is a pre-requisite to being able to edit the data.  Yes, you read that right.  Watch this space, O Patient Users.</p>		
+		<h2 class="white">16 April 2021</h2>
+		<p class="white"><b>Matt Stevens government detail:</b> I use Matt Stevens wonderful series of articles to fill in a text giving more detail about the government for each world.  You can read more from him about how to give more detail for <a href="https://docs.google.com/document/d/1rG6hrkMR15-OieywgjNlcrJJ0LRJziQZrCdHe6OHI5w/edit" target="blank">dictators</a>, <a href="https://docs.google.com/document/d/13JQjvEYcGOHDhnEAS-FFgMS7gc7vZ_hIr4VdRNTQ-ck/edit" target="blank">bureaucracies</a>, <a href="https://docs.google.com/document/d/1-yPZi5wn56fJeDvCPpAWzenjGN0Ymm2Ry-ygxKtAZBc/edit" target="blank">democracies</a>, <a href="https://docs.google.com/document/d/1G1f2GfqDEOjDkZ8ZRxG8heCVmn-A8ZO-NbqY4hmcxJo/edit" target="blank">balkanisation</a>, <a href="https://docs.google.com/document/d/1WfnsPddSLM61SY_hV7YuRYSh5kZvXeGwpFAIdZnlRF0/edit?fbclid=IwAR18yzPFB0vLffCWkNDvK8-X1Fr3U_XzcAdKvXHwmtu3IymL2tAHyxs6N-0" target="blank">religious governments</a>, and <a href="https://docs.google.com/document/d/1Z0QZ4vdBW9cWaxR1m1PB08V9FELNbamMAQ9-m7RZT14/edit" target="blank">feudal technocracies</a>.</p>
+		<h2 class="white">26 December 2020</h2>
 		<p class="white"><b>TravellerWorlds launches</b> - I put all of the application onto one page, fixing multiple bugs. This vastly simplified the code.</p>
 		<p class="white"><b>Twilight Zone removal</b> - so many worlds end up being a 'Twilight Zone' because of system generation rules.  The user can now just remove the Twilight Zone from the map so that it is a help utility rather than imposing unexpected outcomes on a world builder.  You can always elect to keep the TZ, of course.  Rob Serling would be proud</p>
 		<p class="white"><b>Hex map generation</b> - when World, Terrain and Local hexes are created, they appear on top of the world map rather than appended to the bottom. They can still be downloaded onto a user's computer.</p>
@@ -1004,21 +1138,13 @@
 	    <p class="white">The Traveller game in all forms is owned by <a href="http://www.farfuture.net/">Far Future Enterprises</a>. Copyright 1977 - 2020 Far Future Enterprises. Traveller is a registered trademark of Far Future Enterprises. Far Future permits web sites and fanzines for this game, provided it contains this notice, that Far Future is notified, and subject to a withdrawal of permission on 90 days notice. The contents of this site are for personal, non-commercial use only. Any use of Far Future Enterprises's copyrighted material or trademarks anywhere on this web site and its files should not be viewed as a challenge to those copyrights or trademarks. In addition, any program/articles/file on this site cannot be republished or distributed without the consent of the author who contributed it.</p>
 	</div>
 	<div class="container" id="tutorial" style="display:none;">
-		<div class="subcontainer">
-			<div class="contained">
-				<iframe width="100%" height="315" src="https://www.youtube.com/embed/hUmh3Jvnwx4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-				<p>A quick and dirty 5-minute overview of the features of TravellerWorlds.</p>
-			</div>
-		</div>
-		<div class="subcontainer">
-			<div class="contained">
-				<p>A google doc outlining the rules used by Traveller words can be found here:</p>
-				<p style="font-size:3em"><a href="https://docs.google.com/document/d/1O2P9gN9CkGMo-fAIaZpnb9Cfey5UPl2Xzr5xhQ1EHFg/edit?usp=sharing">LINK</a></p>
-				<p>It also has links to cool sites for world building.</p>
-			</div>
+		<div class="contained">
+			<p>A quick and dirty 5-minute overview of the features of TravellerWorlds <a href="https://www.youtube.com/embed/hUmh3Jvnwx4" target="_blank">on YouTube</a>.</p>
+			<p>A look at 'Your Preferences' <a href="https://www.youtube.com/embed/kJORn_5a_wo" target="_blank">on YouTube</a>.</p>
+			<p>Giving good feedback for TravellerWorlds - <a href="https://youtu.be/W_gn2pshn_A" target="_blank">my video</a>.</p>
+			<p>A google doc outlining the rules used by TravellerWorlds can be found <a href="https://docs.google.com/document/d/1O2P9gN9CkGMo-fAIaZpnb9Cfey5UPl2Xzr5xhQ1EHFg/edit?usp=sharing"  target="_blank">here.</a></p>
+			<p>A google doc explaining the export of map data can be found <a href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit" target="_blank">here</a>.
 		</div>
 	</div>
-	</div>
-
 </body>
 </html>
