@@ -297,6 +297,7 @@ function import_sys(input_file_obj)
 		temp_mainWorld.read_dbObj(sys_obj.mainWorld);
 		temp_mainWorld.system = temp_mainWorld.name + " (" + temp_mainWorld.hex + " " + temp_mainWorld.sector + ")";
 		mySystem = new fullSystem(temp_mainWorld, sysDiv,symbolDiv,detailDiv,false);
+		debugger;
 		mySystem.read_dbObj(sys_obj);
 		origMWData = temp_mainWorld.saveDataObj();
 		currentWorld = mySystem.mainWorld;
@@ -505,6 +506,11 @@ function renegerateMapRS()
 	document.getElementById("seed").value = currentWorld.seed;
 }
 
+function redrawMap()
+{
+	currentWorld.createMap(currentWorld.mapData);
+}
+
 function removeTZ()
 {
 	currentWorld.noTZ();
@@ -589,6 +595,7 @@ function divsToShow(optionChosen)
 	document.getElementById("contact_me").style.display = "none";
 	document.getElementById("tutorial").style.display = "none";
 	document.getElementById("starContainer").style.display = "none";
+	document.getElementById("newCelestialObject").style.display = "none";
 	switch(optionChosen)
 	{
 		case 1:
@@ -629,6 +636,41 @@ function divsToShow(optionChosen)
 			break;
 		case 12:
 			document.getElementById("starContainer").style.display = "block";
+			break;
+		case 13:
+			var availOrbits = [];
+			for(var i=0;i<mySystem.orbitSets.length;i++)
+			{
+				var currOS = mySystem.orbitSets[i];
+				for(var j=0;j<20;j++)
+				{
+					if(!currOS.orbitAvailable(j))
+						continue;
+					if(currOS.orbitOccupied(j))
+					{
+						var orbContent = currOS.get(j).contents;
+						if(orbContent.constructor.name == "orbitSet" || (orbContent.generationObject && orbContent.generationObject.name == "Planetoids") || (orbContent.uwp.size && orbContent.uwp.size == 0))
+							continue;
+						var contentName = orbContent.name ? orbContent.name : (orbContent.constructor.name == "gasGiant" ? "Gas Giant" : orbContent.generationObject.name);
+						availOrbits.push({set:i, num:j, satellite:true, desc:"Satellite of " + contentName + " at orbit " + j + " of the " + PREC_ORDINAL[i].toLowerCase() + " orbit set"});
+					}
+					else
+					{
+						availOrbits.push({set:i, num:j, satellite:false, desc:"Empty orbit at orbit " + j  + " of the " + PREC_ORDINAL[i].toLowerCase() + " orbit set"});
+					}					
+				}
+			}
+			var orbSelect = document.getElementById("newOrbitSelect");
+			while(orbSelect.length > 0)
+				orbSelect.remove(0);
+			for(i=0;i<availOrbits.length;i++)
+			{
+				var o = document.createElement("option");
+				o.text = availOrbits[i].desc;
+				o.value = JSON.stringify({set:availOrbits[i].set, num:availOrbits[i].num, satellite:availOrbits[i].satellite});
+				orbSelect.add(o);
+			}
+			document.getElementById("newCelestialObject").style.display = "block";
 			break;
 	}
 }
@@ -1092,4 +1134,75 @@ function displayMapData(mapData)
 		}
 	}
 	return s;
+}
+
+function addObject()
+{
+	var objectType = document.getElementById("newObjectType").value;
+	var orbitNum = JSON.parse(document.getElementById("newOrbitSelect").value);
+	if(orbitNum.satellite && objectType == "gasGiant")
+	{
+		window.alert("Error: you may not put a gas giant as a satellite of another object");
+		return;
+	}
+	if(orbitNum.satellite && objectType == "star")
+	{
+		window.alert("Error: you may not put a star as a satellite of another object");
+		return;
+	}
+	switch(objectType)
+	{
+		case "star":
+			if(mySystem.orbitSets.length > 4)
+			{
+				window.alert("Error: you cannot have more than 4 stars with orbit sets in a star system");
+				return;
+			}
+			var addedStar = new star(false);
+			addedStar.primary_class_flux = mySystem.orbits.centralStar.primary_class_flux;
+			addedStar.primary_size_flux = mySystem.orbits.centralStar.primary_size_flux;
+			addedStar.generate();
+			var addedSet = new orbitSet(addedStar, null, mySystem.mainWorld, mySystem);
+			addedSet.maxOrbit = Math.max(orbitNum.num-3,0);
+			mySystem.orbitSets.push(addedSet)
+			addedSet.description = PREC_ORDINAL[mySystem.orbitSets.length];
+			mySystem.orbitSets[orbitNum.set].add(orbitNum.num, addedSet);
+			break;
+		case "gasGiant":
+			var addedGG = new gasGiant(mySystem.mainWorld);
+			mySystem.orbitSets[orbitNum.set].add(orbitNum.num, addedGG);
+			break;
+		default:
+			var genObject = ALL_GENERATION_OBJECTS.find(function(v) { return v.name == objectType; });
+			var addedWorld;
+			if(orbitNum.satellite)
+			{
+				var thePlanet = mySystem.orbitSets[orbitNum.set].get(orbitNum.num).contents;
+				if(!thePlanet.satelliteSystem)
+					thePlanet.satelliteSystem = new satelliteOrbitSet(thePlanet);
+				if(objectType == "Planetoids")
+				{ 
+					if(thePlanet.satelliteSystem.occupied({ o:"ay", m:1 }) && thePlanet.satelliteSystem.occupied({ o:"bee", m:2 }) && thePlanet.satelliteSystem.occupied({ o:"cee", m:3 }))
+					{
+						window.alert("Error: all the ring slots for that planet are occupied.");
+						return;
+					}
+					addedWorld = new ring(thePlanet);
+				}
+				else
+				{
+					addedWorld = new minorWorld(genObject, mySystem.mainWorld, thePlanet);
+					addedWorld.generate();
+				}
+				thePlanet.satelliteSystem.add(addedWorld);
+			}
+			else
+			{
+				addedWorld = new minorWorld(genObject, mySystem.mainWorld);
+				addedWorld.generate();
+				mySystem.orbitSets[orbitNum.set].add(orbitNum.num, addedWorld);
+			}
+	}
+	loadSystemOntoPage(mySystem);
+	divsToShow(1);
 }

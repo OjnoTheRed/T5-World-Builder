@@ -41,10 +41,12 @@ var defaultPrefs = {
 	ocean_abyss_bw_bg:"#eeeeee",
 	desert_terrain_bg:"#ffffcc",
 	desert_terrain_bw_bg:"#ffffff",
+	border_colour:"#10ef10", 
 	black_and_white_map:false,
 	place_noble_estate:true,
 	place_several_noble_estates:false,
 	allow_ocean_nobz:false,
+	redraw_maps_on_uwp_change:true
 	};
 
 function userPreferences()
@@ -80,7 +82,7 @@ function userPreferences()
 						me.prefs[p] = document.getElementById(p).checked;
 						break;
 					default:
-						uPObj.prefs[p] = me.coerce(document.getElementById(p).value);
+						me.prefs[p] = me.coerce(document.getElementById(p).value);
 				}
 			}
 
@@ -139,6 +141,7 @@ function world()
 	me.seed = "";
 	me.popMulti = 0;
 	me.map = null;
+	me.mapData = null;
 
 	me.nameTextBox = function()
 	{
@@ -152,7 +155,7 @@ function world()
 
 	me.editDetails = function()
 	{
-		divsToShow(2);
+		//divsToShow(2);
 		me.updateEdits();
 		all_details.map(function(item, index)	{
 													var elem = document.getElementById(item.id);
@@ -168,7 +171,7 @@ function world()
 			uwp_elem[i].onchange = function()	{	me.uwp.update(this.id,this.value);
 													clearData(this.id);
 													me.tcs.generate();
-													me.updateEdits();
+													me.updateEdits(uPObj.prefs.redraw_maps_on_uwp_change);
 													me.orbit.set.updateTable();
 													me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 												};
@@ -246,7 +249,7 @@ function world()
 												me.orbit.calcRowContents();
 												me.orbit.set.planet.orbit.set.updateTable();
 												ROTATIONAL_PERIOD = null;
-												me.updateEdits(); //UPTO - recalc rotational period / locking needed
+												me.updateEdits(true); // recalc rotational period / locking needed
 												me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;												
 											};
 		}
@@ -262,8 +265,10 @@ function world()
 		currentWorld = me;
 	}
 
-	me.updateEdits = function()
+	me.updateEdits = function(forceUpdateMap)
 	{
+		if(arguments.length < 1) 
+			forceUpdateMap = false;
 		var editDiv = detailDiv // global variable declared separately pointing at a correctly constructed HTML DIV - breaks encapsulation!
 		me.tcs.has("Tz") ? document.getElementById("tz_msg").hidden = false : document.getElementById("tz_msg").hidden = true;
 		me.tcs.has("Lk") ? document.getElementById("lk_msg").hidden = false : document.getElementById("lk_msg").hidden = true;
@@ -320,7 +325,7 @@ function world()
 
 												});
 		}
-		if(me.map && me.mapData)
+		if(me.mapData && !forceUpdateMap)
 			me.createMap(me.mapData);
 		else
 			me.createMap();
@@ -369,7 +374,6 @@ function world()
 		{
 			me.map.render();
 			me.map.outline();
-			me.map.genSaveObj();
 			me.mapData = me.map.genSaveObj();
 		}
 	}
@@ -1253,6 +1257,34 @@ function world()
 		GOV_DETAIL = new govDetail(me).textDetail;
 		return GOV_DETAIL;
 	}
+	
+	me.lawDetails = function()
+	{
+		return "The law level of " + me.uwp.law + " means that " + LAW_DESCRIPTIONS[me.uwp.law] + ".";
+	}
+	
+	me.techDetails = function()
+	{
+		var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; });
+		var s = "";
+		s += "The overall Technology Level (TL) of this world is " + me.uwp.TL + ". ";
+		s += "In the Traveller Universe, this is equivalent to approximately " + techDes.era + ". ";
+		s += "The latest energy in use might include " + techDes.energy + ". ";
+		s += "Society has evolved to include " + techDes.society + ". ";
+		s += "Typical living environments include " + techDes.environ + ". ";
+		s += "The lastest communication devices used by the citizenry are " + techDes.comms + ". ";
+		s += "Transport has advanced to " + techDes.transport + ". ";
+		s += "The latest thing in medicine is " + techDes.medicine + ". ";
+		s += "Science is developing " + techDes.science + ", and the latest local technology includes " + techDes.tech + ". ";
+		s += "The latest available computer is " + techDes.computers + ". ";
+		s += "The fastest speed is done by " + techDes.speed1 + ", equivalent to Speed " + techDes.speed2.speed + " (" + techDes.speed2.kph + " kph). ";
+		s += "Commonly used personal weapons include " + techDes.personalWpns + ". ";
+		s += "Heavier military grade weapons at this technology level include " + techDes.hvyWpns + ". ";
+		s += "Space travel is accomplished by " + techDes.spaceTravel + ". ";
+		s += "The latest weapon in space is the " + techDes.weapons + ", and space defenses are " + techDes.defenses + ". ";
+		s += "Space sensors used at this technology level are " + techDes.sensors1 + ", while world sensors used by starships now include " + techDes.sensors2 + ". ";
+		return s;
+	}
 
 	function clearData(uwpProperty)
 	{
@@ -1372,10 +1404,14 @@ var all_details =
 	{ id:"popMultiExp", units:function() { return false; }, name:"Population Multipler", contents:function() { return me.popMulti; }, text_string:function() { return me.popMulti; }, data_string:function() { return me.popMulti; } }, 
 	{ id:"populCalc", units:function() { return false; }, name:"Total Population Calculation", contents:function() { return me.populCount(); },  text_string:function() { return me.populCount(); }, data_string:function() { return me.populCount(); } },
 	{ id:"govDigExp", units:function() { return false; }, name:"World Government Type", contents:function() { return me.govDigitExp(); }, text_string:function() { return me.govDigitExp(); }, data_string:function() { return me.govDigitExp().replace(/,/g,""); } },
-	{ id:"govDetailExp", units:function() { return false; }, name:"World Government Detail", contents:function() { return me.govDetail(); }, text_string:function() { return me.govDetail(); }, data_string:function() { return me.govDetail().replace(/,/g,""); } }
+	{ id:"govDetailExp", units:function() { return false; }, name:"World Government Detail", contents:function() { return me.govDetail(); }, text_string:function() { return me.govDetail(); }, data_string:function() { return me.govDetail().replace(/,/g,""); } },
+	{id:"lawDigit", units:function() { return false;}, name:"Law Level Digit", contents:function(){ return me.uwp.law; }, text_string:function(){ return me.uwp.law; }, data_string:function(){ return me.uwp.law; }},
+	{id:"lawExplanation", units:function() { return false;}, name:"Law Level explanation", contents:function() { return me.lawDetails(); }, text_string:function() { return me.lawDetails(); }, data_string:function() { return me.lawDetails(); }},
+	{id:"techDigit", units:function() { return false;}, name:"Technology Level Digit", contents:function() { return me.uwp.TL; }, text_string:function() { return me.uwp.TL; }, data_string:function() { return me.uwp.TL; }},
+	{id:"techExplanation", units:function() { return false;}, name:"Technology Level explanation", contents:function() { return me.techDetails(); }, text_string:function() { return me.techDetails(); }, data_string:function() { return me.techDetails(); }}	
  ];
 	me.all_details = all_details;
-	ALL_DETAILS =all_details;
+	ALL_DETAILS = all_details;
 
 	var cX_details = [
 		{id:"cX_H", adj_id:"cX_H_adj", name:"Heterogeneity",contents:function() { return me.culturalExt.homogeneity; }, text_string:function() { return HOMOGENEITY_DESCRIPTIONS[me.culturalExt.homogeneity].tm; }, data_string:function() { return pseudoHex(me.culturalExt.homogeneity); }, update:function(v) { me.culturalExt.homogeneity = parseInt(v); updateCultureDescription(); } },
@@ -1474,9 +1510,7 @@ var all_details =
 			me.satelliteSystem.read_dbObj(o.satelliteSystem);
 		}
 		if(o.mapData)
-		{
-			me.createMap(o.mapData);
-		}
+			me.mapData = o.mapData;
 	}
 }
 
@@ -2651,10 +2685,9 @@ var allNobles = [nobleKnight, nobleBaronet, nobleBaron, nobleMarquis, nobleVisco
 
 
 var STAR_COUNT = 0;
-function star(world, isPrimary)
+function star(isPrimary)
 {
 	var me = this;
-	me.world = world;
 	me.spectral_class = "";
 	me.spectral_size = "";
 	me.isPrimary = isPrimary;
@@ -3171,7 +3204,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	me.detailsSaved = false;
 	me.seed = me.mainWorld.seed ? me.mainWorld.seed : rng(4294967295);
 
-	if(arguments.length < 4)
+	if(arguments.length < 5)
 		generate_now = true;
 
 	me.generate = function()
@@ -3460,8 +3493,9 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	{
 		me.name = o.name;
 		me.seed = o.seed;
-		me.mainWorld = new mainWorld();
-		me.mainWorld.read_dbObj(o.mainWorld);
+		//mainWorld has to be read and generated to create a fullSystem class object, so these lines are deprecated
+		//me.mainWorld = new mainWorld();
+		//me.mainWorld.read_dbObj(o.mainWorld);
 		me.stars = new starSystem(me.mainWorld)
 		me.stars.read_dbObj(o.stars);
 		me.primary = new star();
@@ -3572,15 +3606,17 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 										c = me.mainWorld;
 										break;
 									case "minorWorld":
-										c = new minorWorld(ALL_GENERATION_OBJECTS.find(function(v) { return v.name == orbit_dbObj.contents.generationObject.name}), me.mainWorld); //genObject, mainWorld, planet
+										c = new minorWorld(ALL_GENERATION_OBJECTS.find(function(v) { return v.name == orbit_dbObj.contents.generationObject.name}), me.mainWorld);
+										c.read_dbObj(orbit_dbObj.contents);
 										break;
 									case "gasGiant":
 										c = new gasGiant(me.mainWorld);
+										c.read_dbObj(orbit_dbObj.contents);
 										break;
 									case "orbitSet":
 										c = new orbitSet(me.centralStar, me.companionStar, me.mainWorld, me.systemObj);
+										c.read_dbObj(orbit_dbObj.contents);
 								}
-								if(orbit_dbObj.contents.type != "mainWorld") c.read_dbObj(orbit_dbObj.contents);
 								var on = orbit_dbObj.baseOrbit;
 								me.setZone(c, on);
 								var orb = new orbit(me, on , c);
@@ -3632,12 +3668,19 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 
 	me.orbitOccupied = function(orbitNum)
 	{
-		if(orbitNum < me.firstOrbit || orbitNum > me.maxOrbit)
+		if(!me.orbitAvailable(orbitNum))
 			return true;
 		for(var i=0;i<me.orbits.length;i++)
 			if(me.orbits[i].baseOrbit == orbitNum)
 				return true;
 		return false;
+	}
+	
+	me.orbitAvailable = function(orbitNum)
+	{
+		if(orbitNum < me.firstOrbit || orbitNum > me.maxOrbit)
+			return false;
+		return true;		
 	}
 
 	me.findClosestAvailable = function(orbitNumber)
@@ -3731,7 +3774,7 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 		}
 		setTable.appendChild(hRow);
 		setTable.appendChild(me.centralStar.toTableRow());
-		if(me.companionStar !== undefined)
+		if(me.companionStar && me.companionStar !== undefined)
 			setTable.appendChild(me.companionStar.toTableRow());
 		me.sortOrbits();
 		for(i=0;i<me.orbits.length;i++)
@@ -3862,12 +3905,13 @@ function satelliteOrbitSet(planet)
 				case "minorWorld":
 					var mw = me.planet.isMainWorld ? me.planet : me.planet.mainWorld;
 					contents = new minorWorld(ALL_GENERATION_OBJECTS.find(function(v) { return v.name == orbit_dbObj.contents.generationObject.name}), (me.planet.isMainWorld ? me.planet : me.planet.mainWorld) , me.planet); //(genObject, mainWorld, planet)
+					contents.read_dbObj(orbit_dbObj.contents);
 					break;
 				case "mainWorld":
 					contents = me.planet.mainWorld;
 					contents.planet = me.planet;
 			}
-			contents.read_dbObj(orbit_dbObj.contents);
+			
 			var orb = new orbit(me, orbit_dbObj.baseOrbit, contents); //orbitSet, orbitNumber, contents
 			orb.read_dbObj(orbit_dbObj);
 			me.orbits.push(orb);

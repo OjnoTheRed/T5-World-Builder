@@ -56,6 +56,7 @@
 				<button class="dropdown_button" id="slideRight" onclick="currentWorld.map.slideTerrain(true);">Slide Hexes east</button>
 				<button class="dropdown_button" id="regen" onclick="regenerateMap();">Regenerate Map (current seed)</button>
 				<button class="dropdown_button" id="regenRS" onclick="renegerateMapRS();">Regenerate Map (new random seed)</button>
+				<button class="dropdown_button" id="redrawMap" onclick="redrawMap();">Redraw map from data (without regenerating)</button>
 				<button class="dropdown_button" id="noTZ" onclick="removeTZ();">Remove Twilight Zone</button>
 			</div>
 		</div>
@@ -68,6 +69,7 @@
 			<div class="dropdown-content">
 				<button class="dropdown_button" id="regenSys" onclick="regenerateSystem();">Regenerate system (current seed)</button>
 				<button class="dropdown_button" id="regenSysRS" onclick="regenerateSystemRS();">Regenerate system (new random seed)</button>
+				<button class="dropdown_button" id="addObjectToSys" onclick="divsToShow(13);">Add a celestial object to the system</button>
 				<button class="dropdown_button" id="saveAsText" onclick="downloadSystemText();">Download system details as text</button>
 				<button class="dropdown_button" id="saveAsHtml" onclick="downloadSystem();">Download system details as HTML</button>
 				<button class="dropdown_button" id="saveAsCSV" onclick="downloadSystemCSV();">Download system details as CSV</button>
@@ -247,6 +249,9 @@
 				<p class="guidelines">Remarks:</p>
 				<p class="worldDetails" id="tcs"></p>
 				<span class="tooltiptext">Trade Classifications and Remarks</span>
+				</div>
+				<div class="formItem">
+				<p class="worldDetails"><b>Note well:</b> the map will be redrawn using the seed above if you alter any UWP digit.  You can change this setting to prevent this by going to View > Your Preferences.  If you switch automatic redrawing off, the map may not match how you have changed the UWP (e.g. size or hydrographics may be wrong).</p>
 				</div>
 			</div>
 			<div>
@@ -535,6 +540,24 @@
 					<p class="worldDetails" id="mattStevensLinkPara" style="display:none;">For more about this government detail, click <a href="" id="mattStevensLink" target="_blank">HERE</a></p>
 				</div>
 			</div>
+			<h2>Law Details</h2>
+			<div class="contained-flex" style="width:100%;">
+				<div class="formItem">
+					<p class="guidelines">Law Level Digit from UWP</p>
+					<p class="worldDetails" id="lawDigit"></p>
+					<p class="guidelines">Law level explanation</p>
+					<p class="worldDetails" id="lawExplanation"></p>
+				</div>
+			</div>
+			<h2>Technology Details</h2>
+			<div class="contained-flex" style="width:100%;">
+				<div class="formItem">
+					<p class="guidelines">Technology Level Digit from UWP</p>
+					<p class="worldDetails" id="techDigit"></p>
+					<p class="guidelines">Technology Level explanation</p>
+					<p class="worldDetails" id="techExplanation"></p>
+				</div>
+			</div>
 			<div class="transparent" id="nobz" hidden>
 			<h2>Nobles</h2>
 				<p class="guidelines">Noble Codes</p>
@@ -634,6 +657,7 @@
 			<input type="checkbox" id="place_noble_estate" />Place a noble estate<br />
 			<input type="checkbox" id="place_several_noble_estates" />Place an estate for each noble present if multiple<br />
 			<input type="checkbox" id="allow_ocean_nobz" />Allow placement of noble estates in ocean hexes<br />
+			<input type="checkbox" id="redraw_maps_on_uwp_change" />Redraw maps when UWP values are changed for a world.  Turn off if you have edited the details as they will be overwritten.<br />
 			</div>
 		</div>
 		<div class="subcontainer" style="width:35%;">
@@ -660,6 +684,7 @@
 				<input type="color" id="ocean_abyss_bw_bg" />Ocean Abyss (Black & White)<br />
 				<input type="color" id="desert_terrain_bg" />Desert<br />
 				<input type="color" id="desert_terrain_bw_bg" />Desert (Black & White)<br />
+				<input type="color" id="border_colour" />Border Colour<br />
 			</div>
 		</div>
 	</div>
@@ -840,6 +865,27 @@
 			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="blankMapSVG"></svg>
 		</div>
 	</div>
+	<div class="container" id="newCelestialObject" style="display:none;"> <!-- new Object -->
+		<div class="contained">
+			<h2>Add world, gas giant or planetoid belt</h2>
+			<p>Select which available orbit to add an object, and select the object type.  The details will be randomly generated.  You can then edit them.</p>
+			<select id="newOrbitSelect"></select>
+			<select id="newObjectType">
+				<option value="gasGiant">Gas Giant</option>
+				<option value="star">Star</option>
+				<option value="Hospitable">Hospitable World</option>
+				<option value="Planetoids">Planetoid Belt (or Ring)</option>
+				<option value="Ice world">Ice World</option>
+				<option value="Rad world">Radiation World</option>
+				<option value="Inferno">Inferno World</option>
+				<option value="Big world">Big world</option>
+				<option value="Worldlet">Worldlet</option>
+				<option value="Inner world">Inner World</option>
+				<option value="Storm world">Storm World</option>
+			</select>
+			<button class="btn2" onclick="addObject();">Add object</button>
+		</div>
+	</div>
 	<div class="container" id="APIdoco" style="display:none;">
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>API Documentation</h1>
@@ -874,17 +920,23 @@
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
-		<h2 class="white" style="margin-top:0;">28 November 2021</h2>
-		<p class="white"><b>Bug fix:</b>When changing orbits of worlds, Trade Classifications and Remarks (in particular: Ho, Co, Tu and Tz) were not updating correctly.  The drawback is only that 'custom' remarks such as Ownership codes (e.g. O:2355) will be removed if you change orbits.</p>
+		<h2 class="white" style="margin-top:0;">23 December 2021</h2>
+		<p class="white"><b>Background mapping change:</b> new political border terrain added in anticipation of being able to edit maps.  Users can edit the downloaded JSON of worlds to add these codes in.  Users can also change the default colour for these borders.</p>
+		<h2 class="white">22 December 2021</h2>
+		<p class="white"><b>All UWP details explained:</b> Each digit of the UWP for each world is now fully explained - the last to be added were law level and technology level.</p>
+		<p class="white"><b>Add objects:</b> The user may now add objects to the system - stars, gas giants, planets and satellites</p>
+		<h2 class="white">28 November 2021</h2>
+		<p class="white"><b>Bug fix:</b> When changing orbits of worlds, Trade Classifications and Remarks (in particular: Ho, Co, Tu and Tz) were not updating correctly.  The drawback is only that 'custom' remarks such as Ownership codes (e.g. O:2355) will be removed if you change orbits.</p>
 		<p class="white"><b>Bug fix:</b> Orbits of satellites could be changed and the change of the name would save, but the orbital distance, rotation period and locking status would not change.  Now fixed - changing any satellite's orbit updates the orbital distance, orbital period, and recalculates whether the satellite is locked to its planet and if not randomly generates a rotation period.</p> 
-		<p class="white"><b>Bug fix:</b> When loading a system from a JSON file, TravellerWorlds was regenerating the map using the seed instead of loading the map data.  In theory, a user can edit the JSON file directly and upload the file to show terrain the user has put in such as extra cities, a second starport or other features.</p>
+		<p class="white"><b>Bug fix:</b> When loading a system from a JSON file, TravellerWorlds was regenerating the map using the seed instead of loading the map data.  In theory, a user can edit the JSON file directly and upload the file to show terrain the user has put in such as extra cities, a second starport or other features.  At present, this editing can only be done by the user directly editing the JSON file using a text editor.</p>
+		<p class="white"><b>Bug fix:</b> If you change a digit of a UWP, the map will now automatically be redrawn.  In anticipation of users being able to edit their own maps, this can be turned off so that users can make minor adjustments if they have edited the map and prevent their work being overwritten.</p>
 		<h2 class="white">25 November 2021</h2>
 		<p class="white"><b>Bug fix:</b> Map data was not saving and importing correctly when using expanded noble estates</p>
 		<p class="white"><b>Bug fix:</b> When regenerating the whole system, the main world details were displaying incorrectly in the table showing symbols for each celestial object.</p>
 		<p class="white"><b>Edit Star Details:</b> You may now edit the Spectral Class and Spectral Size of the star, and vary its luminosity, size and mass using a multiplier for the base values.  At present, this still allows you to put in unrealistic values, so no warranties provided as to realism.</p>
 		<h2 class="white">18 May 2021</h2>
 		<p class="white"><b>Generate missing data:</b> upload a CSV file of names and UWPs, and get back a CSV file with all T5 details generated.</p>
-		<h2 class="white" style="margin-top:0;">16 May 2021</h2>
+		<h2 class="white">16 May 2021</h2>
 		<p class="white"><b>Bug Fix:</b> Travel times to jump points were calculating incorrectly because I had forgotten to convert units properly.  Thanks to BasicPassage on Citizens of the Imperium for bringing it to my attention!</p>
 		<h2 class="white">15 May 2021</h2>
 		<p class="white"><b>Map Data download: </b> Terrain data for a world map (only) can be downloaded as a JSON file.  I will be posting a help page to explain how the data works so you can use it in your own projects.  In the background, when you save a system, the actual terrain data is saved and loaded, so you can generate maps until you get one you like before you save the system or download it as a JSON file.  JSON files of the whole system now include generated maps.  The ability to save the actual terrain data is a pre-requisite to being able to edit the data.  Yes, you read that right.  Watch this space, O Patient Users.</p>		

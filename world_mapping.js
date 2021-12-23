@@ -122,10 +122,12 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		me.generate();
 		me.blank = false;
 		me.saveObj = saveObj;
+		me.getHex(-1,-1).terrainTypes = [];
 		saveObj[20].north.map(function(t)
 									{
 										me.getHex(-1,-1).terrainTypes.push(allTerrain[t]);
 									});
+		me.getHex(-2,-2).terrainTypes = [];
 		saveObj[20].south.map(function(t)
 									{
 										me.getHex(-2,-2).terrainTypes.push(allTerrain[t]);
@@ -2237,7 +2239,7 @@ var oilTerrain = {name:"Oil", code:86, draw:function(aWorldHex)
 															addLine(l+14,t+9,l+21,t+9,"2px","black",aWorldHex.parentObj);
 															addLine(l+13,t+15,l+22,t+15,"2px","black",aWorldHex.parentObj);
 															addLine(l+12,t+21,l+23,t+21,"2px","black",aWorldHex.parentObj);
-														}, toString:function() { return this.name } , preferLand:false};
+														}, toString:function() { return this.name }, preferLand:false};
 var volcanoTerrain = {name:"Volcano", code:81, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2246,8 +2248,140 @@ var volcanoTerrain = {name:"Volcano", code:81, draw:function(aWorldHex)
 															s += "Q" + (l+17) + " " + (t+10) + " " + (l+21) + " " + (t+7) + " ";
 															s += "Q" + (l+20) + " " + (t+17) + " " + (l+27) + " " + (t+25);
 															addPath(s, "2px", "black","none", aWorldHex.parentObj);
-														}, toString:function() { return this.name } , preferLand:true};
+														}, toString:function() { return this.name }, preferLand:true};
+var borderRedNNETerrain = {name:"BorderRedNNE", code:120, draw: function (aWorldHex) 
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x1 = 15 /*16*/
+															var y1 = 1 /*0*/
+															var x2 = 31 /*32*/
+															var y2 = 8 /*7*/ 
+															addLine(l+x1,t+y1,l+x2,t+y2,"3px",strokeColour,aWorldHex.parentObj,true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedNESETerrain = {name:"BorderRedNESE", code:121, draw: function (aWorldHex) 
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x2 = 31 /*32*/
+															var y2 = 8 /*7*/
+															var x3 = 31 /*32*/
+															var y3 = 29 /*28*/
+															addLine(l+x2, t+y2, l+x3, t+y3, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString:function () { return this.name }, preferLand: false};
+var borderRedSESTerrain = {name: "BorderRedSES", code: 122, draw: function (aWorldHex) 
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x3 = 31 /*32*/
+															var y3 = 27 /*28*/
+															var x4 = 15 /*16*/
+															var y4 = 34 /*35*/
+															addLine(l+x3, t+y3, l+x4, t+y4, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};														
+var borderRedSSWTerrain = {name: "BorderRedSSW", code: 123, draw: function (aWorldHex) 
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x4 = 15 /*16*/
+															var y4 = 34 /*35*/
+															var x5 = 1 /*0*/
+															var y5 = 27 /*28*/
+															addLine(l+x4, t+y4, l+x5, t+y5, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};														
+var borderRedSWNWTerrain = {name: "BorderRedSWNW", code: 124, draw: function (aWorldHex) 
+														{
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x5 = 1 /*0*/
+															var y5 = 27 /*28*/
+															var x6 = 1 /*0*/
+															var y6 = 8 /*7*/
+															addLine(l+x5, t+y5, l+x6, t+y6, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedNWNTerrain = {name: "BorderRedNWN", code: 125, draw: function (aWorldHex) 
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x1 = 15 /*16*/
+															var y1 = 1 /*0*/
+															var x6 = 1 /*0*/
+															var y6 = 8 /*7*/
+															addLine(l+x6, t+y6, l+x1, t+y1, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedCNTerrain = {name: "BorderRedCN", code: 126, draw: function (aWorldHex)
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x1 = 16;
+															var y1 = 0;
+															var cx = 17;
+															var cy = 18;
+															addLine(l+x1, t+y1, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedCNETerrain = {name: "BorderRedCNE", code: 127, draw: function (aWorldHex) 
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x2 = 32;
+															var y2 = 7;
+															var cx = 17;
+															var cy = 18;
+															addLine(l+x2, t+y2, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedCSETerrain = {name: "BorderRedCSE", code: 128, draw: function (aWorldHex) 
+														{ 
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x3 = 32;
+															var y3 = 28;
+															var cx = 17;
+															var cy = 18;
+															addLine(l+x3, t+y3, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedCSTerrain = {name: "BorderRedCS", code: 129, draw: function (aWorldHex) 
+														{
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x4 = 16;
+															var y4 = 35;
+															var cx = 17;
+															var cy = 18;
+															addLine(l+x4, t+y4, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedCSWTerrain = {name: "BorderRedCSW", code: 130, draw: function (aWorldHex) 
+														{
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x5 = 0;
+															var y5 = 28;
+															var cx = 17;
+															var cy = 18;
+															addLine(l+x5, t+y5, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false};
+var borderRedCNWTerrain = {name: "BorderRedCNW", code: 131, draw: function (aWorldHex) 
+														{
+															var l = aWorldHex.left_offset;
+															var t = aWorldHex.top_offset;
+															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
+															var x6 = 0;
+															var y6 = 7;
+															var cx = 17;
+															var cy = 18;
+															addLine(l+x6, t+y6, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
 
+														}, toString: function () { return this.name }, preferLand: false};
 
 var allTerrain = {
 	0:disregardedTerrain,
@@ -2307,8 +2441,19 @@ var allTerrain = {
 	116:nobleTerrainf,
 	117:nobleTerrainF,
 	118:desertTerrainWest,
-	119:desertTerrainEast
-
+	119:desertTerrainEast,
+	120:borderRedNNETerrain,
+	121:borderRedNESETerrain,
+	122:borderRedSESTerrain,
+	123:borderRedSSWTerrain,
+	124:borderRedSWNWTerrain,
+	125:borderRedNWNTerrain,
+	126:borderRedCNTerrain,
+	127:borderRedCNETerrain,
+	128:borderRedCSETerrain,
+	129:borderRedCSTerrain,
+	130:borderRedCSWTerrain,
+	131:borderRedCNWTerrain
 };
 
 var WORLD_HEX = 0;
@@ -2478,27 +2623,8 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		//the following is useful debugging code
 		//addText(me.left_offset+2, me.top_offset+16, me.name, "Arial", "10px","black",me.parentObj);
 		//addText(me.left_offset+2, me.top_offset+16, me.latitude + " " + me.hemisphere, "Arial", "12px","black",me.parentObj);
-		// 				me.upOrDown = UP_TRIANGLE;
-//				me.largeOrSmall = SMALL_TRIANGLE;
-/*		if(me.parentTriangle)
-		{
-			if(me.parentTriangle.upOrDown == UP_TRIANGLE)
-			{
-				if(me.parentTriangle.largeOrSmall == SMALL_TRIANGLE)
-					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "red", me.parentObj);
-				else
-					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "blue", me.parentObj);
-			}
-			else
-			{
-				if(me.parentTriangle.largeOrSmall == SMALL_TRIANGLE)
-					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "green", me.parentObj);
-				else
-					addText(me.left_offset+6, me.top_offset+24, me.hexID, "Arial", "24px", "black", me.parentObj);
-			}
-		}
-*/				
 	}
+	
 	// max col = 2 * 5 * size
 	me.getEastNeighbour = function()
 	{
