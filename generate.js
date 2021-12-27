@@ -297,7 +297,6 @@ function import_sys(input_file_obj)
 		temp_mainWorld.read_dbObj(sys_obj.mainWorld);
 		temp_mainWorld.system = temp_mainWorld.name + " (" + temp_mainWorld.hex + " " + temp_mainWorld.sector + ")";
 		mySystem = new fullSystem(temp_mainWorld, sysDiv,symbolDiv,detailDiv,false);
-		debugger;
 		mySystem.read_dbObj(sys_obj);
 		origMWData = temp_mainWorld.saveDataObj();
 		currentWorld = mySystem.mainWorld;
@@ -596,6 +595,7 @@ function divsToShow(optionChosen)
 	document.getElementById("tutorial").style.display = "none";
 	document.getElementById("starContainer").style.display = "none";
 	document.getElementById("newCelestialObject").style.display = "none";
+	document.getElementById("worldMapEditorContainer").style.display = "none";
 	switch(optionChosen)
 	{
 		case 1:
@@ -672,6 +672,10 @@ function divsToShow(optionChosen)
 			}
 			document.getElementById("newCelestialObject").style.display = "block";
 			break;
+		case 14:
+			document.getElementById("worldMapEditorContainer").style.display = "block";
+			break;
+			
 	}
 }
 
@@ -1205,4 +1209,28 @@ function addObject()
 	}
 	loadSystemOntoPage(mySystem);
 	divsToShow(1);
+}
+
+var editing_map;
+function editMap()
+{
+	var worldMapEditDiv = document.getElementById(EDIT_WORLD_MAP_DIV_NAME);
+	var worldMapEditSVG = document.getElementById(EDIT_WORLD_MAP_SVG_NAME);
+	while(worldMapEditSVG.childNodes.length > 0)
+		worldMapEditSVG.removeChild(worldMapEditSVG.firstChild);
+	divsToShow(14);
+	editing_map = new worldMap(currentWorld, worldMapEditSVG, worldMapEditDiv, false, true);
+	editing_map.generate();
+	editing_map.loadObj(currentWorld.mapData);
+	editing_map.render(true);
+	editing_map.outline(true);
+	var editingToolbar = new editingToolBar(editing_map);
+	document.getElementById("mapEditPlaceholder").style.display = "none";
+}
+
+function finishEditingMap()
+{	
+	currentWorld.mapData = editing_map.genSaveObj();
+	currentWorld.editDetails();
+	divsToShow(2);
 }

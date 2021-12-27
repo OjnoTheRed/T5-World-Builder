@@ -84,6 +84,7 @@ li.normal {
 
 .container {
 	background-color: transparent;
+	position: relative;
 }
 
 .userInput {
@@ -726,4 +727,14 @@ Subdued brighter red = #c3073f
 	width:100%;
 	text-align:left;
 	font-size:12px;
+}
+
+.editToolbar {
+	position: absolute;
+	top: 10px;
+	left: 1%;
+	border: 3px solid #050505;
+	z-index: 1;
+	width:98%;
+	height:80px;
 }

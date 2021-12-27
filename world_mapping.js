@@ -10,8 +10,9 @@ var svgNS = "http://www.w3.org/2000/svg";
 var DOWNLOAD_BUTTON_CLASS = "btn1";
 var DEFAULT_INFO_PARAGRAPH_CLASS = "white";
 var SLIDE_COUNTER = 0;
+const MAP_EDIT_TOOLBAR_NAME = "mapEditToolbar"
 
-function worldMap(world, parentObj, containerDiv, blankMap)
+function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 {
 	var me = this;
 	me.world = world;
@@ -41,6 +42,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	me.skipSeas = false;
 	me.saveObj = [];
 	me.blank = arguments.length < 4 ? false : blankMap;
+	me.editMode = arguments.length < 5 ? false : editMode;
 
 	me.generate = function()
 	{
@@ -49,14 +51,28 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			return;
 		var northPole = new worldHex(me, me.parentObj, null, -1, -1, -1);
 		northPole.renderFlag = false;
+		northPole.x = -1;
+		northPole.y = -1;
 		var southPole = new worldHex(me, me.parentObj, null, -2, -2, -2);
 		southPole.renderFlag = false;
-
+		southPole.x = -2;
+		southPole.y = -2;
 		for(var i=0;i<20;i++)
-		{
 			me.worldTriangles[i] = new worldTriangle(me, worldSize, me.parentObj, i);
-			//me.worldTriangles[i].generate();
-		}
+		for(i=0;i<me.rows.length;i++)
+			me.rows[i].sort(function(a,b) { return a.columnNumber - b.columnNumber });
+		me.rows.map(function (row, i) { row.map(function(hex,j) 
+													{	
+														hex.y = i; 
+														hex.x = j; 
+														if((hex.y == worldSize-1 || hex.y == me.totalRows-worldSize) && ((hex.x + 1) % worldSize ) == 0)
+															hex.pentagon = true;
+														if(hex.parentTriangle.id % 4 == 0 && hex.x == (hex.y * ((hex.parentTriangle.id / 4) + 1) + hex.parentTriangle.id/4))
+															hex.northPolarEdge = true;
+														if((hex.parentTriangle+1) % 4 == 0 && hex.x == ((worldSize*3-hex.y-1)*((hex.parentTriangle.id+1)/4)-1))
+															hex.southPolarEdge = true;
+													} ) } );
+		
 		if(!me.blank)
 		{
 			desert();
@@ -85,8 +101,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			if(uPObj.prefs.place_noble_estate)
 				nobleLand();
 			resourceHexes();
-			for(i=0;i<me.rows.length;i++)
-				me.rows[i].sort(function(a,b) { return a.columnNumber - b.columnNumber });
 		}
 	}
 
@@ -166,7 +180,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			return;
 		}
 		for(var i=0;i<me.worldTriangles.length;i++)
-			me.worldTriangles[i].render();
+			me.worldTriangles[i].render(me.editMode);
 		if(worldSize != 1)
 		{
 			for(i=0;i<2;i++)
@@ -239,14 +253,15 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 
 	}
 
-	me.outline = function()
+	me.outline = function(editingFlag)
 	{
+		if(arguments.length < 1) editingFlag = false;
 		var worldSize = me.world.uwp.size;
 		if(worldSize == 0)
 			return;
 		if(worldSize == 1)
 		{
-			me.outline_size_1();
+			me.outline_size_1(editingFlag);
 			return;
 		}
 		for(var i=0;i<me.worldTriangles.length;i++)
@@ -298,7 +313,7 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		addLine(me.mapCornerPoints[3].x, me.mapCornerPoints[3].y, me.mapCornerPoints[5].x, me.mapCornerPoints[5].y, "2px","black", me.parentObj);
 		addRectangle(0, 0, MAP_LEFT_OFFSET + 6*(sizeUsed+1)*32, MAP_TOP_OFFSET-10, "white",0,"none", me.parentObj);
 		addRectangle(0, me.mapCornerPoints[2].y, MAP_LEFT_OFFSET + 6*(sizeUsed+1)*32, 500, "white",0,"none", me.parentObj);
-		if(!me.blank)
+		if(!me.blank && !editingFlag)
 		{
 			me.worldText();
 			me.key.render();
@@ -418,19 +433,21 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 
 	me.getHex = function(col, row)
 	{
-
 		return me.namedHexes["(" + col + "," + row + ")"];
-		/*
-		var i=me.hexes.length;
-		while(i--)
-		{
-			if(me.hexes[i].rowNumber == row && me.hexes[i].columnNumber == col)
-				return me.hexes[i];
-		}
-		return false;
-		*/
 	}
 
+	me.fetchHex = function(x,y)
+	{
+		if(x==-1)
+			return me.hexes[0];
+		if(x==-2)
+			return me.hexes[1];
+		if(x >= me.rows[y].length)
+			x -= me.rows[y].length; // wrap around
+		if(x < 0)
+			x = me.rows[y].length - x;
+		return me.rows[y][x];
+	}
 
 	me.slideTerrain = function(slideRight)
 	{
@@ -691,7 +708,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(!me.world.tcs.has("De"))
 			return;
-		me.key.addHex(desertTerrain);
 		for(var i=0;i<me.hexes.length;i++)
 			me.hexes[i].add(desertTerrain);
 	}
@@ -711,7 +727,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(me.systemZone == "I")
 			return;
-		me.key.addHex(icecapTerrain);
 		var iceCapRows = Math.floor(me.world.uwp.hydro/2)-1;
 		if(me.world.uwp.size == 1)
 		{
@@ -768,12 +783,10 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			{
 				hex.erase(oceanTerrain);
 				hex.add(iceFieldTerrain);
-				me.key.addHex(iceFieldTerrain);
 			}
 			else
 			{
 				hex.add(frozenLandTerrain);
-				me.key.addHex(frozenLandTerrain);
 			}
 		}
 	}
@@ -795,12 +808,10 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 				{
 					hex.erase(oceanTerrain);
 					hex.add(iceFieldTerrain);
-					me.key.addHex(iceFieldTerrain);
 				}
 				else
 				{
 					hex.add(frozenLandTerrain);
-					me.key.addHex(frozenLandTerrain);
 				}
 			}
 	}
@@ -811,7 +822,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		var Farming = me.world.tcs.has("Fa");
 		if(!Agricultural && !Farming)
 			return;
-		me.key.addHex(cropTerrain);
 		if(me.world.uwp.size == 1)
 		{
 			var numCropLand = 0;
@@ -846,7 +856,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(!me.world.tcs.has("Lo") && !me.world.tcs.has("Ni"))
 			return;
-		me.key.addHex(townTerrain);
 		var shuffledHexes = shuffle(me.hexes);
 		var selectedHex;
 		shuffledHexes.sort(sort_land_first);
@@ -863,7 +872,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		var cityType = cityTerrain;
 		if((me.world.uwp.atmos == 0 || me.world.uwp.atmos == 1 || (me.world.uwp.atmos > 9 && me.world.uwp.atmos < 13) || (me.world.atmos > 13)) && !(me.world.nativeIntLife.type.name == "Natives" || me.world.nativeIntLife.type.name == "Exotic Natives"))
 			cityType = domedCityTerrain;
-		me.key.addHex(cityType);
 		if(me.world.uwp.size == 1)
 		{
 			for(var i=0;i<me.hexes.length;i++)
@@ -889,7 +897,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(!me.world.tcs.has("Hi"))
 			return;
-		me.key.addHex(arcologyTerrain);
 		var numArcologies = Math.floor(me.world.uwp.popul / 2);
 		if(me.world.uwp.size == 1)
 		{
@@ -914,7 +921,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(me.cityHexes.length == 0)
 			return;
-		me.key.addHex(ruralTerrain);
 		if(me.world.uwp.size == 1)
 		{
 			if(me.cityHexes.length > 0)
@@ -936,7 +942,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(me.world.uwp.port == "X" || me.world.uwp.port == "Y")
 			return;
-		me.key.addHex(starportTerrain);
 		var selectedHex;
 		if(me.cityHexes.length > 0)
 			selectedHex = array_fnc.random.call(me.cityHexes);
@@ -961,7 +966,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(!me.world.tcs.has("Pe"))
 			return;
-		me.key.addHex(penalTerrain);
 		var numPenal = me.world.uwp.popul;
 		if(me.world.uwp.size == 1)
 		{
@@ -987,7 +991,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 	{
 		if(me.world.uwp.TL < 5)
 			return;
-		me.key.addHex(wasteTerrain);
 		var numWaste = dice(1);
 		if(me.world.uwp.size == 1)
 		{
@@ -1007,7 +1010,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 
 	function exotic()
 	{
-		me.key.addHex(exoticTerrain);
 		array_fnc.random.call(me.hexes).add(exoticTerrain);
 	}
 
@@ -1052,7 +1054,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 						terrain = nobleTerrainF;
 						num = 4;
 				}
-				me.key.addHex(terrain);
 				for(var j=0;j<num;j++)
 				{
 					var selectedHex;
@@ -1067,7 +1068,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 		}
 		else
 		{
-			me.key.addHex(nobleTerrain);
 			var selectedHex;
 			do
 			{
@@ -1080,7 +1080,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 
 	function resourceHexes()
 	{
-		me.key.addHex(resourceTerrain);
 		var numResources = me.world.economicExt.resources;
 		if(me.world.uwp.TL < 8)
 			numResources -= (me.world.belts + me.world.gas_giants);
@@ -1109,7 +1108,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 
 	function clearTerrainAllocate()
 	{
-		me.key.addHex(clearTerrain);
 		for(var i=0;i<me.hexes.length;i++)
 			if(me.hexes[i].noTerrain())
 				me.hexes[i].terrainTypes.push(clearTerrain);
@@ -1146,52 +1144,44 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 			{
 				hex.erase(oceanTerrain);
 				hex.add(iceFieldTerrain);
-				me.key.addHex(iceFieldTerrain);
 				hex.erase(islandTerrain);
 			}
 			else
 			{
 				hex.add(frozenLandTerrain);
-				me.key.addHex(frozenLandTerrain);
 			}
 			hex = me.getHex(4,1);
 			if(hex.has(oceanTerrain))
 			{
 				hex.erase(oceanTerrain);
 				hex.add(iceFieldTerrain);
-				me.key.addHex(iceFieldTerrain);
 				hex.erase(islandTerrain);
 			}
 			else
 			{
 				hex.add(frozenLandTerrain);
-				me.key.addHex(frozenLandTerrain);
 			}
 			hex = me.getHex(9,0);
 			if(hex.has(oceanTerrain))
 			{
 				hex.erase(oceanTerrain);
 				hex.add(desertTerrain);
-				me.key.addHex(desertTerrain);
 				hex.erase(islandTerrain);
 			}
 			else
 			{
 				hex.add(bakedLandsTerrain);
-				me.key.addHex(bakedLandsTerrain);
 			}
 			hex = me.getHex(10,1);
 			if(hex.has(oceanTerrain))
 			{
 				hex.erase(oceanTerrain);
 				hex.add(desertTerrain);
-				me.key.addHex(desertTerrain);
 				hex.erase(islandTerrain);
 			}
 			else
 			{
 				hex.add(bakedLandsTerrain);
-				me.key.addHex(bakedLandsTerrain);
 			}
 			return;
 		}
@@ -1207,13 +1197,11 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 				{
 					hex.erase(oceanTerrain);
 					hex.add(iceFieldTerrain);
-					me.key.addHex(iceFieldTerrain);
 					hex.erase(islandTerrain);
 				}
 				else
 				{
 					hex.add(frozenLandTerrain);
-					me.key.addHex(frozenLandTerrain);
 				}
 			}
 			if(hex.columnNumber < me.twilightZoneWestCol-1 || hex.columnNumber > me.twilightZoneEastCol+1)
@@ -1222,12 +1210,10 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 				{
 					hex.erase(oceanTerrain);
 					hex.add(desertTerrain);
-					me.key.addHex(desertTerrain);
 					if(hex.has(islandTerrain))
 					{
 						hex.erase(islandTerrain);
 						hex.add(mountainTerrain);
-						me.key.addHex(mountainTerrain);
 					}
 				}
 				else
@@ -1235,7 +1221,6 @@ function worldMap(world, parentObj, containerDiv, blankMap)
 					hex.add(bakedLandsTerrain);
 					me.key.addHex(bakedLandsTerrain);
 				}
-				hex.erase(icecapTerrain);
 			}
 		}
 		for(i=0;i<zoneHexes.length;i++)
@@ -1432,10 +1417,10 @@ function worldTriangle(worldMapObj, worldSize, parentObj, id)
 			me.hexes[i].left_offset += forward ? offset : -offset;
 	}
 
-	me.render = function()
+	me.render = function(editFlag)
 	{
 		for(var i=0;i<me.hexes.length;i++)
-			me.hexes[i].render();
+			me.hexes[i].render(editFlag);
 		if(me.largeOrSmall == SMALL_TRIANGLE && me.upOrDown == UP_TRIANGLE && me.worldSize > 1)
 		{
 			var pole_hex_left_offset = me.hexes[0].left_offset-16;
@@ -1594,10 +1579,18 @@ function worldTriangle(worldMapObj, worldSize, parentObj, id)
 	me.generate();
 }
 
-var disregardedTerrain = {name:"Disregarded", code:0, draw:function(aWorldHex)
-														{
-															aWorldHex.hexElem.style.fill = "#DCDCDC";
-														}, toString:function() { return this.name }, preferLand:false};
+/*
+TERRAIN DEFINITIONS
+defines the actual drawing of terrain, its code for saving, its name, and various flags to classify them.
+
+Type is an integer with the following meanings:
+0 - base terrain: a hex must have exactly one base terrain assigned
+1 - symbol: a hex can have any number of terrain classed as a symbol
+2 - overlay: a hex may have 0 or 1 overlay terrain (generally the half-hexes needed for Twilight Zone worlds)
+3 - key only: may not be placed on the map (e.g. scale)
+
+*/
+
 var resourceTerrain = {name:"Resource", code:85, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1610,7 +1603,7 @@ var resourceTerrain = {name:"Resource", code:85, draw:function(aWorldHex)
 															s += "L " + (l+21) + " " + (t+18);
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(102,0,102)";
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var mountainTerrain = {name:"Mountain", code:21, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1626,7 +1619,7 @@ var mountainTerrain = {name:"Mountain", code:21, draw:function(aWorldHex)
 															else
 																fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.mountain_terrain_bw_bg : (aWorldHex.world.uwp.atmos == 1 ? uPObj.prefs.mountain_terrain_mars_bg : uPObj.prefs.mountain_terrain_default_bg);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var chasmTerrain = {name:"Chasm", code:23, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1636,7 +1629,7 @@ var chasmTerrain = {name:"Chasm", code:23, draw: function(aWorldHex)
 															addLine(l+5,t+22,l+10,t+30,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+22,t+30,l+27,t+22,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+27,t+22,l+29,t+22,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var precipiceTerrain = {name:"Precipice", code:45, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1648,7 +1641,7 @@ var precipiceTerrain = {name:"Precipice", code:45, draw:function(aWorldHex)
 															addLine(l+14,t+20,l+19,t+28,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+10,t+23,l+12,t+23,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+12,t+23,l+17,t+31,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var precipiceTerrainRed = {name:"Precipice", code:45, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1660,7 +1653,7 @@ var precipiceTerrainRed = {name:"Precipice", code:45, draw:function(aWorldHex)
 															addLine(l+14,t+20,l+19,t+28,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+10,t+23,l+12,t+23,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+12,t+23,l+17,t+31,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var ruinsTerrain = {name:"Ruins", code:26, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1670,7 +1663,7 @@ var ruinsTerrain = {name:"Ruins", code:26, draw:function(aWorldHex)
 															s += "M" + (l + 18) + " " + (t+11) + " L" + (l+18) + " " + (t+5) + " L" + (l+21) + " " + (t+5) + " L" + (l+21) + " " + (t+11) + " ";
 															s += "M" + (l + 23) + " " + (t+11) + " L" + (l+26) + " " + (t+8) + " L" + (l+29) + " " + (t+11);
 															addPath(s, 2, strokeColour, "none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var cratersTerrain = {name:"Craters", code:74, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1681,7 +1674,7 @@ var cratersTerrain = {name:"Craters", code:74, draw:function(aWorldHex)
 															addCircle(l+16, t+17, 9, 1, strokeColour, craterFill,aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
 
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:0};
 var desertTerrain = {name:"Desert", code:22, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1690,7 +1683,7 @@ var desertTerrain = {name:"Desert", code:22, draw: function(aWorldHex)
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
 															addLine(l+3,t+17,l+30,t+17,"3px",strokeColour,aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};														
 var desertTerrainWest = {name:"Desert West Half Only", code:118, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1699,7 +1692,7 @@ var desertTerrainWest = {name:"Desert West Half Only", code:118, draw: function(
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
 															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
 															addLine(l+3,t+17,l+16,t+17,"3px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1708,7 +1701,7 @@ var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
 															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
 															addLine(l+16,t+17,l+30,t+17,"3px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var oceanTerrain = {name:"Ocean", code:31, draw: function(aWorldHex)
 														{
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.ocean_bw_bg : uPObj.prefs.ocean_bg;
@@ -1724,7 +1717,7 @@ var oceanTerrain = {name:"Ocean", code:31, draw: function(aWorldHex)
 																	s += "Q" + (l+7+i*6) + " " + c + " " + (l+4+(i+1)*6) + " " + d + " ";
 																addPath(s, "2px", "black","none", aWorldHex.parentObj);
 															}
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var oceanDepthTerrain = {name:"Ocean Depth", code:71, draw: function(aWorldHex)
 														{
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.ocean_depth_bw_bg : uPObj.prefs.ocean_depth_bg;
@@ -1743,7 +1736,7 @@ var oceanDepthTerrain = {name:"Ocean Depth", code:71, draw: function(aWorldHex)
 																	addPath(s, "2px", "black","none", aWorldHex.parentObj);
 																}
 															}
-														}, toString:function(){ return this.name}, preferLand:false, creep:oceanTerrain};
+														}, toString:function(){ return this.name}, preferLand:false, creep:oceanTerrain, type:0};
 var oceanAbyssTerrain = {name:"Ocean Abyss", code:72, draw: function(aWorldHex)
 														{
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.ocean_abyss_bw_bg : uPObj.prefs.ocean_abyss_bg;
@@ -1762,14 +1755,14 @@ var oceanAbyssTerrain = {name:"Ocean Abyss", code:72, draw: function(aWorldHex)
 																	addPath(s, "2px", "black","none", aWorldHex.parentObj);
 																}
 															}
-														}, toString:function(){ return this.name}, preferLand:false, creep:oceanDepthTerrain};
+														}, toString:function(){ return this.name}, preferLand:false, creep:oceanDepthTerrain, type:0};
 var islandTerrain = {name:"Island", code:32, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var islandFill = uPObj.prefs.black_and_white_map ? uPObj.prefs.mountain_terrain_bw_bg : uPObj.prefs.clear_terrain_default_bg;
 															addCircle(l+16, t+17, 5, 1, "black", islandFill,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var icecapTerrain = {name:"Ice cap", code:36, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1780,7 +1773,7 @@ var icecapTerrain = {name:"Ice cap", code:36, draw:function(aWorldHex)
 															addCircle(l+16, t+6, 2, 1, strokeColour, strokeColour,aWorldHex.parentObj);
 															addCircle(l+23, t+6, 2, 1, strokeColour, strokeColour,aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = "white";
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var iceFieldTerrain = {name:"Ice Field", code:44, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1796,7 +1789,7 @@ var iceFieldTerrain = {name:"Ice Field", code:44, draw:function(aWorldHex)
 															addPath(s2,2,"black","none",aWorldHex.parentObj);
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(230,236,255)";
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var iceFieldTerrainWest = {name:"Ice Field West Half Only", code:108, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1809,7 +1802,7 @@ var iceFieldTerrainWest = {name:"Ice Field West Half Only", code:108, draw:funct
 															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
 															addPath(s, 2, "black", "none",aWorldHex.parentObj);
 															addPath(s1,2,"black","none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var iceFieldTerrainEast = {name:"Ice Field East Half Only", code:109, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1822,7 +1815,7 @@ var iceFieldTerrainEast = {name:"Ice Field East Half Only", code:109, draw:funct
 															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour, aWorldHex.parentObj);
 															addPath(s, 2, "black", "none", aWorldHex.parentObj);
 															addPath(s1, 2,"black", "none", aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var frozenLandTerrain = {name:"Frozen Land", code:43, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1832,7 +1825,7 @@ var frozenLandTerrain = {name:"Frozen Land", code:43, draw:function(aWorldHex)
 															addPath("M " + (l+5) + " " + (t+12) + " Q " + (l+11) + " " + (t+9) + " " + (l+16) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
 															addPath("M " + (l+16) + " " + (t+12) + " Q " + (l+21) + " " + (t+15) + " " + (l+27) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var frozenLandTerrainWest = {name:"Frozen Land West Half Only", code:106, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1841,7 +1834,7 @@ var frozenLandTerrainWest = {name:"Frozen Land West Half Only", code:106, draw:f
 															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
 															addLine(l+5,t+7,l+16,t+7,"2px","rgb(0,0,0)",aWorldHex.parentObj);
 															addPath("M " + (l+5) + " " + (t+12) + " Q " + (l+11) + " " + (t+9) + " " + (l+16) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var frozenLandTerrainEast = {name:"Frozen Land East Half Only", code:107, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1850,7 +1843,7 @@ var frozenLandTerrainEast = {name:"Frozen Land East Half Only", code:107, draw:f
 															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
 															addLine(l+16,t+7,l+27,t+7,"2px","black",aWorldHex.parentObj);
 															addPath("M " + (l+16) + " " + (t+12) + " Q " + (l+21) + " " + (t+15) + " " + (l+27) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var cropTerrain = {name:"Crop Land", code:24, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1860,14 +1853,14 @@ var cropTerrain = {name:"Crop Land", code:24, draw:function(aWorldHex)
 															for(var i=1;i<=7;i++)
 																s += "M " + (l+i*4) + " " + (t+14) + " L " + (l+i*4) + " " + (t+23) + " ";
 															addPath(s, 2, strokeColour, "none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var townTerrain = {name:"Town", code:55, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(255,0,255)";
 															addRectangle(l+20, t+23, 7, 7, "none", "2px", strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var cityTerrain = {name:"City", code:51, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1879,7 +1872,7 @@ var cityTerrain = {name:"City", code:51, draw:function(aWorldHex)
 															addRectangle(l+23, t+26, 4, 4, "none", "1px", strokeColour,aWorldHex.parentObj);
 															addRectangle(l+14, t+25, 1, 1, "none", "1px", strokeColour,aWorldHex.parentObj);
 															addRectangle(l+29, t+25, 1, 1, "none", "1px", strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var suburbTerrain = {name:"Suburb", code:54, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1893,7 +1886,7 @@ var suburbTerrain = {name:"Suburb", code:54, draw:function(aWorldHex)
 															addCircle(l+14, t+15, 2, 1, "black","black",aWorldHex.parentObj);
 															addCircle(l+17, t+12, 2, 1, "black","black",aWorldHex.parentObj);
 															addCircle(l+21, t+9, 2, 1, "black","black",aWorldHex.parentObj);
-														}, toString:function() { return this.name }, preferLand:true};
+														}, toString:function() { return this.name }, preferLand:true, type:1};
 var domedCityTerrain = {name:"Domed City", code:52, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1901,7 +1894,7 @@ var domedCityTerrain = {name:"Domed City", code:52, draw:function(aWorldHex)
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(255,0,255)";
 															addLine(l+4,t+27,l+28,t+27,"2px",strokeColour,aWorldHex.parentObj);
 															addPath("M " + (l+7) + " " + (t+27) + " Q " + (l+16) + " " + (t+17) + " " + (l+25) + " " + (t+27),2,strokeColour,"none",aWorldHex.parentObj);
-														}, toString:function() { return this.name }, preferLand:true};
+														}, toString:function() { return this.name }, preferLand:true, type:1};
 var arcologyTerrain = {name:"Arcology", code:53, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1911,7 +1904,7 @@ var arcologyTerrain = {name:"Arcology", code:53, draw:function(aWorldHex)
 															addPath(s, 1, strokeColour, "none",aWorldHex.parentObj);
 															addRectangle(l+4,t+8,4,4,"none","1px",strokeColour,aWorldHex.parentObj);
 															addRectangle(l+10,t+8,4,4,"none","1px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var ruralTerrain = {name:"Rural", code:25, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1921,7 +1914,7 @@ var ruralTerrain = {name:"Rural", code:25, draw:function(aWorldHex)
 																addLine((l+2)+i*5,(t+16)+i*4,(l+2)+i*5,(t+23)+i*4,"2px",strokeColour,aWorldHex.parentObj);
 															for(i=0;i<2;i++)
 																addLine(l+2,(t+17)+i*3,l+13,(t+27)+i*3,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var starportTerrain = {name:"Starport", code:56, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1930,7 +1923,7 @@ var starportTerrain = {name:"Starport", code:56, draw:function(aWorldHex)
 															addCircle(l+16, t+17, 5, 1, strokeColour, "none",aWorldHex.parentObj)
 															addLine(l+16,t+7,l+16,t+28,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+6,t+17,l+26,t+17,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var bakedLandsTerrain = {name:"Baked Lands", code:41, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1941,7 +1934,7 @@ var bakedLandsTerrain = {name:"Baked Lands", code:41, draw:function(aWorldHex)
 																addRectangle(l+3+i*4,t+7,2,2,strokeColour,"1px",strokeColour,aWorldHex.parentObj);
 															addLine(l+3,t+11,l+29,t+11,"2px",strokeColour,aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var bakedLandsWestHalfTerrain = {name:"Baked Lands West Half Only", code:104, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1952,7 +1945,7 @@ var bakedLandsWestHalfTerrain = {name:"Baked Lands West Half Only", code:104, dr
 															for(var i=0;i<4;i++)
 																addRectangle(l+3+i*4,t+7,2,2,strokeColour,"1px",strokeColour,aWorldHex.parentObj);
 															addLine(l+3,t+11,l+16,t+11,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var bakedLandsEastHalfTerrain = {name:"Baked Lands East Half Only", code:105, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1963,7 +1956,7 @@ var bakedLandsEastHalfTerrain = {name:"Baked Lands East Half Only", code:105, dr
 															for(var i=4;i<7;i++)
 																addRectangle(l+3+i*4,t+7,2,2,strokeColour,"1px",strokeColour,aWorldHex.parentObj);
 															addLine(l+16,t+11,l+29,t+11,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var penalTerrain = {name:"Penal Settlement", code:57, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1973,7 +1966,7 @@ var penalTerrain = {name:"Penal Settlement", code:57, draw:function(aWorldHex)
 																addLine((l+10)+i*6,t+9,(l+10)+i*6,t+27,"2px",strokeColour,aWorldHex.parentObj);
 															for(i=0;i<2;i++)
 																addLine(l+5,t+9+i*18,l+27,t+9+i*18,"2px",strokeColour,aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var wasteTerrain = {name:"Wasteland", code:75, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1984,7 +1977,7 @@ var wasteTerrain = {name:"Wasteland", code:75, draw:function(aWorldHex)
 															s += " L " + (l+16) + " " + (t+26) + " M " + (l+22) + " " + (t+26) + " L " + (l+24) + " " + (t+17) + " M " + (l+26) + " " + (t+21);
 															s += " L " + (l+28) + " " + (t+26);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var exoticTerrain = {name:"Exotic Terrain", code:46, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -1992,7 +1985,7 @@ var exoticTerrain = {name:"Exotic Terrain", code:46, draw:function(aWorldHex)
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(218,139,218)";
 															addLine(l+4,t+27,l+28,t+27,"2px",strokeColour,aWorldHex.parentObj);
 															addPath("M " + (l+10) + " " + (t+27) + " Q " + (l+16) + " " + (t+17) + " " + (l+22) + " " + (t+27), 2, strokeColour,"none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:1};
 var nobleTerrain = {name:"Noble Estate", code:82, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2002,7 +1995,7 @@ var nobleTerrain = {name:"Noble Estate", code:82, draw:function(aWorldHex)
 															s += " L " + (l+10) + " " + (t+21) + " L " + (l+9) + " " + (t+21) + " L " + (l+5) + " " + (t+17);
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerrainB = {name:"Noble Estate - Knight", code:110, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2013,7 +2006,7 @@ var nobleTerrainB = {name:"Noble Estate - Knight", code:110, draw:function(aWorl
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"B","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerrainc = {name:"Noble Estate - Baronet", code:111, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2024,7 +2017,7 @@ var nobleTerrainc = {name:"Noble Estate - Baronet", code:111, draw:function(aWor
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"c","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerrainC = {name:"Noble Estate - Baron", code:112, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2035,7 +2028,7 @@ var nobleTerrainC = {name:"Noble Estate - Baron", code:112, draw:function(aWorld
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"C","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerrainD = {name:"Noble Estate - Marquis", code:113, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2046,7 +2039,7 @@ var nobleTerrainD = {name:"Noble Estate - Marquis", code:113, draw:function(aWor
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"D","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerraine = {name:"Noble Estate - Viscount", code:114, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2057,7 +2050,7 @@ var nobleTerraine = {name:"Noble Estate - Viscount", code:114, draw:function(aWo
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"e","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerrainE = {name:"Noble Estate - Count", code:115, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2068,7 +2061,7 @@ var nobleTerrainE = {name:"Noble Estate - Count", code:115, draw:function(aWorld
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"E","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerrainf = {name:"Noble Estate - Duke", code:116, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2079,7 +2072,7 @@ var nobleTerrainf = {name:"Noble Estate - Duke", code:116, draw:function(aWorldH
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"f","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 var nobleTerrainF = {name:"Noble Estate - Duke (Capital)", code:117, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2090,7 +2083,7 @@ var nobleTerrainF = {name:"Noble Estate - Duke (Capital)", code:117, draw:functi
 															s += " L " + (l+5) + " " + (t+8);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															addText(l+6,t+17,"F","Arial","8pt","black",aWorldHex.parentObj);
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:1};
 
 var clearTerrain = {name:"Clear", code: 11, draw:function(aWorldHex)
 														{
@@ -2101,7 +2094,7 @@ var clearTerrain = {name:"Clear", code: 11, draw:function(aWorldHex)
 															else
 																fillColour = (uPObj.prefs.black_and_white_map) ? "white" : (aWorldHex.world.uwp.atmos == 1 ? uPObj.prefs.clear_terrain_mars_bg : uPObj.prefs.clear_terrain_default_bg);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false};
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var roughTerrain = {name:"Rough", code: 13, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2114,7 +2107,7 @@ var roughTerrain = {name:"Rough", code: 13, draw:function(aWorldHex)
 																addPath(s, 2, "black","none",aWorldHex.parentObj);
 															}
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name }, preferLand:true};
+														}, toString:function(){ return this.name }, preferLand:true, type:0};
 var woodsTerrain = {name:"Woods", code:14, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2128,7 +2121,7 @@ var woodsTerrain = {name:"Woods", code:14, draw:function(aWorldHex)
 															s += "Q " + (l+25) + " " + (t+12) + " " + (l+22) + " " + (t+14);
 															addPath(s, 2, strokeColour,"none",aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:true};
+														}, toString:function(){ return this.name}, preferLand:true, type:0};
 var swampTerrain = {name:"Swamp", code:15, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2139,7 +2132,7 @@ var swampTerrain = {name:"Swamp", code:15, draw:function(aWorldHex)
 															addLine(l+17,t+22,l+8,t+13,"2px","black",aWorldHex.parentObj);
 															addLine(l+17,t+22,l+27,t+13,"2px","black",aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function() {return this.name}, preferLand:true};
+														}, toString:function() {return this.name}, preferLand:true, type:0};
 var marshTerrain = {name:"Marsh", code:12, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2149,14 +2142,14 @@ var marshTerrain = {name:"Marsh", code:12, draw:function(aWorldHex)
 															addLine(l+5,t+17,l+31,t+17,"2px",strokeColour,aWorldHex.parentObj);
 															addLine(l+9,t+12,l+27,t+12,"2px",strokeColour,aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function() {return this.name} , preferLand:true};
+														}, toString:function() {return this.name} , preferLand:true, type:0};
 var lakeTerrain = {name:"Lake", code:35, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var lakeFill = uPObj.prefs.black_and_white_map ? "rgb(127,127,127)" : "blue";
 															addCircle(l+16, t+17, 8, 1, "black", lakeFill,aWorldHex.parentObj);
-														}, toString:function() {return this.name} , preferLand:true};
+														}, toString:function() {return this.name} , preferLand:true, type:0};
 var lakeTerrain2 = {name: "Lake", code: 37, draw:function(aWorldHex)
 														{
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.ocean_bw_bg : uPObj.prefs.ocean_bg;
@@ -2172,7 +2165,7 @@ var lakeTerrain2 = {name: "Lake", code: 37, draw:function(aWorldHex)
 																	s += "Q" + (l+7+i*6) + " " + c + " " + (l+4+(i+1)*6) + " " + d + " ";
 																addPath(s, "2px", "black","none", aWorldHex.parentObj);
 															}
-														}, toString:function() { return this.name }, preferLand:false};
+														}, toString:function() { return this.name }, preferLand:false, type:0};
 var worldHexScale = {name:"World Hex Scale", code:100, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2184,7 +2177,7 @@ var worldHexScale = {name:"World Hex Scale", code:100, draw:function(aWorldHex)
 															addLine(l+27,t+20,l+30,t+17,"2px","black",aWorldHex.parentObj);
 															addText(l+2, t+27, "1,000 km", "Arial, sans-serif", "8px", "black", aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = "white";
-														}, toString:function() {return this.name} , preferLand:false};
+														}, toString:function() {return this.name} , preferLand:false, type:3};
 var terrainHexScale = {name:"Terrain Hex Scale", code:101, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2196,7 +2189,7 @@ var terrainHexScale = {name:"Terrain Hex Scale", code:101, draw:function(aWorldH
 															addLine(l+28,t+27,l+25,t+30,"2px","black",aWorldHex.parentObj);
 															addText(l+2,t+17,"100 km", "Arial, sans-serif","8px","black",aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = "white";
-														}, toString:function() {return this.name} , preferLand:false};
+														}, toString:function() {return this.name} , preferLand:false, type:3};
 var localHexScale = {name:"Local Hex Scale", code:102, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2208,7 +2201,7 @@ var localHexScale = {name:"Local Hex Scale", code:102, draw:function(aWorldHex)
 															addLine(l+27,t+20,l+30,t+17,"2px","black",aWorldHex.parentObj);
 															addText(l+2, t+27, "10 km", "Arial, sans-serif", "8px", "black", aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = "white";
-														}, toString:function() {return this.name} , preferLand:false};
+														}, toString:function() {return this.name} , preferLand:false, type:3};
 var singleHexScale = {name:"Single Hex Scale", code:103, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2220,7 +2213,7 @@ var singleHexScale = {name:"Single Hex Scale", code:103, draw:function(aWorldHex
 															addLine(l+28,t+27,l+25,t+30,"2px","black",aWorldHex.parentObj);
 															addText(l+2,t+17,"1 km", "Arial, sans-serif","8px","black",aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = "white";
-														}, toString:function() {return this.name} , preferLand:false};
+														}, toString:function() {return this.name} , preferLand:false, type:3};
 var mineTerrain = {name:"Mine", code:84, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2228,7 +2221,7 @@ var mineTerrain = {name:"Mine", code:84, draw:function(aWorldHex)
 															addLine(l+10,t+22,l+11,t+9,"2px","black",aWorldHex.parentObj);
 															addLine(l+7,t+9,l+26,t+9,"2px","black",aWorldHex.parentObj);
 															addLine(l+23,t+22,l+22,t+9,"2px","black",aWorldHex.parentObj);
-														}, toString:function() {return this.name } , preferLand:true};
+														}, toString:function() {return this.name } , preferLand:true, type:1};
 var oilTerrain = {name:"Oil", code:86, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2239,7 +2232,7 @@ var oilTerrain = {name:"Oil", code:86, draw:function(aWorldHex)
 															addLine(l+14,t+9,l+21,t+9,"2px","black",aWorldHex.parentObj);
 															addLine(l+13,t+15,l+22,t+15,"2px","black",aWorldHex.parentObj);
 															addLine(l+12,t+21,l+23,t+21,"2px","black",aWorldHex.parentObj);
-														}, toString:function() { return this.name }, preferLand:false};
+														}, toString:function() { return this.name }, preferLand:false, type:1};
 var volcanoTerrain = {name:"Volcano", code:81, draw:function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
@@ -2248,143 +2241,93 @@ var volcanoTerrain = {name:"Volcano", code:81, draw:function(aWorldHex)
 															s += "Q" + (l+17) + " " + (t+10) + " " + (l+21) + " " + (t+7) + " ";
 															s += "Q" + (l+20) + " " + (t+17) + " " + (l+27) + " " + (t+25);
 															addPath(s, "2px", "black","none", aWorldHex.parentObj);
-														}, toString:function() { return this.name }, preferLand:true};
-var borderRedNNETerrain = {name:"BorderRedNNE", code:120, draw: function (aWorldHex) 
+														}, toString:function() { return this.name }, preferLand:true, type:0};
+var borderRedNNETerrain = {name:"Border N NE", code:120, draw: function (aWorldHex) 
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x1 = 15 /*16*/
-															var y1 = 1 /*0*/
-															var x2 = 31 /*32*/
-															var y2 = 8 /*7*/ 
-															addLine(l+x1,t+y1,l+x2,t+y2,"3px",strokeColour,aWorldHex.parentObj,true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedNESETerrain = {name:"BorderRedNESE", code:121, draw: function (aWorldHex) 
+															addLine(l+15,t+1,l+31,t+8,"3px",strokeColour,aWorldHex.parentObj,true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedNESETerrain = {name:"Border NE SE", code:121, draw: function (aWorldHex) 
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x2 = 31 /*32*/
-															var y2 = 8 /*7*/
-															var x3 = 31 /*32*/
-															var y3 = 29 /*28*/
-															addLine(l+x2, t+y2, l+x3, t+y3, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString:function () { return this.name }, preferLand: false};
-var borderRedSESTerrain = {name: "BorderRedSES", code: 122, draw: function (aWorldHex) 
+															addLine(l+31, t+8, l+31, t+29, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString:function () { return this.name }, preferLand: false, type:1};
+var borderRedSESTerrain = {name: "Border SE S", code: 122, draw: function (aWorldHex) 
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x3 = 31 /*32*/
-															var y3 = 27 /*28*/
-															var x4 = 15 /*16*/
-															var y4 = 34 /*35*/
-															addLine(l+x3, t+y3, l+x4, t+y4, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};														
-var borderRedSSWTerrain = {name: "BorderRedSSW", code: 123, draw: function (aWorldHex) 
+															addLine(l+31, t+27, l+15, t+34, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};														
+var borderRedSSWTerrain = {name: "Border S SW", code: 123, draw: function (aWorldHex) 
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x4 = 15 /*16*/
-															var y4 = 34 /*35*/
-															var x5 = 1 /*0*/
-															var y5 = 27 /*28*/
-															addLine(l+x4, t+y4, l+x5, t+y5, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};														
-var borderRedSWNWTerrain = {name: "BorderRedSWNW", code: 124, draw: function (aWorldHex) 
+															addLine(l+15, t+34, l+1, t+27, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};														
+var borderRedSWNWTerrain = {name: "Border SW NW", code: 124, draw: function (aWorldHex) 
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x5 = 1 /*0*/
-															var y5 = 27 /*28*/
-															var x6 = 1 /*0*/
-															var y6 = 8 /*7*/
-															addLine(l+x5, t+y5, l+x6, t+y6, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedNWNTerrain = {name: "BorderRedNWN", code: 125, draw: function (aWorldHex) 
+															addLine(l+1, t+27, l+1, t+8, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedNWNTerrain = {name: "Border NW N", code: 125, draw: function (aWorldHex) 
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x1 = 15 /*16*/
-															var y1 = 1 /*0*/
-															var x6 = 1 /*0*/
-															var y6 = 8 /*7*/
-															addLine(l+x6, t+y6, l+x1, t+y1, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedCNTerrain = {name: "BorderRedCN", code: 126, draw: function (aWorldHex)
+															addLine(l+1, t+8, l+15, t+1, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedCNTerrain = {name: "Border Centre N", code: 126, draw: function (aWorldHex)
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x1 = 16;
-															var y1 = 0;
-															var cx = 17;
-															var cy = 18;
-															addLine(l+x1, t+y1, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedCNETerrain = {name: "BorderRedCNE", code: 127, draw: function (aWorldHex) 
+															addLine(l+16, t+0, l+17, t+18, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedCNETerrain = {name: "Border Centre NE", code: 127, draw: function (aWorldHex) 
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x2 = 32;
-															var y2 = 7;
-															var cx = 17;
-															var cy = 18;
-															addLine(l+x2, t+y2, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedCSETerrain = {name: "BorderRedCSE", code: 128, draw: function (aWorldHex) 
+															addLine(l+32, t+7, l+17, t+18, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedCSETerrain = {name: "Border Centre SE", code: 128, draw: function (aWorldHex) 
 														{ 
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x3 = 32;
-															var y3 = 28;
-															var cx = 17;
-															var cy = 18;
-															addLine(l+x3, t+y3, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedCSTerrain = {name: "BorderRedCS", code: 129, draw: function (aWorldHex) 
+															addLine(l+32, t+28, l+17, t+18, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedCSTerrain = {name: "Border Centre S", code: 129, draw: function (aWorldHex) 
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x4 = 16;
-															var y4 = 35;
-															var cx = 17;
-															var cy = 18;
-															addLine(l+x4, t+y4, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedCSWTerrain = {name: "BorderRedCSW", code: 130, draw: function (aWorldHex) 
+															addLine(l+16, t+35, l+17, t+18, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedCSWTerrain = {name: "Border Centre SW", code: 130, draw: function (aWorldHex) 
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x5 = 0;
-															var y5 = 28;
-															var cx = 17;
-															var cy = 18;
-															addLine(l+x5, t+y5, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
-														}, toString: function () { return this.name }, preferLand: false};
-var borderRedCNWTerrain = {name: "BorderRedCNW", code: 131, draw: function (aWorldHex) 
+															addLine(l+0, t+28, l+17, t+18, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
+var borderRedCNWTerrain = {name: "Border Centre NW", code: 131, draw: function (aWorldHex) 
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : uPObj.prefs.border_colour;
-															var x6 = 0;
-															var y6 = 7;
-															var cx = 17;
-															var cy = 18;
-															addLine(l+x6, t+y6, l+cx, t+cy, "3px", strokeColour, aWorldHex.parentObj, true);
-
-														}, toString: function () { return this.name }, preferLand: false};
+															addLine(l+0, t+7, l+17, t+18, "3px", strokeColour, aWorldHex.parentObj, true);
+														}, toString: function () { return this.name }, preferLand: false, type:1};
 
 var allTerrain = {
-	0:disregardedTerrain,
 	11:clearTerrain,
 	12:marshTerrain,
 	13:roughTerrain,
@@ -2489,6 +2432,11 @@ function mapHex(mapObj, parentObj, left_offset, top_offset)
 	{
 		return (me.terrainTypes.find(function(v) { return v.name == terrainObject.name }) !== undefined);
 	}
+	
+	me.base = function()
+	{
+		return me.terrainTypes.find(function(v) { return v.type == 0; });
+	}
 
 	me.add = function(terrainObject)
 	{
@@ -2575,6 +2523,7 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 	var me = this;
 	me.parentTriangle = parentTriangle;
 	me.hexID = hexID;
+	me.isTool = false;
 
 	me.calcRow = function()
 	{
@@ -2586,8 +2535,10 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		return me.left_offset < 0 ? me.left_offset : (me.left_offset - MAP_LEFT_OFFSET) / 16;
 	}
 
-	me.render = function()
+	me.render = function(editFlag)
 	{
+		if(arguments.length < 1)
+			editFlag = false;
 		if(!me.renderFlag)
 			return;
 		var x1=16+me.left_offset;
@@ -2604,25 +2555,62 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		var y6=7+me.top_offset;
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		me.hexElem = addPolygon(pointsCoord, 1, "black", "none", me.parentObj);
-		//Drag and Drop listeners need to be added here - note that the key simply draws these hexes as well as the map triangles
+		
 		if(me.clickEnabled)
 			me.hexElem.onclick = function() { generateHexMap(me, "World Hex", worldHexMap); };
+		if(editFlag)
+			me.hexElem.onclick = function() { me.editTerrain(); };
+		if(me.isTool)
+			me.hexElem.onclick = function() { CURRENT_TOOL_CODE = me.terrainTypes[0].code; };
 
 		for(var i=0;i<me.terrainTypes.length;i++)
+		{
 			me.terrainTypes[i].draw(me);
-		//Note that terrain needs to be dragable into a hex
-		if(me.hexElem.style.fill == "none" && me.parentTriangle && !me.parentTriangle.map.blank)
+			if(!editFlag)
+				me.map.key.addHex(me.terrainTypes[i]);
+		}
+		
+		if(me.hexElem.style.fill == "none" /*&& me.parentTriangle*/ && !me.map.blank)
 		{
 			if(me.world.tcs.has("Va"))
 				var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.clear_terrain_bw_bg : uPObj.prefs.clear_terrain_grey_bg;
 			else
-				var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.clear_terrain_bw_bg : (me.parentTriangle.map.world.uwp.atmos == 1 ? uPObj.prefs.clear_terrain_mars_bg : uPObj.prefs.clear_terrain_default_bg);
+				var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.clear_terrain_bw_bg : (me.map.world.uwp.atmos == 1 ? uPObj.prefs.clear_terrain_mars_bg : uPObj.prefs.clear_terrain_default_bg);
 
 			me.hexElem.style.fill = fillColour;
 		}
 		//the following is useful debugging code
 		//addText(me.left_offset+2, me.top_offset+16, me.name, "Arial", "10px","black",me.parentObj);
-		//addText(me.left_offset+2, me.top_offset+16, me.latitude + " " + me.hemisphere, "Arial", "12px","black",me.parentObj);
+		//addText(me.left_offset+2, me.top_offset+32, "["+me.x+","+me.y+"]", "Arial", "10px","red",me.parentObj);
+	}
+	
+	me.editTerrain = function()
+	{
+		var terrainToAdd = allTerrain[CURRENT_TOOL_CODE];
+		switch(terrainToAdd.type)
+		{
+			case 0:
+				var terrainToReplace = me.base();
+				if(terrainToAdd.name != terrainToReplace.name)
+					me.transform(terrainToReplace, terrainToAdd);
+				break;
+			case 1:
+				me.add(terrainToAdd);					
+				break;
+			case 2:
+				var existingOverlay = me.terrainTypes.find(function(v) { return v.type == 1; });
+				if(existingOverlay === undefined)
+					me.add(terrainToAdd);
+				else
+					me.transform(existingOverlay, terrainToAdd);				
+		}
+		do
+		{
+			me.parentObj.removeChild(me.parentObj.childNodes[0]);
+		}
+		while(me.parentObj.hasChildNodes());
+		me.map.render();
+		me.map.outline(true);
 	}
 	
 	// max col = 2 * 5 * size
@@ -2648,178 +2636,156 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 
 	me.getAdjacentHexes = function()
 	{
-		var row = me.rowNumber;
-		var col = me.columnNumber;
+		var neighbours = [];
 		var wsize = me.map.world.uwp.size;
-		var notionalNeighbours = [];
-		var actualNeighbours = [];
-		if(row == -1 && col == -1)
+		if(me.x == -1 && me.y == -1) //NORTH POLE
 		{
-			var x=me.map.hexes.length;
-			while(x--)
-				if(me.map.hexes[x].rowNumber == 0)
-					actualNeighbours.push(me.map.hexes[x]);
-			return actualNeighbours;
-		}
-		if(row == -2 && col == -2)
+			for(var i=0;i<me.map.rows[0].length;i++)
+				neighbours.push(me.map.rows[0][i]);
+			return neighbours;
+		}	
+		if(me.x == -2 && me.y == -2) //SOUTH POLE
 		{
-			var y=me.map.hexes.length;
-			while(y--)
-				if(me.map.hexes[y].rowNumber == me.map.totalRows-1)
-					actualNeighbours.push(me.map.hexes[y]);
-			return actualNeighbours;
+			for(var i=0;i<me.map.rows[3*wsize-2].length;i++)
+				neighbours.push(me.map.rows[3*wsize-2][i]);
+			return neighbours;
 		}
-		notionalNeighbours[0] = me.map.getHex(col+1,row-1);
-		notionalNeighbours[1] = me.map.getHex(col+2, row);
-		notionalNeighbours[2] = me.map.getHex(col+1,row+1);
-		notionalNeighbours[3] = me.map.getHex(col-1,row+1);
-		notionalNeighbours[4] = me.map.getHex(col-2,row);
-		notionalNeighbours[5] = me.map.getHex(col-1,row-1);
-
-		var hexType = "";
-		for(var i=0;i<notionalNeighbours.length;i++)
+		if(me.pentagon && (me.parentTriangle.id - 1) % 4 == 0) // NORTHERN PENTAGONS
 		{
-			hexType += notionalNeighbours[i] ? "1" : "0";
-			actualNeighbours[i] = notionalNeighbours[i];
+			neighbours.push(me.map.fetchHex(me.x-1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y-1)); // first two neighbours are the same as this is a PENTAGON
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			return neighbours;
 		}
-
-		switch(hexType)
+		if(me.pentagon && (me.parentTriangle.id + 1) % 4 == 0) // SOUTHERN PENTAGONS
 		{
-			case "001100":
-				actualNeighbours[5] = me.map.hexes[0];
-				switch(me.parentTriangle.id)
-				{
-					case 0:
-						actualNeighbours[0] = me.map.getHex(col + wsize*2, row);
-						actualNeighbours[1] = me.map.getHex(col + wsize*2 - 1, row + 1);
-						actualNeighbours[4] = me.map.getHex(col + wsize*8, row);
-						break;
-					case 16:
-						actualNeighbours[0] = me.map.getHex(col - wsize*8, row);
-						actualNeighbours[1] = me.map.getHex(col - wsize*8 - 1, row + 1);
-						actualNeighbours[4] = me.map.getHex(col - wsize*2, row);
-						break;
-					default:
-						actualNeighbours[0] = me.map.getHex(col + wsize*2, row);
-						actualNeighbours[1] = me.map.getHex(col + wsize*2 - 1, row + 1);
-						actualNeighbours[4] = me.map.getHex(col - wsize*2, row);
-						break;
-				}
-				break;
-			case "001111":
-				switch(me.parentTriangle.id)
-				{
-					case 16:
-						actualNeighbours[0] = me.map.getHex(col + (wsize-row)*2-wsize*10, row);
-						actualNeighbours[1] = me.map.getHex(col + (wsize-row)*2-wsize*10-1, row+1);
-						break;
-					case 17:
-						actualNeighbours[0] = notionalNeighbours[5];
-						actualNeighbours[1] = me.map.getHex(col - wsize*10 + 2, row);
-						break;
-					case 18:
-						actualNeighbours[0] = me.map.getHex(col - (wsize*10 - 1), row-1);
-						actualNeighbours[1] = me.map.getHex(col - (wsize*10 - 2), row);
-						break;
-					default:
-						actualNeighbours[0] = me.map.getHex(col + (wsize-row)*2, row);
-						actualNeighbours[1] = me.map.getHex(col + (wsize-row)*2 - 1, row+1);
-				}
-				break;
-			case "011111":
-				actualNeighbours[0] = notionalNeighbours[5];
-				actualNeighbours.splice(5,1); // remove duplicate neighbour from end of array
-				break;
-			case "111110":
-				actualNeighbours[5] = me.map.getHex(col-3, row-1);
-				break;
-			case "111100":
-				switch(me.parentTriangle.id)
-				{
-					case 0:
-						actualNeighbours[4] = me.map.getHex(col-(wsize-row)*2+wsize*10+1, row+1)
-						actualNeighbours[5] = me.map.getHex(col-(wsize-row)*2+wsize*10, row);
-						break;
-					default:
-						actualNeighbours[4] = me.map.getHex(col-(wsize-row)*2+1, row+1)
-						actualNeighbours[5] = me.map.getHex(col-(wsize-row)*2, row);
-						break;
-				}
-				break;
-			case "111000":
-				actualNeighbours[3] = me.map.getHex(col + wsize*10 - 1, row + 1);
-				actualNeighbours[4] = me.map.getHex(col + wsize*10 - 2, row);
-				actualNeighbours[5] = me.map.getHex(col + wsize*10 - 3, row - 1);
-				break;
-			case "000111":
-				actualNeighbours[0] = me.map.getHex(col + 1 - wsize*10, row - 1);
-				actualNeighbours[1] = me.map.getHex(col + 2 - wsize*10, row);
-				actualNeighbours[2] = me.map.getHex(col + 3 - wsize*10, row + 1);
-				break;
-			case "111001":
-				switch(me.parentTriangle.id)
-				{
-					case 1:
-						actualNeighbours[3] = me.map.getHex(col + wsize*10 - 1, row+1);
-						actualNeighbours[4] = me.map.getHex(col + wsize*10 - 2, row);
-						break;
-					case 2:
-						actualNeighbours[3] = me.map.getHex(col + wsize*10 - 3, row + 1);
-						actualNeighbours[4] = me.map.getHex(col + wsize*10 - 2, row);
-						break;
-					case 3:
-						actualNeighbours[3] = me.map.getHex(col - (wsize - (me.map.totalRows - row) + 1)*2 + wsize*10, row);
-						actualNeighbours[4] = me.map.getHex(col - (wsize - (me.map.totalRows - row) + 1)*2 + 1 + wsize*10, row - 1);
-						break;
-					default:
-						actualNeighbours[3] = me.map.getHex(col - (wsize - (me.map.totalRows - row) + 1)*2, row);
-						actualNeighbours[4] = me.map.getHex(col - (wsize - (me.map.totalRows - row) + 1)*2 + 1, row - 1);
-				}
-				break;
-			case "100111":
-				switch(me.parentTriangle.id)
-				{
-					case 19:
-						actualNeighbours[1] = me.map.getHex(col + (wsize - (me.map.totalRows - row) + 1)*2 - 1 - wsize*10, row-1);
-						actualNeighbours[2] = me.map.getHex(col + (wsize - (me.map.totalRows - row) + 1)*2 - wsize*10, row);
-						break;
-					default:
-						actualNeighbours[1] = me.map.getHex(col + (wsize - (me.map.totalRows - row) + 1)*2 - 1, row-1);
-						actualNeighbours[2] = me.map.getHex(col + (wsize - (me.map.totalRows - row) + 1)*2, row);
-						break;
-				}
-				break;
-			case "110111":
-				actualNeighbours[2] = notionalNeighbours[3];
-				actualNeighbours.splice(3,1); // remove duplicate neighbour from array
-				break;
-			case "111011":
-				actualNeighbours[3] = me.map.getHex(col-3, row+1);
-				break;
-			case "100001":
-				actualNeighbours[3] = me.map.hexes[1];
-				switch(me.parentTriangle.id)
-				{
-					case 3:
-						actualNeighbours[1] = me.map.getHex(col+wsize*2 - 1, row - 1);
-						actualNeighbours[2] = me.map.getHex(col+wsize*2, row);
-						actualNeighbours[4] = me.map.getHex(col+wsize*8,row);
-						break;
-					case 19:
-						actualNeighbours[1] = me.map.getHex(col-wsize*8 - 1, row - 1);
-						actualNeighbours[2] = me.map.getHex(col-wsize*8, row);
-						actualNeighbours[4] = me.map.getHex(col-wsize*2,row);
-						break;
-					default:
-						actualNeighbours[1] = me.map.getHex(col+wsize*2 - 1, row - 1);
-						actualNeighbours[2] = me.map.getHex(col+wsize*2, row);
-						actualNeighbours[4] = me.map.getHex(col-wsize*2,row);
-				}
-				break;
-			default:
+			neighbours.push(me.map.fetchHex(me.x, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y+1)); 
+			neighbours.push(me.map.fetchHex(me.x-1, me.y+1)); // these two neighbours are the same as this is a PENTAGON
+			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			return neighbours;
 		}
-		me.adjacentHexes = actualNeighbours;
-		return actualNeighbours;
+		if(me.y == 0)
+		{
+			neighbours.push(me.map.hexes[0]); // NORTH POLE will be one of the neighbours
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x*2+2, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x*2+1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x*2, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			return neighbours;
+		}
+		if(me.y == me.map.rows.length-1)
+		{
+			neighbours.push(me.map.hexes[1]); // SOUTH POLE will be one of the neighbours
+			neighbours.push(me.map.fetchHex(me.x*2, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x*2+1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x*2+2, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			return neighbours;
+		}
+		if(me.northPolarEdge)
+		{
+			var triCol = me.parentTriangle.id % 4;
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x+triCol+2, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x+triCol, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			return neighbours;
+		}
+		if(me.map.fetchHex(me.x-1, me.y).northPolarEdge)
+		{
+			var triCol = me.parentTriangle.id / 4;
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x-triCol, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x+triCol, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			return neighbours;
+		}
+		if(me.map.fetchHex(me.x-1, me.y).pentagon && (me.parentTriangle.id) % 4 == 1) // Northern Pentagon east neighbours
+		{
+			var triCol = (me.parentTriangle.id - 1) / 4;
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x-triCol, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x, me.y-1));
+			return neighbours;
+		}
+		if(me.southPolarEdge)
+		{
+			var triCol = (me.parentTriangle.id - 3) / 4;
+			neighbours.push(me.map.fetchHex(me.x+triCol, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+triCol+2, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			return neighbours;
+		}
+		if(me.map.fetchHex(me.x-1, me.y).southPolarEdge)
+		{
+			var triCol = (me.parentTriangle.id - 3) / 4;
+			neighbours.push(me.map.fetchHex(me.x+triCol, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x-triCol, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			return neighbours;
+		}
+		if(me.map.fetchHex(me.x-1, me.y).pentagon && (me.parentTriangle.id) % 4 == 3) // Southern Pentagon east neighbours
+		{
+			var triCol = (me.parentTriangle.id - 3) / 4;
+			neighbours.push(me.map.fetchHex(me.x, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x+1, me.y));
+			neighbours.push(me.map.fetchHex(me.x-triCol, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y+1));
+			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			return neighbours;
+		}
+		if(me.parentTriangle.id % 4 == 0) // northern polar triangles, all other hexes
+		{
+			var triCol = me.parentTriangle.id / 4;
+			neighbours.push(me.map.fetchHex(me.x - triCol - 1, me.y - 1));
+			neighbours.push(me.map.fetchHex(me.x - triCol, me.y - 1));
+			neighbours.push(me.map.fetchHex(me.x + 1, me.y));
+			neighbours.push(me.map.fetchHex(me.x + triCol + 1, me.y + 1));
+			neighbours.push(me.map.fetchHex(me.x + triCol, me.y + 1));
+			neighbours.push(me.map.fetchHex(me.x - 1, me.y));
+			return neighbours;
+		}
+		if(me.parentTriangle.id % 4 == 3) // southern polar triangles, all other hexes
+		{
+			var triCol = (me.parentTriangle.id - 3) / 4;
+			neighbours.push(me.map.fetchHex(me.x + triCol, me.y - 1));
+			neighbours.push(me.map.fetchHex(me.x + triCol + 1, me.y - 1));
+			neighbours.push(me.map.fetchHex(me.x + 1, me.y));
+			neighbours.push(me.map.fetchHex(me.x - triCol, me.y + 1));
+			neighbours.push(me.map.fetchHex(me.x - triCol - 1, me.y + 1));
+			neighbours.push(me.map.fetchHex(me.x - 1, me.y));
+			return neighbours;
+		}
+		// all remaining hexes use these to get their neighbours
+		neighbours.push(me.map.fetchHex(me.x, me.y - 1));
+		neighbours.push(me.map.fetchHex(me.x + 1, me.y - 1));
+		neighbours.push(me.map.fetchHex(me.x + 1, me.y));
+		neighbours.push(me.map.fetchHex(me.x, me.y + 1));
+		neighbours.push(me.map.fetchHex(me.x - 1, me.y + 1));
+		neighbours.push(me.map.fetchHex(me.x - 1, me.y));
+		return neighbours;
 	}
 
 	me.inheritFrom = mapHex;
@@ -4523,4 +4489,40 @@ function sort_land_first(a, b)
 	return 0;
 	// if a has islands/land and b does not, a goes first (return -1); if b has islands/land and a does not, b goes first (return +1)
 	// if both have or neither have, do nothing (return 0)
+}
+
+
+var CURRENT_TOOL_CODE = 11; // code is the terrain code
+function editingToolBar(worldMap)
+{
+	var me = this;
+	me.map = worldMap;
+	me.world = me.map.world;
+	const h_spacing = 34;
+	const v_spacing = 40;
+	const num_per_row = 35;
+	me.toolBar = document.getElementById(MAP_EDIT_TOOLBAR_NAME);
+	
+	me.init = function()
+	{
+		var left_offset = 2, top_offset = 2;
+		for(var x in allTerrain)
+		{
+			var terrain = allTerrain[x];
+			if(terrain.type == 3)
+				continue;
+			var hexSymbol = new worldHex(me.map, me.toolBar, null, left_offset, top_offset, -4);
+			hexSymbol.clickEnabled = false;
+			hexSymbol.isTool = true;
+			hexSymbol.add(terrain);
+			hexSymbol.render();
+			left_offset += h_spacing;
+			if(left_offset > (h_spacing * num_per_row))
+			{
+				left_offset = 2;
+				top_offset += v_spacing;
+			}
+		}
+	}	
+	me.init();
 }

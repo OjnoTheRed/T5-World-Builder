@@ -58,6 +58,7 @@
 				<button class="dropdown_button" id="regenRS" onclick="renegerateMapRS();">Regenerate Map (new random seed)</button>
 				<button class="dropdown_button" id="redrawMap" onclick="redrawMap();">Redraw map from data (without regenerating)</button>
 				<button class="dropdown_button" id="noTZ" onclick="removeTZ();">Remove Twilight Zone</button>
+				<button class="dropdown_button" id="editThisMap" onclick="editMap();">Edit the current map</button>
 			</div>
 		</div>
 		<div class="dropbtn_div" style="display:inline-block;">
@@ -634,6 +635,21 @@
 			<h2>Temperature Table</h2>
 		</div>
 	</div>
+	<!-- map editing -->
+	<div class="container" id="worldMapEditorContainer" style="margin-top:0.5em;display:none">
+		<button class="btn1" onclick="finishEditingMap();">Save and Close</button>
+		<div class="container" style="background-color:#ffffff;margin-top:0.5em" >
+			<div class="contained" style="width:100%;height:800px" id="mapEditPlaceholder">
+				<p class="loadingAnimation">Rendering ...</p>
+			</div>
+			<div class="container" id="editedMapArea">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="mapEditToolbar" class="editToolbar">
+				</svg>
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="worldMapEditSVG">
+				</svg>
+			</div>
+		</div>
+	</div>	
 	<div class="container" id="systemDetails" style="display:none;">
 		<div style="clear:both;overflow-x:scroll;" id="symbol_map" class="sys"></div>
 		<div style="clear:both;" id="sys_table"></div>
@@ -920,7 +936,11 @@
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
-		<h2 class="white" style="margin-top:0;">23 December 2021</h2>
+		<h2 class="white" style="margin-top:0;">27 December 2021</h2>
+		<p class="white"><b>Map Editing:</b> There is now a (very basic!) map editor.  This is an EARLY version and is still buggy, but the basics work.  Navigate to the world you wish to edit, and then choose Map Actions > Edit the Current Map.  Then click on one of the types of terrain at the top.  Clicking the hex will add the terrain.  You can remove symbols (e.g. rural, cities, etc.) by clicking again.  Base terrain (e.g. clear, oceans) cannot be removed but can be replace with other terrain.</p>
+		<p class="white"><b>Bug Fix:</b> Atmospheres of types exotic, corrosive and insidious had a bug where the atmospheric pressure table was not saving correctly, leading to all sorts of loading and saving problems.  Some of your older systems might still not be able to save or load correctly, many apologies.</p>
+		<p class="white"><b>Bug Fix:</b> The "Details" and "Scrub" buttons were not working correctly.  Now fixed.
+		<h2 class="white">23 December 2021</h2>
 		<p class="white"><b>Background mapping change:</b> new political border terrain added in anticipation of being able to edit maps.  Users can edit the downloaded JSON of worlds to add these codes in.  Users can also change the default colour for these borders.</p>
 		<h2 class="white">22 December 2021</h2>
 		<p class="white"><b>All UWP details explained:</b> Each digit of the UWP for each world is now fully explained - the last to be added were law level and technology level.</p>

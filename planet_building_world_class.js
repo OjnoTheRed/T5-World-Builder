@@ -1,17 +1,20 @@
 var SYSTEM_OBJECT_COUNT = 0;
-var NAME_TABLE_WIDTH = "70pt";
 var ALL_DETAILS = [];
-var DOWNLOAD_MAP_BUTTON_NAME = "downloadMapSVG";
-var DOWNLOAD_MAP_PNG_BUTTON_NAME = "downloadMapPNG";
-var DOWNLOAD_MAP_DATA_BUTTON_NAME = "downloadMapData";
-var SLIDE_LEFT_BUTTON_NAME = "slideLeft";
-var SLIDE_RIGHT_BUTTON_NAME = "slideRight";
-var WORLD_MAP_DIV_NAME = "saveArea";
-var WORLD_MAP_SVG_NAME = "worldMapSVG";
-var SYSTEM_DETAILS_DIV_NAME = "systemDetails";
-var WORLD_DETAILS_DIV_NAME = "world_details";
-var MAP_SEED_BOX_NAME = "seed";
-var USER_PREF_DIV_NAME = "pref_details"
+const NAME_TABLE_WIDTH = "70pt";
+const DOWNLOAD_MAP_BUTTON_NAME = "downloadMapSVG";
+const DOWNLOAD_MAP_PNG_BUTTON_NAME = "downloadMapPNG";
+const DOWNLOAD_MAP_DATA_BUTTON_NAME = "downloadMapData";
+const SLIDE_LEFT_BUTTON_NAME = "slideLeft";
+const SLIDE_RIGHT_BUTTON_NAME = "slideRight";
+const WORLD_MAP_DIV_NAME = "saveArea";
+const WORLD_MAP_SVG_NAME = "worldMapSVG";
+const SYSTEM_DETAILS_DIV_NAME = "systemDetails";
+const WORLD_DETAILS_DIV_NAME = "world_details";
+const MAP_SEED_BOX_NAME = "seed";
+const USER_PREF_DIV_NAME = "pref_details"
+const EDIT_MAP_BUTTON_NAME = "editThisMap";
+const EDIT_WORLD_MAP_DIV_NAME = "editedMapArea";
+const EDIT_WORLD_MAP_SVG_NAME = "worldMapEditSVG";
 var currentWorld;
 var uPObj;
 var GO_AND_EDIT = true;
@@ -342,6 +345,10 @@ function world()
 			init_rng(me.seed);
 		}
 
+		var worldMapDiv = document.getElementById(WORLD_MAP_DIV_NAME);
+		var worldMapSVG = document.getElementById(WORLD_MAP_SVG_NAME);
+		while(worldMapSVG.childNodes.length > 0)
+			worldMapSVG.removeChild(worldMapSVG.firstChild);
 		var downloadMapButton = document.getElementById(DOWNLOAD_MAP_BUTTON_NAME);
 		var fileName = me.name.replace(/'/g,"") + " UWP " + me.uwp + " world map.svg";
 		var clickScript = "downloadMap('" + WORLD_MAP_DIV_NAME + "','" + fileName +"');";
@@ -356,11 +363,8 @@ function world()
 		fileName = me.name.replace(/'/g,"") + " UWP " + me.uwp + " world map data.json";
 		downloadMapDataButton.onclick = function() { downloadMapData(me.map, fileName); };
 		
+		var editMapButton = document.getElementById(EDIT_MAP_BUTTON_NAME);
 		
-		var worldMapDiv = document.getElementById(WORLD_MAP_DIV_NAME);
-		var worldMapSVG = document.getElementById(WORLD_MAP_SVG_NAME);
-		while(worldMapSVG.childNodes.length > 0)
-			worldMapSVG.removeChild(worldMapSVG.firstChild);
 		me.map = new worldMap(me, worldMapSVG, worldMapDiv);
 		me.map.generate(); // required even if there is mapData to set up triangles and hexes before loading data
 		if(mapData)
@@ -1447,9 +1451,9 @@ var all_details =
 		o.density = me.density();
 		o.rotationalPeriod = me.rotationalPeriod();
 		o.axialTilt = me.axialTilt();
-		o.atmosPressureTbl = me.atmosPressureTable().name;
-		o.atmosPressure = me.atmosPressure();
 		o.atmosComposition = me.atmosComposition();
+		o.atmosPressure = me.atmosPressure();
+		o.atmosPressureTbl = me.atmosPressureTable().name;
 		o.albedo = me.albedo();
 		o.greenhouse = me.greenhouse();
 		o.hydroPercentage = me.getHydroPercentage();
@@ -4087,7 +4091,7 @@ function orbit(orbitSet, orbitNumber, contents)
 		detailsBtn.style.paddingTop = "0";
 
 		detailsBtn.innerHTML = "Details";
-		detailsBtn.onclick = me.contents.editDetails;
+		detailsBtn.onclick = function() { divsToShow(2); me.contents.editDetails(); };
 		return detailsBtn;
 	}
 	
@@ -4107,12 +4111,12 @@ function orbit(orbitSet, orbitNumber, contents)
 				return;
 			if(!me.isSatellite)
 			{
-				me.set.orbits.splice(me.set.orbits.find(function(v){ return v.baseOrbit == me.baseOrbit; }),1);
+				me.set.orbits.splice(me.set.orbits.findIndex(function(v){ return v.baseOrbit == me.baseOrbit; }),1);
 				me.set.updateTable();
 			}
 			else
 			{
-				me.set.orbits.splice(me.set.orbits.find(function(v){ return v.baseOrbit.o == me.baseOrbit.o; }),1);
+				me.set.orbits.splice(me.set.orbits.findIndex(function(v){ return v.baseOrbit.o == me.baseOrbit.o; }),1);
 				me.set.planet.orbit.set.updateTable();
 			}
 		}
