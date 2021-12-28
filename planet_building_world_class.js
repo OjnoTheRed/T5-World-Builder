@@ -366,7 +366,7 @@ function world()
 		var editMapButton = document.getElementById(EDIT_MAP_BUTTON_NAME);
 		
 		me.map = new worldMap(me, worldMapSVG, worldMapDiv);
-		me.map.generate(); // required even if there is mapData to set up triangles and hexes before loading data
+		// me.map.generate(); // required even if there is mapData to set up triangles and hexes before loading data
 		if(mapData)
 		{
 			me.map.loadObj(mapData);
@@ -376,6 +376,7 @@ function world()
 		}
 		else
 		{
+			me.map.generate();
 			me.map.render();
 			me.map.outline();
 			me.mapData = me.map.genSaveObj();
@@ -830,6 +831,7 @@ function world()
 		NIGHT_MINUS_TEMP = null;
 		SEASON_EFFECT_PER_ROW = null;
 		TEMP_TABLE = null;
+		me.mapData = null;
 		me.updateEdits();
 	}
 

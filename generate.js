@@ -1220,7 +1220,6 @@ function editMap()
 		worldMapEditSVG.removeChild(worldMapEditSVG.firstChild);
 	divsToShow(14);
 	editing_map = new worldMap(currentWorld, worldMapEditSVG, worldMapEditDiv, false, true);
-	editing_map.generate();
 	editing_map.loadObj(currentWorld.mapData);
 	editing_map.render(true);
 	editing_map.outline(true);

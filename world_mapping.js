@@ -1,20 +1,20 @@
-var DOWN_TRIANGLE = false;
-var UP_TRIANGLE = true;
-var LARGE_TRIANGLE = true;
-var SMALL_TRIANGLE = false;
-var MAP_TOP_OFFSET = 200;
-var MAP_LEFT_OFFSET = 10;
-var OUTLINE_THICKNESS = 5;
+const DOWN_TRIANGLE = false;
+const UP_TRIANGLE = true;
+const LARGE_TRIANGLE = true;
+const SMALL_TRIANGLE = false;
+const OUTLINE_THICKNESS = 5;
 var MAP_KEY_HEIGHT = 350;
 var svgNS = "http://www.w3.org/2000/svg";
 var DOWNLOAD_BUTTON_CLASS = "btn1";
 var DEFAULT_INFO_PARAGRAPH_CLASS = "white";
 var SLIDE_COUNTER = 0;
-const MAP_EDIT_TOOLBAR_NAME = "mapEditToolbar"
+const MAP_EDIT_TOOLBAR_NAME = "mapEditToolbar";
 
 function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 {
 	var me = this;
+	me.blank = arguments.length < 4 ? false : blankMap;
+	me.editMode = arguments.length < 5 ? false : editMode;
 	me.world = world;
 	me.totalRows = 3*me.world.uwp.size-1;
 	me.worldTriangles = [];
@@ -27,8 +27,18 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	me.theTown = null;
 	me.parentObj = parentObj;
 	me.containerDiv = containerDiv;
-	me.mapWidth = Math.max(MAP_LEFT_OFFSET+1000,MAP_LEFT_OFFSET+5.5*(me.world.uwp.size+1)*32);
-	me.mapHeight = MAP_TOP_OFFSET+(3*me.world.uwp.size+1)*28+MAP_KEY_HEIGHT;
+	me.map_left_offset = 10
+	me.mapWidth = Math.max(me.map_left_offset+1000,me.map_left_offset+5.5*(me.world.uwp.size+1)*32);
+	if(me.editMode)
+	{
+		me.mapHeight = (3*me.world.uwp.size+1)*28;
+		me.map_top_offset = 20;
+	}
+	else
+	{
+		me.map_top_offset = 200;
+		me.mapHeight = me.map_top_offset+(3*me.world.uwp.size+1)*28+MAP_KEY_HEIGHT;
+	}
 	me.parentObj.setAttributeNS(null,"viewBox","0 0 " + me.mapWidth + " " + me.mapHeight);
 	me.topCoverTrianglePoints = [];
 	me.bottomCoverTrianglePoints = [];
@@ -41,10 +51,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	me.worldContinents = [];
 	me.skipSeas = false;
 	me.saveObj = [];
-	me.blank = arguments.length < 4 ? false : blankMap;
-	me.editMode = arguments.length < 5 ? false : editMode;
 
-	me.generate = function()
+	me.init = function()
 	{
 		var worldSize = me.world.uwp.size;
 		if(worldSize == 0)
@@ -72,7 +80,10 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 														if((hex.parentTriangle+1) % 4 == 0 && hex.x == ((worldSize*3-hex.y-1)*((hex.parentTriangle.id+1)/4)-1))
 															hex.southPolarEdge = true;
 													} ) } );
-		
+	}
+	
+	me.generate = function()
+	{	
 		if(!me.blank)
 		{
 			desert();
@@ -92,7 +103,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			ruins();
 			cropLand();
 			lowPopulTown();
-			clearTerrainAllocate();
 			arcologies();
 			starport();
 			penal();
@@ -101,6 +111,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			if(uPObj.prefs.place_noble_estate)
 				nobleLand();
 			resourceHexes();
+			clearTerrainAllocate();
 		}
 	}
 
@@ -186,7 +197,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			for(i=0;i<2;i++)
 			{
 				me.worldTriangles[i].reposition(true);
-				me.worldTriangles[i].render();
+				me.worldTriangles[i].render(me.editMode);
 				me.worldTriangles[i].reposition(false);
 			}
 		}
@@ -202,7 +213,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				new_left_offset = selectedHex.left_offset + (worldSize-y-1)*32;
 				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 				copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
-				copyOfIt.render();
+				copyOfIt.render(me.editMode);
 				x++;
 			}
 		}
@@ -219,7 +230,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 					new_left_offset = selectedHex.left_offset + (worldSize-(me.totalRows-y))*32;
 				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 				copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
-				copyOfIt.render();
+				copyOfIt.render(me.editMode);
 				x++;
 			}
 		}
@@ -227,25 +238,25 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		new_left_offset = selectedHex.left_offset - worldSize*160;
 		copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 		copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
-		copyOfIt.render();
+		copyOfIt.render(me.editMode);
 		if(worldSize == 1)
 		{
-			var pole_hex_left_offset = MAP_LEFT_OFFSET;
-			var pole_hex_top_offset = MAP_TOP_OFFSET-28;
+			var pole_hex_left_offset = me.map_left_offset;
+			var pole_hex_top_offset = me.map_top_offset-28;
 			for(z=0;z<6;z++)
 			{
 				var north_pole_hex = new worldHex(me, me.parentObj, me.worldTriangles[0], pole_hex_left_offset, pole_hex_top_offset, -1);
 				north_pole_hex.terrainTypes = array_fnc.copy.call(me.getHex(-1,-1).terrainTypes);
-				north_pole_hex.render();
+				north_pole_hex.render(me.editMode);
 				pole_hex_left_offset+=32;
 			}
-			pole_hex_left_offset = MAP_LEFT_OFFSET+16;
-			pole_hex_top_offset = MAP_TOP_OFFSET+56;
+			pole_hex_left_offset = me.map_left_offset+16;
+			pole_hex_top_offset = me.map_top_offset+56;
 			for(z=0;z<5;z++)
 			{
 				var south_pole_hex = new worldHex(me, me.parentObj, me.worldTriangles[0], pole_hex_left_offset, pole_hex_top_offset, -2);
 				south_pole_hex.terrainTypes = array_fnc.copy.call(me.getHex(-1,-1).terrainTypes);
-				south_pole_hex.render();
+				south_pole_hex.render(me.editMode);
 				pole_hex_left_offset+=32;
 			}
 
@@ -311,8 +322,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		s += ""  + me.mapCornerPoints[5].x+1 + "," + me.mapCornerPoints[3].y;
 		addPolygon(s, 0, "none", "white", me.parentObj);
 		addLine(me.mapCornerPoints[3].x, me.mapCornerPoints[3].y, me.mapCornerPoints[5].x, me.mapCornerPoints[5].y, "2px","black", me.parentObj);
-		addRectangle(0, 0, MAP_LEFT_OFFSET + 6*(sizeUsed+1)*32, MAP_TOP_OFFSET-10, "white",0,"none", me.parentObj);
-		addRectangle(0, me.mapCornerPoints[2].y, MAP_LEFT_OFFSET + 6*(sizeUsed+1)*32, 500, "white",0,"none", me.parentObj);
+		addRectangle(0, 0, me.map_left_offset + 6*(sizeUsed+1)*32, me.map_top_offset-10, "white",0,"none", me.parentObj);
+		addRectangle(0, me.mapCornerPoints[2].y, me.map_left_offset + 6*(sizeUsed+1)*32, 500, "white",0,"none", me.parentObj);
 		if(!me.blank && !editingFlag)
 		{
 			me.worldText();
@@ -389,10 +400,10 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		s += ""  + cornerPoints[2].x-1 + "," + cornerPoints[2].y;
 		addPolygon(s, 0, "none", "white", me.parentObj);
 		addLine(cornerPoints[2].x, cornerPoints[2].y, cornerPoints[3].x, cornerPoints[3].y, "1px","black", me.parentObj);
-		addRectangle(cornerPoints[1].x,cornerPoints[1].y,MAP_LEFT_OFFSET + 1344,MAP_TOP_OFFSET + 300,"white",0,"none", me.parentObj);
+		addRectangle(cornerPoints[1].x,cornerPoints[1].y,me.map_left_offset + 1344,me.map_top_offset + 300,"white",0,"none", me.parentObj);
 		addLine(cornerPoints[1].x, cornerPoints[1].y, cornerPoints[4].x, cornerPoints[4].y, "1px","black", me.parentObj);
-		addRectangle(0, 0, 1344, MAP_TOP_OFFSET-10, "white", 0, "none", me.parentObj);
-		addRectangle(0, cornerPoints[3].y, MAP_LEFT_OFFSET + 6*(me.world.uwp.size+1)*32, MAP_TOP_OFFSET + 300, "white", 0, "none", me.parentObj);
+		addRectangle(0, 0, 1344, me.map_top_offset-10, "white", 0, "none", me.parentObj);
+		addRectangle(0, cornerPoints[3].y, me.map_left_offset + 6*(me.world.uwp.size+1)*32, me.map_top_offset + 300, "white", 0, "none", me.parentObj);
 		if(!me.blank)
 		{
 			me.worldText();
@@ -404,22 +415,22 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	me.worldText = function()
 	{
 		var nameFontSize = "2em";
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8, "World", "Arial, sans-serif", "0.8em", "black", me.parentObj);
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8+32, me.world.name, "Arial, sans-serif", nameFontSize,  "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8, "World", "Arial, sans-serif", "0.8em", "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8+32, me.world.name, "Arial, sans-serif", nameFontSize,  "black", me.parentObj);
 
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8+64, "System", "Arial, sans-serif", "0.8em", "black", me.parentObj);
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8+96, me.world.system, "Arial, sans-serif", nameFontSize,  "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8+64, "System", "Arial, sans-serif", "0.8em", "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS, OUTLINE_THICKNESS*8+96, me.world.system, "Arial, sans-serif", nameFontSize,  "black", me.parentObj);
 
 
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 500, OUTLINE_THICKNESS*8, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 500, OUTLINE_THICKNESS*8+32, me.world.uwp, "Arial, sans-serif", "2em",  "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS + 500, OUTLINE_THICKNESS*8, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS + 500, OUTLINE_THICKNESS*8+32, me.world.uwp, "Arial, sans-serif", "2em",  "black", me.parentObj);
 
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 700, OUTLINE_THICKNESS*8, "Trade Classifications and Remarks", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
-		addText(MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 700, OUTLINE_THICKNESS*8+32, me.world.tcs, "Arial, sans-serif", "2em",  "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS + 700, OUTLINE_THICKNESS*8, "Trade Classifications and Remarks", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+		addText(me.map_left_offset + OUTLINE_THICKNESS + 700, OUTLINE_THICKNESS*8+32, me.world.tcs, "Arial, sans-serif", "2em",  "black", me.parentObj);
 
-		addRectangle(MAP_LEFT_OFFSET-6, OUTLINE_THICKNESS, me.mapWidth - 10, me.mapHeight - MAP_TOP_OFFSET + 190, "none", OUTLINE_THICKNESS, "black", me.parentObj);
+		addRectangle(me.map_left_offset-6, OUTLINE_THICKNESS, me.mapWidth - 10, me.mapHeight - me.map_top_offset + 190, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 
-		addLine(MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS*8+120, MAP_LEFT_OFFSET + me.mapWidth - 18, OUTLINE_THICKNESS*8+120,2,"black", me.parentObj);
+		addLine(me.map_left_offset-8, OUTLINE_THICKNESS*8+120, me.map_left_offset + me.mapWidth - 18, OUTLINE_THICKNESS*8+120,2,"black", me.parentObj);
 	}
 
 	me.countLandHexes = function()
@@ -1109,7 +1120,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	function clearTerrainAllocate()
 	{
 		for(var i=0;i<me.hexes.length;i++)
-			if(me.hexes[i].noTerrain())
+			if(!me.hexes[i].hasBaseTerrain())
 				me.hexes[i].terrainTypes.push(clearTerrain);
 	}
 
@@ -1304,6 +1315,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		return twilightZoneAll;
 	}
 
+	me.init();
 }
 
 function worldTriangle(worldMapObj, worldSize, parentObj, id)
@@ -1323,26 +1335,26 @@ function worldTriangle(worldMapObj, worldSize, parentObj, id)
 		switch(verticle_pos)
 		{
 			case 0:
-				me.left_offset = MAP_LEFT_OFFSET+16+(base_left*me.worldSize*32);
-				me.top_offset = MAP_TOP_OFFSET;
+				me.left_offset = me.map.map_left_offset+16+(base_left*me.worldSize*32);
+				me.top_offset = me.map.map_top_offset;
 				me.upOrDown = UP_TRIANGLE;
 				me.largeOrSmall = SMALL_TRIANGLE;
 				break;
 			case 1:
-				me.left_offset = MAP_LEFT_OFFSET+16+(base_left*me.worldSize*32);
-				me.top_offset = MAP_TOP_OFFSET+(me.worldSize-2)*28;
+				me.left_offset = me.map.map_left_offset+16+(base_left*me.worldSize*32);
+				me.top_offset = me.map.map_top_offset+(me.worldSize-2)*28;
 				me.upOrDown = DOWN_TRIANGLE;
 				me.largeOrSmall = LARGE_TRIANGLE;
 				break;
 			case 2:
-				me.left_offset = MAP_LEFT_OFFSET+me.worldSize*16+base_left*me.worldSize*32;
-				me.top_offset = MAP_TOP_OFFSET+(me.worldSize)*28;
+				me.left_offset = me.map.map_left_offset+me.worldSize*16+base_left*me.worldSize*32;
+				me.top_offset = me.map.map_top_offset+(me.worldSize)*28;
 				me.upOrDown = UP_TRIANGLE;
 				me.largeOrSmall = LARGE_TRIANGLE;
 				break;
 			case 3:
-				me.left_offset = MAP_LEFT_OFFSET+me.worldSize*16+base_left*me.worldSize*32+32;
-				me.top_offset = MAP_TOP_OFFSET+(me.worldSize)*56-28;
+				me.left_offset = me.map.map_left_offset+me.worldSize*16+base_left*me.worldSize*32+32;
+				me.top_offset = me.map.map_top_offset+(me.worldSize)*56-28;
 				me.upOrDown = DOWN_TRIANGLE;
 				me.largeOrSmall = SMALL_TRIANGLE;
 				break;
@@ -2461,6 +2473,15 @@ function mapHex(mapObj, parentObj, left_offset, top_offset)
 	{
 		return me.terrainTypes.length == 0;
 	}
+	
+	me.hasBaseTerrain = function()
+	{
+		var i = me.terrainTypes.length;
+		while(i--)
+			if(me.terrainTypes[i].type == 0)
+				return true;
+		return false;
+	}
 
 	me.copyOf = function()
 	{
@@ -2527,12 +2548,12 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 
 	me.calcRow = function()
 	{
-		return me.top_offset < 0 ? me.top_offset : (me.top_offset - MAP_TOP_OFFSET) / 28;
+		return me.top_offset < 0 ? me.top_offset : (me.top_offset - me.map.map_top_offset) / 28;
 	}
 
 	me.calcCol = function()
 	{
-		return me.left_offset < 0 ? me.left_offset : (me.left_offset - MAP_LEFT_OFFSET) / 16;
+		return me.left_offset < 0 ? me.left_offset : (me.left_offset - me.map.map_left_offset) / 16;
 	}
 
 	me.render = function(editFlag)
@@ -2561,7 +2582,7 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		if(editFlag)
 			me.hexElem.onclick = function() { me.editTerrain(); };
 		if(me.isTool)
-			me.hexElem.onclick = function() { CURRENT_TOOL_CODE = me.terrainTypes[0].code; };
+			me.hexElem.onclick = function() { CURRENT_TOOL_CODE = me.terrainTypes[0].code; me.toolbar.map(function(v) { v.style.backgroundColor = "white"; });  me.toolDiv.style.backgroundColor = "red";};
 
 		for(var i=0;i<me.terrainTypes.length;i++)
 		{
@@ -2595,7 +2616,10 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 					me.transform(terrainToReplace, terrainToAdd);
 				break;
 			case 1:
-				me.add(terrainToAdd);					
+				if(me.has(terrainToAdd))
+					me.erase(terrainToAdd);
+				else
+					me.add(terrainToAdd);					
 				break;
 			case 2:
 				var existingOverlay = me.terrainTypes.find(function(v) { return v.type == 1; });
@@ -4386,7 +4410,7 @@ function mapKey(worldMap)
 		if(me.map.world.uwp.size > 1)
 			var starting_left_offset = me.map.mapCornerPoints[1].x;
 		else
-			var starting_left_offset = MAP_LEFT_OFFSET;
+			var starting_left_offset = me.map.map_left_offset;
 		var starting_top_offset = me.map.mapHeight - MAP_KEY_HEIGHT + 10;
 		for(var i=0;i<me.hexesIncluded.length;i++)
 		{
@@ -4497,11 +4521,11 @@ function editingToolBar(worldMap)
 {
 	var me = this;
 	me.map = worldMap;
-	me.world = me.map.world;
 	const h_spacing = 34;
 	const v_spacing = 40;
 	const num_per_row = 35;
-	me.toolBar = document.getElementById(MAP_EDIT_TOOLBAR_NAME);
+	me.toolBarDiv = document.getElementById(MAP_EDIT_TOOLBAR_NAME);
+	me.tools = [];
 	
 	me.init = function()
 	{
@@ -4511,18 +4535,20 @@ function editingToolBar(worldMap)
 			var terrain = allTerrain[x];
 			if(terrain.type == 3)
 				continue;
-			var hexSymbol = new worldHex(me.map, me.toolBar, null, left_offset, top_offset, -4);
+			var hexSymbolDiv = document.createElement("DIV");
+			hexSymbolDiv.className = "editTools";
+			me.toolBarDiv.appendChild(hexSymbolDiv);
+			me.tools.push(hexSymbolDiv);
+			var hexSymbolSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+			hexSymbolDiv.appendChild(hexSymbolSVG);
+			var hexSymbol = new worldHex(me.map, hexSymbolSVG, null, 0, 0, -4);
+			hexSymbol.toolbar = me.tools; // enables unused tool backgrounds to be set to white
+			hexSymbol.toolDiv = hexSymbolDiv; // enables current tool to be set to red
 			hexSymbol.clickEnabled = false;
 			hexSymbol.isTool = true;
 			hexSymbol.add(terrain);
 			hexSymbol.render();
-			left_offset += h_spacing;
-			if(left_offset > (h_spacing * num_per_row))
-			{
-				left_offset = 2;
-				top_offset += v_spacing;
-			}
 		}
 	}	
 	me.init();
-}
+} 

@@ -642,9 +642,8 @@
 			<div class="contained" style="width:100%;height:800px" id="mapEditPlaceholder">
 				<p class="loadingAnimation">Rendering ...</p>
 			</div>
-			<div class="container" id="editedMapArea">
-				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="mapEditToolbar" class="editToolbar">
-				</svg>
+			<div id="mapEditToolbar" class="editToolbar"></div>
+			<div class="contained" id="editedMapArea">
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="worldMapEditSVG">
 				</svg>
 			</div>
@@ -936,7 +935,14 @@
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
-		<h2 class="white" style="margin-top:0;">27 December 2021</h2>
+		<h2 class="white" style="margin-top:0;">TBA</h2>
+		<p class="white"><b>Map editing feature:</b> When using terrain that are overlaid symbols (e.g. chasm, rural, noble estate), clicking on hexes that have them now removes them.  Users can toggle this terrain on and off for each hex when the tool is selected.</p>
+		<p class="white"><b>Map editing feature:</b> Currently used tool is now highlighted in red.</p>		
+		<p class="white"><b>Bug Fix:</b> Remove Twilight Zone feature was broken because of map editing - now fixed.</p>
+		<p class="white"><b>Bug Fix:</b> When clicking on some hexes in the editor, an error occured when trying to replace clear terrain that had only a symbol over it (e.g. rural or agricultural).  This was because clear terrain had not been explicitly attached to that hex.  Now fixed.</p>
+		<p class="white"><b>Bug Fix:</b> In the background, the map was generating a random map before loading the data because this was required for the setup before data was loaded.  Set up and generation are now separate procedures.</p>
+		<p class="white"><b>Bug Fix:</b> In map editing mode, certain hexes were incorrectly creating a World Hex Map when clicked.  Now fixed.</p>
+		<h2 class="white">27 December 2021</h2>
 		<p class="white"><b>Map Editing:</b> There is now a (very basic!) map editor.  This is an EARLY version and is still buggy, but the basics work.  Navigate to the world you wish to edit, and then choose Map Actions > Edit the Current Map.  Then click on one of the types of terrain at the top.  Clicking the hex will add the terrain.  You can remove symbols (e.g. rural, cities, etc.) by clicking again.  Base terrain (e.g. clear, oceans) cannot be removed but can be replace with other terrain.</p>
 		<p class="white"><b>Bug Fix:</b> Atmospheres of types exotic, corrosive and insidious had a bug where the atmospheric pressure table was not saving correctly, leading to all sorts of loading and saving problems.  Some of your older systems might still not be able to save or load correctly, many apologies.</p>
 		<p class="white"><b>Bug Fix:</b> The "Details" and "Scrub" buttons were not working correctly.  Now fixed.

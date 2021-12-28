@@ -84,7 +84,6 @@ li.normal {
 
 .container {
 	background-color: transparent;
-	position: relative;
 }
 
 .userInput {
@@ -124,7 +123,7 @@ div.subcontainer {
 	background-color: #F3F3F3;
 	font-family: Arial, sans-serif;
 	width: 100%;
-	box-sizing:border-box;
+	position:static;
 }
 
 .contained_tbl {
@@ -730,11 +729,19 @@ Subdued brighter red = #c3073f
 }
 
 .editToolbar {
-	position: absolute;
-	top: 10px;
-	left: 1%;
-	border: 3px solid #050505;
-	z-index: 1;
-	width:98%;
-	height:80px;
+	margin: 10px;
+	background-color:#303030;
+	position:static;
 }
+
+.editTools {
+	width:36px;
+	height:40px;
+	background-color:white;
+	float:left;
+	overflow:hidden;
+	margin: 2px 2px 2px 2px;
+	padding: 2px 2px 2px 2px;
+}
+
+
