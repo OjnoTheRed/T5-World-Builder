@@ -22,8 +22,8 @@ div.transparent {
 }
 
 div.worldDetailDiv {
-	padding: 0.2em 0.2em 0.2em 0.2em;
-	width:100%;
+	padding:1%;
+	width:98%;
 	background-color: #EEEEEE;
 }
 
@@ -128,7 +128,7 @@ div.subcontainer {
 
 .contained_tbl {
 	margin:0;
-	padding: 0;
+	padding: 0 0.2em 0.2em 0;
 	border-width: 0px;
 	border-color: #F3F3F3;
 	background-color: #F3F3F3;
@@ -209,6 +209,13 @@ p {
 	margin-top: 0px;
 	font-family: Arial, sans-serif;
 	font-size: 0.85em;
+}
+
+span {
+	margin: 0em;
+	border: 0em;
+	font-family: Arial, sans-serif;
+	font-size: 0.85em;	
 }
 
 label {

@@ -431,7 +431,7 @@ function readURL()
 	for(var i=0;i<tc.length;i++)
 		myWorld.tcs.add(tc[i]);
 	var pbgString = URLParams.get("pbg");
-	if(pbgString !== null)
+	if(pbgString)
 	{
 		myWorld.popMulti = parseInt(pbgString.substr(0,1));
 		myWorld.belts = parseInt(pbgString.substr(1,1));
@@ -448,36 +448,23 @@ function readURL()
 	myWorld.worlds = parseInt(URLParams.get("worlds"));
 	if(isNaN(myWorld.worlds))
 		myWorld.worlds = dice(2);
-	try
-	{
-		myWorld.economicExt.readString(URLParams.get("eX"));
-	}
-	catch(errorE)
-	{
-		myWorld.economicExt.generate();
-	}
-	try
-	{
-		myWorld.culturalExt.readString(URLParams.get("cX"));
-	}
-	catch(errorE)
-	{
-		myWorld.culturalExt.generate();
-	}
+	myWorld.economicExt.readString(URLParams.get("eX"));
+	myWorld.culturalExt.readString(URLParams.get("cX"));
+	myWorld.importance.readString(URLParams.get("iX"));
 	var basesString = URLParams.get("bases");
-	if(basesString === null)
+	if(!basesString)
 		myWorld.bases.generate();
 	else
 		if(basesString)
 			myWorld.bases.readString(basesString);
 	var nobz = URLParams.get("nobz");
-	if(nobz === null)
+	if(!nobz)
 		myWorld.noblesExt.generate();
 	else
 		myWorld.noblesExt.readString(nobz);
 	myWorld.allegiance = URLParams.get("allegiance");
 	var stellar = URLParams.get("stellar");
-	if(stellar === null)
+	if(!stellar)
 		myWorld.stars.generate();
 	else
 		if(stellar)
@@ -485,7 +472,7 @@ function readURL()
 	myWorld.seed = URLParams.get("seed") || ("" + myWorld.hex + myWorld.hex);
 	myWorld.travelZone = URLParams.get("travelZone");
 	var systemName = URLParams.get("system");
-	if(systemName === null)
+	if(!systemName)
 		myWorld.system = myWorld.name + " (" + myWorld.hex + " " + myWorld.sector + ")";
 	myWorld.nativeIntLife.generate();
 	return myWorld;
@@ -596,6 +583,7 @@ function divsToShow(optionChosen)
 	document.getElementById("starContainer").style.display = "none";
 	document.getElementById("newCelestialObject").style.display = "none";
 	document.getElementById("worldMapEditorContainer").style.display = "none";
+	document.getElementById("ggContainer").style.display = "none";
 	switch(optionChosen)
 	{
 		case 1:
@@ -674,6 +662,9 @@ function divsToShow(optionChosen)
 			break;
 		case 14:
 			document.getElementById("worldMapEditorContainer").style.display = "block";
+			break;
+		case 15:
+			document.getElementById("ggContainer").style.display = "block";
 			break;
 			
 	}
@@ -894,7 +885,7 @@ function loadWorld(worldObject)
 	document.getElementById("element_2").value = worldObject.uwp.toString();
 	document.getElementById("tcs_input").innerHTML = worldObject.tcs;
 	setAdditionalTCs(worldObject);
-	document.getElementById("iX_input").value = worldObject.iX();
+	document.getElementById("iX_input").value = worldObject.importance.value;
 	document.getElementById("eX_input").value = worldObject.economicExt.toString().substr(1,5);
 	document.getElementById("cX_input").value = worldObject.culturalExt.toString().substr(1,4);
 	document.getElementById("Nobz").value = worldObject.noblesExt.toString();
@@ -941,7 +932,7 @@ function generateMissing()
 	var worldName = document.getElementById("element_1").value;
 	var uwpString = document.getElementById("element_2").value;
 	var additionalTradeCodes = checkboxSelect(document.getElementsByName("TradeCode"));
-	var iX = parseInt(document.getElementById("iX_input").value);
+	var iX = "{ " + document.getElementById("iX_input").value + " }";
 	var eX = "(" + document.getElementById("eX_input").value + ")";
 	if(eX == "(000+0)")
 		eX = 123;
@@ -1003,6 +994,16 @@ function generateMissing()
 		myWorld.culturalExt.generate();
 		document.getElementById("cX_input").value = myWorld.culturalExt.toString().substr(1,4);
 	}
+	try
+	{
+		myWorld.importance.readString(iX);
+	}
+	catch(errorE)
+	{
+		myWorld.importance.generate();
+		document.getElementById("iX_input").value = myWorld.importance.value;
+	}
+		
 	if(basesString == "")
 	{
 		myWorld.bases.generate();
@@ -1017,7 +1018,6 @@ function generateMissing()
 	}
 	else
 		myWorld.noblesExt.readString(nobz);
-	document.getElementById("iX_input").value = myWorld.iX();
 	myWorld.allegiance = allegiance;
 	if(stellar_data == "")
 	{
@@ -1095,6 +1095,7 @@ function regenerateSystem()
 {
 	var localMainWorld = new mainWorld();
 	localMainWorld.readDataObj(origMWData);
+	localMainWorld.seed = parseInt(document.getElementById("seed").value);
 	mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
 	currentWorld = mySystem.mainWorld;
 	loadSystemOntoPage(mySystem);
@@ -1232,4 +1233,58 @@ function finishEditingMap()
 	currentWorld.mapData = editing_map.genSaveObj();
 	currentWorld.editDetails();
 	divsToShow(2);
+}
+
+function cancelEditingMap()
+{
+	currentWorld.editDetails();
+	divsToShow(2);	
+}
+
+function convertStarData()
+{
+/*	var s = ""
+	for(var i=0;i<100;i++)
+	{
+		var au = i/10;
+		s += "AU: " + au + ", Orbit: " + convertAUtoOrbit(au) + "\n";
+	}
+	alert(s);
+*/
+	var NEW_STAR_DATA = [];
+	for(var i=0;i<STAR_DATA.length;i++)
+	{
+		var star = STAR_DATA[i];
+		var hz_AU = Math.sqrt(star.luminosity) * Math.pow((374.025*1.1*0.7/288),2);
+		hz_AU = Math.round(hz_AU*100)/100;
+		var hz_orbit = convertAUtoOrbit(hz_AU);
+		var newStar = Object.assign({},star);
+		newStar.hz = hz_orbit;
+		NEW_STAR_DATA.push(newStar);
+	}
+	var textBlob = JSON.stringify(NEW_STAR_DATA);
+	var blob = new Blob([textBlob], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, "new_star_data.txt");
+	alert("ok");
+}
+
+function convertAUtoOrbit(au_measure)
+{
+	for(var j=0;j<ORBIT_DATA.length;j++)
+	{
+		if(j==0 && au_measure < ORBIT_DATA[j].au)
+			break;
+		if(j==ORBIT_DATA.length-1)
+			break;
+		if(au_measure >= ORBIT_DATA[j].au && au_measure < ORBIT_DATA[j+1].au)
+			break;
+	}
+	var initOrbit = ORBIT_DATA[j].au;
+	var incrCount = 0;
+	while(initOrbit < au_measure)
+	{
+		initOrbit += ORBIT_DATA[j].incrUp;
+		incrCount++;
+	}
+	return j+incrCount/10;
 }

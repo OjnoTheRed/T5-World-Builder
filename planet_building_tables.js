@@ -215,6 +215,13 @@ var WORLD_DENSITY_GAS_GIANT = {name:"Gas Giant", dice: function() { return dice(
 var WORLD_DENSITY_TYPE_TABLE = {dice: function() { return dice(2) }, min: 1, max: 15, mods: [WORLD_DENSITY_TYPE_SI_MOD, WORLD_DENSITY_TYPE_AT_MOD], 1:WORLD_DENSITY_HEAVY_CORE_TABLE, 2:WORLD_DENSITY_MOLTEN_CORE_TABLE, 3:WORLD_DENSITY_MOLTEN_CORE_TABLE, 4:WORLD_DENSITY_MOLTEN_CORE_TABLE, 5:WORLD_DENSITY_MOLTEN_CORE_TABLE, 6:WORLD_DENSITY_MOLTEN_CORE_TABLE, 7:WORLD_DENSITY_MOLTEN_CORE_TABLE, 8:WORLD_DENSITY_MOLTEN_CORE_TABLE, 9:WORLD_DENSITY_MOLTEN_CORE_TABLE, 10:WORLD_DENSITY_MOLTEN_CORE_TABLE, 11:WORLD_DENSITY_ROCKY_BODY_TABLE, 12:WORLD_DENSITY_ROCKY_BODY_TABLE, 13:WORLD_DENSITY_ROCKY_BODY_TABLE, 14:WORLD_DENSITY_ROCKY_BODY_TABLE, 15:WORLD_DENSITY_ICY_BODY_TABLE};
 var WORLD_DENSITY_TYPES_ALL = [WORLD_DENSITY_HEAVY_CORE_TABLE,WORLD_DENSITY_MOLTEN_CORE_TABLE,WORLD_DENSITY_ROCKY_BODY_TABLE,WORLD_DENSITY_ICY_BODY_TABLE,WORLD_DENSITY_GAS_GIANT];
 
+var BELT_DETAILS_PBD = {dice: function() { return dice(2); }, min: 2, max:12, 2:"1 m / under 1 dTon", 3:"5m / 5 dTons", 4:"10m / 50 dTons", 5:"25m / 500 dTons", 6:"50m / 5,000 dTons", 7:"100m / 50,000 dTons", 8:"300m / 1 million dTons", 9:"1km / 50 million dTons", 10:"5km / 5 billion dTons", 11:"50km / 5 trillion tons", 12:"500km / 5,000 trillion tons"};
+var BELT_DETAILS_MAX_DIAM = {dice:function() { return dice(1); }, min:1, max:6, 1:"as rolled", 2:"as rolled", 3:"1 km / 50 million dTons", 4:"5km / 5 billion dTons", 5:"50km / 5 trillion tons", 6:"500km / 5,000 trillion tons" };
+var BELT_DETAILS_NZONE_PRE = {dice:function() { return dice(2); }, min:2, max:12, 2:{n:40, m:30, c:30}, 3:{n:40, m:40, c:20}, 4:{n:40, m:40, c:20}, 5:{n:40, m:40, c:20}, 6:{n:40, m:40, c:20}, 7:{n:50, m:40, c:10}, 8:{n:50, m:40, c:10}, 9:{n:50, m:40, c:10}, 10:{n:50, m:30, c:20}, 11:{n:60, m:30, c:10}, 12:{n:60, m:40, c:0}};
+var BELT_DETAILS_MZONE_PRE = {dice:function() { return dice(2); }, min:2, max:12, 2:{n:20, m:50, c:30}, 3:{n:30, m:50, c:20}, 4:{n:20, m:60, c:20}, 5:{n:20, m:60, c:20}, 6:{n:30, m:60, c:10}, 7:{n:20, m:70, c:10}, 8:{n:10, m:70, c:20}, 9:{n:10, m:80, c:10}, 10:{n:10, m:80, c:10}, 11:{n:0, m:80, c:20}, 12:{n:0, m:90, c:10}};
+var BELT_DETAILS_CZONE_PRE = {dice:function() { return dice(2); }, min:2, max:12, 2:{n:20, m:30, c:50}, 3:{n:20, m:30, c:50}, 4:{n:20, m:30, c:50}, 5:{n:10, m:30, c:60}, 6:{n:10, m:30, c:60}, 7:{n:10, m:20, c:70}, 8:{n:10, m:20, c:70}, 9:{n:10, m:10, c:80}, 10:{n:0, m:20, c:80}, 11:{n:0, m:20, c:80}, 12:{n:0, m:20, c:80}};
+var BELT_DETAILS_PRE_ZONE = {dice:function(world) { return dice(2) + (world.zone == "I" ? -4 : (world.zone == "O" ? 2 : 0)); }, min:2, max: 12, 2:BELT_DETAILS_NZONE_PRE, 3:BELT_DETAILS_NZONE_PRE, 4:BELT_DETAILS_NZONE_PRE, 5:BELT_DETAILS_MZONE_PRE, 6:BELT_DETAILS_MZONE_PRE, 7:BELT_DETAILS_MZONE_PRE, 8:BELT_DETAILS_MZONE_PRE, 9:BELT_DETAILS_CZONE_PRE, 10:BELT_DETAILS_CZONE_PRE, 11:BELT_DETAILS_CZONE_PRE, 12:BELT_DETAILS_CZONE_PRE};
+var BELT_DETAILS_ORBIT_WIDTH = {dice:function(world) { var o = world.orbit.baseOrbit; return dice(2) + (o < 5 ? -3 : (o < 9 ? -1 : (o < 13 ? 1 : 2))) }, min:2, max:12, 2:0.01, 3:0.05, 4:0.1, 5:0.1, 6:0.5, 7:0.5, 8:1, 9:1.5, 10:2, 11:5, 12:10 };
 
 var GREENHOUSE = {0:1,1:1,2:1,3:1,4:1.05,5:1.05,6:1.1,7:1.1,8:1.15,9:1.15,10:1,11:1,12:1,13:1.15,14:1.1,15:1};
 var GH_ATM_10 = {dice: function() { return dice(2); }, min:2, max:12, mods:[], 2:1.2, 3:1.2, 4:1.3, 5:1.3, 6:1.4, 7:1.4, 8:1.5, 9:1.5, 10:1.6, 11:1.6, 12:1.7};
@@ -417,7 +424,8 @@ var SYMBOLS_DESCRIPTIONS = 		[	{level_low:0, level_high:0, symbols:"Totems, Spir
 // var some_dice_table = { dice: function(){ return dice(2); }, min:2, max:12, mods:[], 2:, 3:, 4:, 5:, 6:, 7:, 8:, 9:, 10:, 11:, 12:};
 // var some_resource = { name:"", examples:"",number:{molten:,rocky:,icy:,atmos_good:,atmos_bad:,pop_low:,pop_good:,tl_low:,tech_low_mid:,tech_up_mid:,tech_hi:,life:,no_life:} };
 
-var IMPORTANCE_DESCRIPTIONS = {	"-3":"Very Unimportant",
+var IMPORTANCE_DESCRIPTIONS = {	"-4":"Very Unimportant",
+								"-3":"Very Unimportant",
 								"-2":"Very Unimportant",
 								"-1":"Unimportant",
 								"0":"Unimportant",
@@ -501,3 +509,4 @@ var TECH_DESCRIPTORS = [
 {TL:20, era:"", energy:"routine energy abundance", society:"permanent personality transfer", environ:"arcologies", comms:"limited matter transport", transport:"global raw matter transport", medicine:"anagathics", science:"biologics", computers:"true artifical intelligence", speed1:"global matter transport", speed2:{speed:12,kph:3000}, personalWpns:"disintegrator wand", hvyWpns:"white globe", spaceTravel:"G-drive-9, Power Plant-9, M-drive-9, NAFAL-9, Jump-9, Collector-7, Hop-3, Skip-1", tech:"biologics", weapons:"antimatter missiles", defenses:"white globe",sensors1:"scanner", sensors2:"field sensor" },
 {TL:21, era:"", energy:"routine energy abundance", society:"deconstruction of cities", environ:"scattered site dwellings", comms:"limited matter transport", transport:"system raw matter transport", medicine:"anagathics", science:"biologics", computers:"true artifical intelligence", speed1:"system-wide matter transport", speed2:{speed:12,kph:3000}, personalWpns:"relativity rifle", hvyWpns:"white globe", spaceTravel:"G-drive-9, Power Plant-9, M-drive-9, NAFAL-9, Jump-9, Collector-8, Hop-4, Skip-1", tech:"biologics", weapons:"stasis", defenses:"white globe",sensors1:"scanner", sensors2:"field sensor" }
 ];
+

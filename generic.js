@@ -268,15 +268,18 @@ function codeKey(numDigits)
 }
 
 //paramObj = {d:, t:, a: } and can have any two defined; the third must be 'false'
-function intraSystemTravel(paramObj)
+function intraSystemTravel(paramObj, solveType)
 {
 	var me = this;
 	me.d = paramObj.d;
 	me.t = paramObj.t;
 	me.a = paramObj.a;
+	if(arguments < 2)
+		solveType = true; // solveType = true - stop/start; solveType=false - continuous acceleration
+	me.solveType = solveType;
 
 	if((!me.d && !me.t) || (!me.d && !me.a) || (!me.t && !me.a))
-		throw new Error("Calculating Intra System travel requires at least 2 parameters out of time, distance and acceleration.  Time = " + me.t + " Distance = " + me.d + " Accelration = " + me.a);
+		throw new Error("Calculating Intra System travel requires at least 2 parameters out of time, distance and acceleration.  Time = " + me.t + " Distance = " + me.d + " Acceleration = " + me.a);
 
 
 	me.solve = function()
@@ -287,6 +290,17 @@ function intraSystemTravel(paramObj)
 			me.t = 2*Math.sqrt(me.d/me.a);
 		if(!me.a)
 			me.a = 4*me.d/Math.pow(me.t,2);
+	}
+
+	me.solveCont = function()
+	{
+		if(!me.d)
+			me.d = me.a/2*Math.pow(me.t,2);
+		if(!me.t)
+			me.t = Math.sqrt(2*me.d/me.a);
+		if(!me.a)
+			me.a = 2*Math.pow(me.t,2)*me.d;
+		
 	}
 
 	me.timeString = function()
@@ -311,7 +325,10 @@ function intraSystemTravel(paramObj)
 	{
 		return Math.floor(me.d/1000) + "km";
 	}
-
-	me.solve();
+	
+	if(me.solveType)
+		me.solve();
+	else
+		me.solveCont();
 
 }

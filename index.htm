@@ -19,6 +19,7 @@
 	<link rel="stylesheet" type="text/css" href="traveller.css">
 </head>
 <body onload="initLoad();" >
+<!--	<button onclick="convertStarData();">Convert</button> -->
 	<div class="container">
 		<h1 class="title"><img src="150px-Imperial_Sunburst-Sun-IISS-Traveller.gif" height="30" width="30">Traveller Worlds</h1>
 		<h1 class="titleStrap">TRAVELLER<sup style="margin-left:0.25em;color:white;font-weight:bold;font-family:Arial">5</sup></h1>
@@ -93,7 +94,7 @@
 	</div>
 	<div class="container" id="starContainer" style="margin-top:0.5em;display:none;">
 		<div class="contained">
-		<h2>Edit Star Details</h2>
+		<h2 style="margin-top:0;">Edit Star Details</h2>
 		<button onclick="divsToShow(1);" class="btn2">Return to full system</button>
 		<button onclick="divsToShow(2);" class="btn2">Return to Current World</button>
 		<table class="contained_tbl">
@@ -170,7 +171,21 @@
 			<option>M7</option>
 			<option>M8</option>
 			<option>M9</option>
-		</select></td></tr>
+		</select></td><td class="contained_tbl"></td><td class="contained_tbl"></td>
+		<td class="contained_tbl" style="text-align:right;">Ship Acceleration:</td>
+		<td class="contained_tbl">
+		<select class="worldDetails" id="shipAccel">
+			<option value="1" selected>1G</option>
+			<option value="2">2G</option>
+			<option value="3">3G</option>
+			<option value="4">4G</option>
+			<option value="5">5G</option>
+			<option value="6">6G</option>
+			<option value="7">7G</option>
+			<option value="8">8G</option>
+			<option value="9">9G</option>
+		</select>
+		</td></tr>
 		<tr><td class="contained_tbl" style="text-align:right;">Spectral Size:</td>
 		<td class="contained_tbl"><select class="worldDetails" id="spectralSize">
 			<option>Ia</option>
@@ -181,13 +196,96 @@
 			<option>V</option>
 			<option>VI</option>
 			<option>D</option>
-		</select></td></tr>
+		</select></td><td class="contained_tbl"></td><td class="contained_tbl"></td>
+		<td class="contained_tbl" style="text-align:right;">Ship Distance from star (AU):</td>
+		<td class="contained_tbl"><input type="number" value="0.2" step="0.1" min="0.1" class="worldDetails" id="shipDistance" style="width:4em;" /></td>
+		<td class="contained_tbl" style="text-align:right;">Ship Distance to Jump Point (km):</td>
+		<td class="contained_tbl"><span class="worldDetails" id="shipDistanceToJP"></span></td>
+		
+		</tr>
 		<tr><td class="contained_tbl" style="text-align:right;">Luminosity Multiplier:</td>
-		<td class="contained_tbl"><input type="number" step="0.01" id="luminosityVary" style="width:4em;"></input></td></tr>
+		<td class="contained_tbl"><input type="number" step="0.01" id="luminosityVary" style="width:4em;"></input></td><td class="contained_tbl" style="text-align:right;">Luminosity:</td><td class="contained_tbl"><span id="starLumin" class="worldDetails"></span></td>
+		<td class="contained_tbl" style="text-align:right;">Time to jump point (stop / start):</td>
+		<td class="contained_tbl"><span class="worldDetails" id="shipTime"><span></td>
+		<td class="contained_tbl" style="text-align:right;">Time to jump point (continuous accel):</td>
+		<td class="contained_tbl"><span class="worldDetails" id="shipTimeCA"><span></td>
+		
+		</tr>
 		<tr><td class="contained_tbl" style="text-align:right;">Size Multiplier:</td>
-		<td class="contained_tbl"><input type="number" step="0.01" id="sizeVary" style="width:4em;"></input></td></tr>
+		<td class="contained_tbl"><input type="number" step="0.01" id="sizeVary" style="width:4em;"></input></td><td class="contained_tbl" style="text-align:right;">Radius:</td><td class="contained_tbl"><span id="starRadius" class="worldDetails"></span></td><td class="contained_tbl" style="text-align:right;">Diameter:</td><td class="contained_tbl"><span id="starDiameter" class="worldDetails"></span></td><td class="contained_tbl" style="text-align:right;">Jump Point:</td><td class="contained_tbl"><span id="starJP" class="worldDetails"></span></td></tr>
 		<tr><td class="contained_tbl" style="text-align:right;">Mass Multiplier:</td>
-		<td class="contained_tbl"><input type="number" step="0.01" id="massVary" style="width:4em;"></input></td></tr></table>
+		<td class="contained_tbl"><input type="number" step="0.01" id="massVary" style="width:4em;"></input></td>
+		<td class="contained_tbl" style="text-align:right;">Mass:</td>
+		<td class="contained_tbl"><span id="starMass" class="worldDetails"></span></td></tr></table>
+		</div>
+	</div>
+	<div class="container" id="ggContainer" style="margin-top:0.5em;display:none;">
+		<div class="contained">
+		<h2 style="margin-top:0;">Edit Gas Giant Details</h2>
+		<button onclick="divsToShow(1);" class="btn2">Return to full system</button>
+		<button onclick="divsToShow(2);" class="btn2">Return to Current World</button><br />
+		<label class="guidelines">Gas Giant Name</label><br />
+		<input type="text" id="ggName" class="worldDetails" /><br />
+		<label class="guidelines">Gas Giant Size</label><br />
+		<select class="worldDetails" id="ggSize">
+			<option value="20">L</option>
+			<option value="21">M</option>
+			<option value="22">N</option>
+			<option value="23">P</option>
+			<option value="24">Q</option>
+			<option value="25">R</option>
+			<option value="26">S</option>
+			<option value="27">T</option>
+			<option value="28">U</option>
+			<option value="29">V</option>
+			<option value="30">W</option>
+			<option value="31">X</option>
+			<option value="32">Y</option>
+		</select><br />
+		<label class="guidelines">Giant Type</label><br />
+		<select class="worldDetails" id="ggType">
+			<option value="IG">Ice Giant</option>
+			<option value="GG">Gas Giant</option>
+		</select><br />
+		<label class="guidelines">Density</label><br />
+		<input type="number" step="0.01" id="ggDensity" style="width:4em;"/><br />
+		<label class="guidelines">Mass</label><br />
+		<p class="worldDetails" id="ggMass"></p>
+		<table class="contained_tbl">
+		<tr class="contained_tbl">
+			<td class="contained_tbl">
+				<label class="guidelines">Diameter</label><br />
+				<p class="worldDetails" id="ggDiameter"></p>
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Jump Point:</label><br />
+				<p class="worldDetails" id="ggJP"></p>
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Ship Distance from Gas Giant (km):</label><br />
+				<input type="number" value="100000" step="10000" class="worldDetails" id="ggShipDistance" />
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Ship Acceleration</label><br />
+				<select class="worldDetails" id="ggShipAccel">
+					<option value="1" selected>1G</option>
+					<option value="2">2G</option>
+					<option value="3">3G</option>
+					<option value="4">4G</option>
+					<option value="5">5G</option>
+					<option value="6">6G</option>
+					<option value="7">7G</option>
+					<option value="8">8G</option>
+					<option value="9">9G</option>
+				</select>				
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Time to Jump Point:</label><br />
+				<p class="worldDetails" id="ggJPTime"></p>
+			</td>
+			
+		</tr>
+		</table>
 		</div>
 	</div>
 	<div class="container" id="worldMapContainer" style="margin-top:0.5em;">
@@ -292,8 +390,8 @@
 				<p class="guidelines">Starport Facilities</p>
 				<p id="portFacilities"></p>
 			</div>
-			<h2>Size Details</h2>
-			<div class="contained-flex">
+			<h2 id="regularSizeDetailsHeading" name="nonBelt">Size Details</h2>
+			<div class="contained-flex" id="regularSizeDetailsDIV" name="nonBelt">
 				<div class="formItem">
 				<p class="guidelines" id="diameter_lbl">Size UWP value explanation:</p>
 				<p class="worldDetails" id="sizeUWPexp"></p>
@@ -340,10 +438,62 @@
 				<span class="tooltiptext">Rotational Period in Earth Hours.  If Tz or Lk, rotation period &amp; orbital period are the same.</span>
 				</div>
 			</div>
+			<h2 id="beltDetailsHeading">Belt Details</h2>
+			<div class="contained-flex" id="beltDetailsDIV">
+				<div class="formItem">
+					<p class="guidelines">Predominant Size</p>
+					<select class="worldDetails" id="beltPredomSize">
+						<option>1 m / under 1 dTon</option>
+						<option>5m / 5 dTons</option>
+						<option>10m / 50 dTons</option>
+						<option>25m / 500 dTons</option>
+						<option>50m / 5,000 dTons</option>
+						<option>100m / 50,000 dTons</option>
+						<option>300m / 1 million dTons</option>
+						<option>1km / 50 million dTons</option>
+						<option>5km / 5 billion dTons</option>
+						<option>50km / 5 trillion tons</option>
+						<option>500km / 5,000 trillion tons</option>
+					</select>
+					<span class="tooltiptext">Around 30% of objects will be approximately this size. Most will be smaller.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Maximum Size</p>
+					<select class="worldDetails" id="beltMaxSize">
+						<option value="as rolled">Predominant size is maximum size</option>
+						<option value="as rolled">Predominant size is maximum size</option>
+						<option>1 km / 50 million dTons</option>
+						<option>5km / 5 billion dTons</option>
+						<option>50km / 5 trillion tons</option>
+						<option>500km / 5,000 trillion tons</option>
+					</select>
+					<span class="tooltiptext">Some objects (approximately 1%) will be up to this size, unless the predominant size is the maximum size.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Belt Width (AU)</p>
+					<input type="number" min="0.01" max="10" step="0.1" id="beltWidth" style="width:80px;"/>
+					<span class="tooltiptext">The width of the belt in AU.  The middle of the belt will roughly be the indicated AU distance from the star.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">N-zone percentage</p>
+					<input type="number" min="0" max="100" step="1" id="belt_nZone" style="width:80px;" />
+					<span class="tooltiptext">The percentage of the width of the N-zone.  The N-zone is where Nickel / Iron objects dominate, drawn towards the star as they are denser and heavier.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">M-zone percentage</p>
+					<input type="number" min="0" max="100" step="1" id="belt_mZone" style="width:80px;" />
+					<span class="tooltiptext">The percentage of the width of the M-zone.  The M-zone a mixed zone of some Nickel / Iron objects, some rocky objects, and some carbonaceous and ice objects.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">C-zone percentage</p>
+					<input type="number" min="0" max="100" step="1" id="belt_cZone" style="width:80px;" />
+					<span class="tooltiptext">The percentage of the width of the C-zone.  The C-zone is where carbonaceous and icy objects dominate, being lighter and not as drawn to the star.</span>
+				</div>				
+			</div>
 			<h2>Atmosphere and Temperature details</h2>
 			<p class="guidelines">Atmosphere UWP digit explanation</p>
 			<p class="worldDetails" id="atmosUWPExpl"></p>
-			<div class="contained-flex">
+			<div class="contained-flex" name="nonBelt">
 				<div class="formItem">
 				<p class="guidelines" id="atmos_pressure_lbl">Atmospheric Pressure</p>
 				<input class="worldDetails" id="atmos_pressure_edit" type="text" maxlength="5" value=""/>
@@ -408,7 +558,7 @@
 				</div>
 			</div>
 			<h2>Hydrosphere Details</h2>
-			<div class="contained-flex">
+			<div class="contained-flex" name="nonBelt">
 				<div class="formItem">
 				<p class="guidelines" id="hydro_perc_lbl">Hydrographic Percentage</p>
 				<input class="worldDetails" id="hydro_perc_edit" type="text" maxlength="2" value=""/>
@@ -630,14 +780,28 @@
 			<div id="iX">
 			<h2>Importance</h2>
 				<p class="guidelines">Importance</p>
-				<p><span id="world_ix"></span> <span id="world_ix_desc"></span></p>
+				<p><select id="world_ix">
+				<option>-4</option>
+				<option>-3</option>
+				<option>-2</option>
+				<option>-1</option>
+				<option>0</option>
+				<option>1</option>
+				<option>2</option>
+				<option>3</option>
+				<option>4</option>
+				<option>5</option>
+				</select>
+				
+				<span id="world_ix_desc"></span></p>
 			</div>
-			<h2>Temperature Table</h2>
+			<h2 name="nonBelt">Temperature Table</h2>
 		</div>
 	</div>
 	<!-- map editing -->
 	<div class="container" id="worldMapEditorContainer" style="margin-top:0.5em;display:none">
 		<button class="btn1" onclick="finishEditingMap();">Save and Close</button>
+		<button class="btn1" onclick="cancelEditingMap();">Cancel Changes</button>
 		<div class="container" style="background-color:#ffffff;margin-top:0.5em" >
 			<div class="contained" style="width:100%;height:800px" id="mapEditPlaceholder">
 				<p class="loadingAnimation">Rendering ...</p>
@@ -935,11 +1099,17 @@
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
-		<h2 class="white" style="margin-top:0;">TBA</h2>
-		<p class="white"><b>Map editing feature:</b> When using terrain that are overlaid symbols (e.g. chasm, rural, noble estate), clicking on hexes that have them now removes them.  Users can toggle this terrain on and off for each hex when the tool is selected.</p>
-		<p class="white"><b>Map editing feature:</b> Currently used tool is now highlighted in red.</p>		
-		<p class="white"><b>Bug Fix:</b> Remove Twilight Zone feature was broken because of map editing - now fixed.</p>
-		<p class="white"><b>Bug Fix:</b> When clicking on some hexes in the editor, an error occured when trying to replace clear terrain that had only a symbol over it (e.g. rural or agricultural).  This was because clear terrain had not been explicitly attached to that hex.  Now fixed.</p>
+		<h2 class="white">9 July 2022</h2>
+		<p class="white"><b>Belt Details and map:</b> Planetoid and Asteroid Belts now have details generated - their zones, and the total belt width, and the predominate and maximum sizes of objects in the belt.  The Belt now has a map indicating the relative size of each zone. All belt details are fully editable and saveable with the system.</p>
+		<p class="white"><b>Twilight Zone alteration:</b> Ice cap terrain is now removed from Twilight Zone worlds.</p>
+		<p class="white"><b>Habitable Zone reset:</b> The Habitable Zone value for each star has now been refined to a decimal orbit (where each 0.1 is 10% of the distance from the inner orbit to the next orbit).  If the Main World is to be placed in the precise Habitable Zone (i.e. not HZ+1 or HZ-1) then TravellerWorlds now places it in this new refined value.  The new HZ value has been calculated by the distance that a planet with Greenhouse of +10% and Albedo of 0.3 would need to be from that star for an average temperature of 288 K / 15&deg;C.  Note that due to varying Albedo and Greenhouse effect this will not always be the exact temperature.  This more exact placement is to help world builders obtain more Earth-like conditions more easily; many results quite frankly created extreme worlds even if they were Ag Ri Ga worlds.</p>
+		<h2 class="white">4 July 2022</h2>
+		<p class="white"><b>Bug Fix:</b> Fixed an introduced bug stopping Local Hexes from completing correctly.</p>
+		<p class="white"><b>Bug Fix:</b> When Cultural Extension and Economic Extension data was not passed to TravellerWorlds it would freeze.</p>
+		<p class="white"><b>Importance:</b> Importance is now imported from data rather than only generated. It can also be edited by the user. Its default value is to generate the Importance rating using T5 rules, but it can be edited by the user (e.g. when establishing capitals).</p>
+		<p class="white"><b>Star Details:</b> When editing star details, calculated values (luminosity, mass, diameter, jump point) are displayed and updated as you edit.</p>		
+		<p class="white"><b>Gas Giant Details:</b> Gas giant details can now be edited, and details such as mass and jump points are displayed and updated as you edit.</p>
+		<h2 class="white">3 January 2022</h2>
 		<p class="white"><b>Bug Fix:</b> In the background, the map was generating a random map before loading the data because this was required for the setup before data was loaded.  Set up and generation are now separate procedures.</p>
 		<p class="white"><b>Bug Fix:</b> In map editing mode, certain hexes were incorrectly creating a World Hex Map when clicked.  Now fixed.</p>
 		<h2 class="white">27 December 2021</h2>
@@ -1189,7 +1359,7 @@
 			<p class="white">BeastMaker - either a bunch of tables for the world, or generate an encounter table for particular terrain hexes</p>
 			<p class="white">Plant maker for colour and description</p>
 			<p class="white">Edit maps by placing your own world hexes</p>
-			<p class="white">Edit star details - size, spectral classification, luminosity, mass and radius.</p>
+			<p class="white">Edit star details - size, spectral classification, luminosity, mass and radius.<span style="color:green;font-weight:bold">DONE!</span></p>
 			<p class="white">Edit Gas Giant details - size, ice / gas, add other details that help Referees.</p>
 		</div>
 	</div>

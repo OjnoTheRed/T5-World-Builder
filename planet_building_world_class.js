@@ -145,6 +145,7 @@ function world()
 	me.popMulti = 0;
 	me.map = null;
 	me.mapData = null;
+	me.beltDetails = null;
 
 	me.nameTextBox = function()
 	{
@@ -158,7 +159,6 @@ function world()
 
 	me.editDetails = function()
 	{
-		//divsToShow(2);
 		me.updateEdits();
 		all_details.map(function(item, index)	{
 													var elem = document.getElementById(item.id);
@@ -171,14 +171,38 @@ function world()
 												});
 		var uwp_elem = document.getElementsByName("uwp");
 		for(var i=0;i<uwp_elem.length;i++)
-			uwp_elem[i].onchange = function()	{	me.uwp.update(this.id,this.value);
+			uwp_elem[i].onchange = function()	{
+													me.uwp.update(this.id,this.value);
 													clearData(this.id);
 													me.tcs.generate();
 													me.updateEdits(uPObj.prefs.redraw_maps_on_uwp_change);
-													me.orbit.set.updateTable();
+													me.isSatellite ? me.planet.orbit.set.updateTable() : me.orbit.set.updateTable();
 													me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 												};
 		document.getElementById("tcs").innerHTML = me.tcs;
+		var nonBeltDetails = document.getElementsByName("nonBelt");
+		if(me.beltDetails)
+		{
+			document.getElementById("beltDetailsHeading").style.display = "block";
+			document.getElementById("beltDetailsDIV").style.display = "block";
+			
+			document.getElementById("beltPredomSize").onchange = me.beltDetails.update;
+			document.getElementById("beltMaxSize").onchange = me.beltDetails.update;
+			document.getElementById("beltWidth").onchange = me.beltDetails.update;
+			document.getElementById("belt_nZone").onchange = me.beltDetails.update;
+			document.getElementById("belt_mZone").onchange = me.beltDetails.update;
+			document.getElementById("belt_cZone").onchange = me.beltDetails.update;
+
+			for(var i=0;i<nonBeltDetails.length;i++)
+				nonBeltDetails[i].style.display = "none";
+		}
+		else
+		{
+			document.getElementById("beltDetailsHeading").style.display = "none";
+			document.getElementById("beltDetailsDIV").style.display = "none";
+			for(var i=0;i<nonBeltDetails.length;i++)
+				nonBeltDetails[i].style.display = "block";
+		}
 		var cX_div = document.getElementById("cX");
 		var eX_div = document.getElementById("eX");
 		var iX_div = document.getElementById("iX");
@@ -211,8 +235,8 @@ function world()
 																					me.isSatellite ? me.planet.orbit.set.systemObj.detailsSaved = false : me.orbit.set.systemObj.detailsSaved = false;
 																				};
 												});
-			document.getElementById("world_ix").innerHTML = me.iX();
-			document.getElementById("world_ix_desc").innerHTML = me.iX_desc();
+			document.getElementById("world_ix").value = me.importance.value;
+			document.getElementById("world_ix_desc").innerHTML = me.importance.description();
 			nobz_div.hidden = false;
 			document.getElementById("nobz_codes").innerHTML = me.noblesExt.toString();
 			document.getElementById("nobz_descriptions").innerHTML = me.noblesExt.allNobles();
@@ -327,11 +351,32 @@ function world()
 																				};
 
 												});
+			var iX_elem = document.getElementById("world_ix");
+			var iX_elem_desc = document.getElementById("world_ix_desc");
+			iX_elem.value = me.importance.value;
+			iX_elem_desc.innerHTML = me.importance.description();
+			iX_elem.onchange = function() 	{
+												me.importance.value = parseInt(iX_elem.value);
+												iX_elem_desc.innerHTML = me.importance.description();				
+											};
+			
 		}
 		if(me.mapData && !forceUpdateMap)
 			me.createMap(me.mapData);
 		else
 			me.createMap();
+		if(!me.beltDetails && me.isBelt())
+			me.beltDetails = new beltDetails(me);
+		if(me.beltDetails)
+		{
+			document.getElementById("beltPredomSize").value = me.beltDetails.predomSize;
+			document.getElementById("beltMaxSize").value = me.beltDetails.maxDiam;
+			document.getElementById("beltWidth").value = me.beltDetails.orbitWidth;
+			document.getElementById("belt_nZone").value = me.beltDetails.beltZones.n;
+			document.getElementById("belt_mZone").value = me.beltDetails.beltZones.m;
+			document.getElementById("belt_cZone").value = me.beltDetails.beltZones.c;
+			document.getElementById("belt_cZone").value = me.beltDetails.beltZones.c;
+		}
 	}
 
 	me.createMap = function(mapData)
@@ -364,9 +409,19 @@ function world()
 		downloadMapDataButton.onclick = function() { downloadMapData(me.map, fileName); };
 		
 		var editMapButton = document.getElementById(EDIT_MAP_BUTTON_NAME);
+		editMapButton.disabled = false;
+		
+		if(me.isBelt())
+		{
+			editMapButton.disabled = true;
+			if(!me.beltDetails)
+				me.beltDetails = new beltDetails(me);
+			me.map = new beltMap(me, worldMapSVG, worldMapDiv);
+			me.map.generate();
+			return;
+		}
 		
 		me.map = new worldMap(me, worldMapSVG, worldMapDiv);
-		// me.map.generate(); // required even if there is mapData to set up triangles and hexes before loading data
 		if(mapData)
 		{
 			me.map.loadObj(mapData);
@@ -429,6 +484,11 @@ function world()
 		var s = ""
 		all_details.map(function(item) { item.text_string ? s += item.name + ": " + item.text_string + ", " : s += ""; });
 		return s;
+	}
+
+	me.isBelt = function()
+	{
+		return me.generationObject.name == "Planetoids" || (me.constructor.name == "mainWorld" && me.uwp.size == 0);
 	}
 	
 	var WORLD_DIAMETER;
@@ -1411,10 +1471,10 @@ var all_details =
 	{ id:"populCalc", units:function() { return false; }, name:"Total Population Calculation", contents:function() { return me.populCount(); },  text_string:function() { return me.populCount(); }, data_string:function() { return me.populCount(); } },
 	{ id:"govDigExp", units:function() { return false; }, name:"World Government Type", contents:function() { return me.govDigitExp(); }, text_string:function() { return me.govDigitExp(); }, data_string:function() { return me.govDigitExp().replace(/,/g,""); } },
 	{ id:"govDetailExp", units:function() { return false; }, name:"World Government Detail", contents:function() { return me.govDetail(); }, text_string:function() { return me.govDetail(); }, data_string:function() { return me.govDetail().replace(/,/g,""); } },
-	{id:"lawDigit", units:function() { return false;}, name:"Law Level Digit", contents:function(){ return me.uwp.law; }, text_string:function(){ return me.uwp.law; }, data_string:function(){ return me.uwp.law; }},
-	{id:"lawExplanation", units:function() { return false;}, name:"Law Level explanation", contents:function() { return me.lawDetails(); }, text_string:function() { return me.lawDetails(); }, data_string:function() { return me.lawDetails(); }},
-	{id:"techDigit", units:function() { return false;}, name:"Technology Level Digit", contents:function() { return me.uwp.TL; }, text_string:function() { return me.uwp.TL; }, data_string:function() { return me.uwp.TL; }},
-	{id:"techExplanation", units:function() { return false;}, name:"Technology Level explanation", contents:function() { return me.techDetails(); }, text_string:function() { return me.techDetails(); }, data_string:function() { return me.techDetails(); }}	
+	{ id:"lawDigit", units:function() { return false;}, name:"Law Level Digit", contents:function(){ return me.uwp.law; }, text_string:function(){ return me.uwp.law; }, data_string:function(){ return me.uwp.law; }},
+	{ id:"lawExplanation", units:function() { return false;}, name:"Law Level explanation", contents:function() { return me.lawDetails(); }, text_string:function() { return me.lawDetails(); }, data_string:function() { return me.lawDetails(); }},
+	{ id:"techDigit", units:function() { return false;}, name:"Technology Level Digit", contents:function() { return me.uwp.TL; }, text_string:function() { return me.uwp.TL; }, data_string:function() { return me.uwp.TL; }},
+	{ id:"techExplanation", units:function() { return false;}, name:"Technology Level explanation", contents:function() { return me.techDetails(); }, text_string:function() { return me.techDetails(); }, data_string:function() { return me.techDetails(); }}
  ];
 	me.all_details = all_details;
 	ALL_DETAILS = all_details;
@@ -1472,7 +1532,10 @@ var all_details =
 		if(me.satelliteSystem)
 			o.satelliteSystem = me.satelliteSystem.dbObj();
 		o.resources = me.resources().dbObj();
-		o.mapData = (me.map && me.map.saveObj.length > 0) ? me.map.genSaveObj() : null;
+		if(me.beltDetails)
+			o.beltDetails = me.beltDetails.dbObj();
+		else
+			o.mapData = (me.map && me.map.saveObj.length > 0) ? me.map.genSaveObj() : null;
 		return o;
 	}
 
@@ -1517,6 +1580,12 @@ var all_details =
 		}
 		if(o.mapData)
 			me.mapData = o.mapData;
+		if(o.beltDetails)
+		{
+			me.beltDetails = new beltDetails(me, false);
+			me.beltDetails.read_dbObj(o.beltDetails);
+		}
+
 	}
 }
 
@@ -1596,6 +1665,7 @@ function mainWorld(generationObject)
 	me.gas_giants = 0;
 	me.economicExt = new eX(me);
 	me.culturalExt = new cX(me);
+	me.importance = new iX(me);
 	me.noblesExt = new nobles(me);
 	me.worlds = 0;
 	me.allegiance = "Im";
@@ -1603,14 +1673,13 @@ function mainWorld(generationObject)
 	
 	me.symbolName = function()
 	{
-		return "sys_symbol_main_world";
+		return me.isBelt() ? "sys_symbol_belt" : "sys_symbol_main_world";
 	}
 	
 	me.backupName = function()
 	{
 		return "The Main World";
-	}
-	
+	}	
 
 	me.buildGet = function()
 	{
@@ -1643,6 +1712,8 @@ function mainWorld(generationObject)
 		if(uwpCreateYes)
 			me.uwp.createUWP();
 		me.tcs.generate();
+		if(me.uwp.size == 0)
+			me.generationObject = planetoidsUWP;
 		me.popMulti = me.uwp.popul == 0 ? 0 : rng(9);
 		me.belts = Math.max(0, dice(1)-3);
 		me.gas_giants = Math.max(0, Math.floor(dice(2)/2-2));
@@ -1657,53 +1728,13 @@ function mainWorld(generationObject)
 		me.system = me.name;
 	}
 
-	me.iX = function()
-	{
-		var returnedIX = 0;
-		if(me.uwp.port == "A" || me.uwp.port == "B")
-			returnedIX++;
-		if(me.uwp.port == "D" || me.uwp.port == "E" || me.uwp.port == "X")
-			returnedIX--;
-		if(me.uwp.TL >= 16)
-			returnedIX++;
-		if(me.uwp.TL >= 10)
-			returnedIX++;
-		if(me.uwp.TL <= 8)
-			returnedIX--;
-		if(me.tcs.has("Ag"))
-			returnedIX++;
-		if(me.tcs.has("Hi"))
-			returnedIX++;
-		if(me.tcs.has("In"))
-			returnedIX++;
-		if(me.tcs.has("Ri"))
-			returnedIX++;
-		if(me.uwp.popul <= 6)
-			returnedIX--;
-		if(me.bases.has("Naval") && me.bases.has("Scout"))
-			returnedIX++;
-		if(me.bases.has("Way Station"))
-			returnedIX++;
-		return returnedIX;
-	}
-
-	me.iX_desc = function()
-	{
-		return IMPORTANCE_DESCRIPTIONS[me.iX()];
-	}
-
-	me.iX_string = function()
-	{
-		return " { " + me.iX() + " } ";
-	}
-
 	me.toString = function()
 	{
 		var s = pad(me.hex,5);
 		s += pad(me.name,21);
 		s += me.uwp + " ";
 		s += pad(me.tcs,41);
-		s += pad(me.iX_string(),7);
+		s += pad(me.importance,7);
 		s += me.economicExt + " ";
 		s += me.culturalExt + " ";
 		s += pad(me.noblesExt,6);
@@ -1723,7 +1754,7 @@ function mainWorld(generationObject)
 		s += me.name + ",";
 		s += me.uwp + ",";
 		s += me.tcs + ",";
-		s += me.iX_string() + ",";
+		s += me.importance + ",";
 		s += me.economicExt + ",";
 		s += me.culturalExt + ",";
 		s += me.noblesExt + ",";
@@ -1739,7 +1770,7 @@ function mainWorld(generationObject)
 	me.toTR = function()
 	{
 		var w_tr = document.createElement("TR");
-		me.iX_string_static = me.iX_string();
+		me.iX_string_static = me.importance;
 		me.pbg = me.popMulti + "" + me.belts + "" + me.gas_giants;
 		var props = ["hex","name","uwp","tcs","iX_string_static","economicExt","culturalExt","noblesExt","bases","travelZone","pbg","worlds","allegiance","stars"];
 		props.map(function(p) {
@@ -1749,58 +1780,6 @@ function mainWorld(generationObject)
 			w_tr.appendChild(wd_td);
 		});
 		return w_tr;
-	}
-
-	me.readString = function(s)
-	{
-		me.hex = s.substr(0,4);
-		me.name = s.substr(5,20);
-		me.uwp = new uwp(null,me);
-		me.uwp.readUWP(s.substr(26,9));
-		me.tcs = s.substr(36,40).trim().split(" ");
-		me.economicExt = new eX(me);
-		me.economicExt.readString(s.substr(84,7));
-		me.culturalExt = new cX(me);
-		me.culturalExt.readString(s.substr(92,6));
-		me.noblesExt = new nobles(me);
-		me.noblesExt.readString(s.substr(99,5));
-		me.basesPresent = new bases(me);
-		me.basesPresent.readString(s.substr(105,2).trim());
-		me.travelZone = s.substr(108,1);
-		me.popMulti = parseInt(s.substr(110,1));
-		me.belts = parseInt(s.substr(111,1));
-		me.gas_giants = parseInt(s.substr(112,1));
-		me.worlds = parseInt(s.substr(114,2).trim());
-		me.allegiance = s.substr(117,4);
-		me.stars.readString(s.substr(122));
-		me.nativeIntLife.generate();
-	}
-
-	me.readTabDelimited = function(s)
-	{
-		var dataArray = s.split("\t");
-		me.hex = dataArray[2];
-		me.name = dataArray[3];
-		me.uwp = new uwp(null,me);
-		me.uwp.readUWP(dataArray[4]);
-		me.basesPresent = new bases(me);
-		me.basesPresent.readString(dataArray[5].trim());
-		me.tcs = new tcs(me);
-		me.tcs.readString(dataArray[6].trim());
-		me.travelZone = dataArray[7];
-		me.popMulti = parseInt(dataArray[8].substr(0,1));
-		me.belts = parseInt(dataArray[8].substr(1,1));
-		me.gas_giants = parseInt(dataArray[8].substr(2,1));
-		me.allegiance = dataArray[9];
-		me.stars.readString(dataArray[10]);
-		me.economicExt = new eX(me);
-		me.economicExt.readString(dataArray[12]);
-		me.culturalExt = new cX(me);
-		me.culturalExt.readString(dataArray[13]);
-		me.noblesExt = new nobles(me);
-		me.noblesExt.readString(dataArray[14]);
-		me.worlds = parseInt(dataArray[15].trim());
-		me.nativeIntLife.generate();
 	}
 	
 	me.saveDataObj = function()
@@ -1830,6 +1809,8 @@ function mainWorld(generationObject)
 		me.name = dataObj.name;
 		me.uwp = new uwp(null,me);
 		me.uwp.readUWP(dataObj.uwp);
+		if(me.uwp.size == 0)
+			me.generationObject = planetoidsUWP;
 		me.bases = new bases(me);
 		me.bases.readString(dataObj.bases);
 		me.tcs = new tcs(me);
@@ -1850,6 +1831,8 @@ function mainWorld(generationObject)
 		me.economicExt.readString(dataObj.ex);
 		me.culturalExt = new cX(me);
 		me.culturalExt.readString(dataObj.cx);
+		me.importance = new iX(me);
+		me.importance.readString(dataObj.ix);
 		me.noblesExt = new nobles(me);
 		me.noblesExt.readString(dataObj.nobility);
 		me.worlds = parseInt(dataObj.w);
@@ -1958,6 +1941,8 @@ function minorWorld(genObject, mainWorld, planet)
 		me.nativeLife();
 		me.nativeIntLife.generate();
 		me.economicExt.generate();
+		if(me.generationObject.name == "Planetoids")
+			me.beltDetails = new beltDetails(me);
 	}
 
 	me.buildGet = function()
@@ -1991,6 +1976,79 @@ function minorWorld(genObject, mainWorld, planet)
 		o.type = "minorWorld";
 		return o;
 	}
+}
+
+function beltDetails(worldObj, generateNow)
+{
+	if(arguments.length < 2)
+		generateNow = true;
+	var me = this;
+	me.world = worldObj;
+	me.beltZones = {n:0, m:0, c:0};
+	me.predomSize = "";
+	me.maxDiam = "";
+	me.orbitWidth = 0;
+	
+	me.generate = function()
+	{
+		me.predomSize = new dice_table(BELT_DETAILS_PBD).roll();
+		me.maxDiam = new dice_table(BELT_DETAILS_MAX_DIAM).roll();
+		var predomZoneTbl = new dice_table(BELT_DETAILS_PRE_ZONE, null, me.world).roll();
+		var temp_beltZones = new dice_table(predomZoneTbl).roll();
+		var temp_n = Math.max(0, temp_beltZones.n + flux());
+		var temp_m = temp_beltZones.m + flux();
+		var temp_c = 100 - temp_n - temp_m;
+		me.beltZones = {n:temp_n, m:temp_m, c:temp_c};
+		me.orbitWidth = new dice_table(BELT_DETAILS_ORBIT_WIDTH, null, me.world).roll();
+	}
+	
+	me.toString = function()
+	{
+		var s = "";
+		s += "Predominant size (approx. 30% of planetoids): " + me.predomSize;
+		if(!me.maxDiam == "as rolled")
+			s += ", Maximum size (approx 1% of planetoids): " + me.maxDiam;
+		s += ", Nickel Zone (inner): " + me.beltZones.n + "%";
+		s += ", Mixed Zone (middle): " + me.beltZones.m + "%";
+		s += ", Carbonaceous Zone (outer): " + me.beltZones.c + "%";
+		s += ", Belt width: " + me.orbitWidth + " AU.";
+		return s;
+	}
+	
+	me.update = function()
+	{
+		me.predomSize = document.getElementById("beltPredomSize").value;
+		me.maxDiam = document.getElementById("beltMaxSize").value;
+		me.orbitWidth = parseFloat(document.getElementById("beltWidth").value);
+		me.beltZones.n = parseInt(document.getElementById("belt_nZone").value);
+		me.beltZones.m = parseInt(document.getElementById("belt_mZone").value);
+		me.beltZones.c = parseInt(document.getElementById("belt_cZone").value);
+		
+		if((me.beltZones.n + me.beltZones.m + me.beltZones.c) !== 100)
+			me.beltZones.m = 100 - me.beltZones.n - me.beltZones.c;	
+
+		me.world.updateEdits();
+	}
+	
+	me.dbObj = function()
+	{
+		var o = {};
+		o.predomSize = me.predomSize;
+		o.maxDiam = me.maxDiam;
+		o.orbitWidth = me.orbitWidth;
+		o.beltZones = me.beltZones;
+		return o;
+	}
+	
+	me.read_dbObj = function(o)
+	{
+		for(var p in o)
+			me[p] = o[p];
+	}
+	
+		
+	if(generateNow)
+		me.generate();
 }
 
 function gasGiant(mainWorld)
@@ -2103,6 +2161,53 @@ function gasGiant(mainWorld)
 			me.satelliteSystem = new satelliteOrbitSet(me);
 			me.satelliteSystem.read_dbObj(o.satelliteSystem);
 		}
+	}
+	
+	me.timetoJumpPoint = function(accel, distance, solveType)
+	{
+		var pObj = {};
+		pObj.t = false;
+		pObj.d = Math.max(0, me.diameter()*100000 - distance * 1000);
+		if(pObj.d == 0)
+			return "Ship already past jump point.";
+		pObj.a = accel * 9.81;
+		var calcObj = new intraSystemTravel(pObj, solveType);
+		return calcObj.timeString();
+	}	
+
+	me.updateDetails = function()
+	{
+		me.name = document.getElementById("ggName").value;
+		me.size = parseInt(document.getElementById("ggSize").value);
+		me.type = me.size < 23 ? "SGG" : "LGG";
+		WORLD_DENSITY = parseFloat(document.getElementById("ggDensity").value);
+		me.iceGiant = (document.getElementById("ggType").value == "IG" ? true : false);
+		me.uwp = "Size: " + pseudoHex(me.size);
+		me.orbit.set.updateTable();
+		me.editDetails();		
+	}
+
+	me.editDetails = function()
+	{
+		divsToShow(15);
+		document.getElementById("ggName").value = me.name;
+		document.getElementById("ggSize").value = me.size;
+		document.getElementById("ggType").value = (me.iceGiant ? "IG" : "GG");
+		document.getElementById("ggDensity").value = me.density();
+		document.getElementById("ggMass").innerHTML = "" + me.mass() + " (Earth Masses)  " + (me.mass() / 317.83).toLocaleString("en-AU",{style:"decimal", maximumFractionDigits: 2}) + " (Jupiter Masses)";
+		document.getElementById("ggDiameter").innerHTML = "" + me.diameter().toLocaleString("en-AU",{style:"decimal",maximumFractionDigits:0}) + " km";
+		document.getElementById("ggJP").innerHTML = "" + (me.diameter() * 100).toLocaleString("en-AU",{style:"decimal",maximumFractionDigits:0}) + " km";
+		
+		document.getElementById("ggName").onchange = me.updateDetails;
+		document.getElementById("ggSize").onchange = me.updateDetails;
+		document.getElementById("ggType").onchange = me.updateDetails;
+		document.getElementById("ggDensity").onchange = me.updateDetails;
+		document.getElementById("ggShipDistance").onchange = me.updateDetails;
+		document.getElementById("ggShipAccel").onchange = me.updateDetails;
+
+		var shipDistance = parseInt(document.getElementById("ggShipDistance").value);
+		var shipAccel = parseInt(document.getElementById("ggShipAccel").value);
+		document.getElementById("ggJPTime").innerHTML = "" + me.timetoJumpPoint(shipAccel,shipDistance,true) + " (stop and start) " + me.timetoJumpPoint(shipAccel,shipDistance,false) + " (continuous acceleration) ";
 	}
 
 	me.updateEdits = function()
@@ -2447,9 +2552,9 @@ function eX(world)
 			if(me.world.tcs.has("Lo"))
 				me.infrastructure = 1;
 			if(me.world.tcs.has("Ni"))
-				me.infrastructure = Math.max(0, dice(1) + me.world.iX());
+				me.infrastructure = Math.max(0, dice(1) + me.world.importance.value);
 			if(!me.world.tcs.has("Ba") && !me.world.tcs.has("Lo") && !me.world.tcs.has("Ni"))
-				me.infrastructure = Math.max(0, dice(2) + me.world.iX());
+				me.infrastructure = Math.max(0, dice(2) + me.world.importance.value);
 			me.efficiency = flux();
 		}
 		else
@@ -2479,9 +2584,9 @@ function eX(world)
 			if(me.world.tcs.has("Lo"))
 				me.infrastructure = 1;
 			if(me.world.tcs.has("Ni"))
-				me.infrastructure = Math.max(0, dice(1) + me.world.iX());
+				me.infrastructure = Math.max(0, dice(1) + me.world.importance.value);
 			if(!me.world.tcs.has("Ba") && !me.world.tcs.has("Lo") && !me.world.tcs.has("Ni"))
-				me.infrastructure = Math.max(0, dice(2) + me.world.iX());
+				me.infrastructure = Math.max(0, dice(2) + me.world.importance.value);
 			if(me.efficiency === undefined)
 				me.efficiency = flux();
 		}
@@ -2550,8 +2655,11 @@ function eX(world)
 
 	me.readString = function(s) // s must be of the form "(762-1)"
 	{
-		if(s=="")
+		if(s=="" || s==null)
+		{
+			me.generate();
 			return;
+		}
 		me.resources = readPseudoHex(s.substr(1,1));
 		me.labour = readPseudoHex(s.substr(2,1));
 		me.infrastructure = readPseudoHex(s.substr(3,1));
@@ -2582,7 +2690,7 @@ function cX(world)
 	me.generate = function()
 	{
 		me.homogeneity = Math.max(1,me.world.uwp.popul + flux());
-		me.acceptance = Math.max(1,me.world.uwp.popul + me.world.iX());
+		me.acceptance = Math.max(1,me.world.uwp.popul + me.world.importance.value);
 		me.strangeness = Math.max(1,flux() + 5);
 		me.symbols = Math.max(1,me.world.uwp.TL + flux());
 	}
@@ -2600,8 +2708,11 @@ function cX(world)
 
 	me.readString = function(s) // s must be of the form [98A5]
 	{
-		if(s=="")
+		if(s=="" || s==null)
+		{
+			me.generate();
 			return;
+		}
 		me.homogeneity = readPseudoHex(s.substr(1,1));
 		me.acceptance = readPseudoHex(s.substr(2,1));
 		me.strangeness = readPseudoHex(s.substr(3,1));
@@ -2637,6 +2748,69 @@ function cX(world)
 			s+= "As symbols are below the level of technology, either technology is racing ahead and the population is struggling to keep up, or culture is regressing from a higher technology base and will possibly drag technology down with it.";
 		return s;
 	}
+}
+
+function iX(world)
+{
+	var me = this;
+	me.world = world;
+	me.value = 0;
+	
+	me.generate = function()
+	{
+		var returnedIX = 0;
+		if(me.world.uwp.port == "A" || me.world.uwp.port == "B")
+			returnedIX++;
+		if(me.world.uwp.port == "D" || me.world.uwp.port == "E" || me.world.uwp.port == "X")
+			returnedIX--;
+		if(me.world.uwp.TL >= 16)
+			returnedIX++;
+		if(me.world.uwp.TL >= 10)
+			returnedIX++;
+		if(me.world.uwp.TL <= 8)
+			returnedIX--;
+		if(me.world.tcs.has("Ag"))
+			returnedIX++;
+		if(me.world.tcs.has("Hi"))
+			returnedIX++;
+		if(me.world.tcs.has("In"))
+			returnedIX++;
+		if(me.world.tcs.has("Ri"))
+			returnedIX++;
+		if(me.world.uwp.popul <= 6)
+			returnedIX--;
+		if(me.world.bases.has("Naval") && me.world.bases.has("Scout"))
+			returnedIX++;
+		if(me.world.bases.has("Way Station"))
+			returnedIX++;
+		me.value = returnedIX;
+		return returnedIX;
+	}
+
+	me.description = function()
+	{
+		return IMPORTANCE_DESCRIPTIONS[me.value];
+	}
+
+	me.toString = function()
+	{
+		return " { " + me.value + " } ";
+	}
+	
+	me.readString = function(s) // must be of the form { -1 }
+	{
+		if(s == "" || s == null)
+		{
+			me.generate();
+			return;
+		}
+		var temp_iX = parseInt(s.substr(2,2));
+		if(!Number.isInteger(temp_iX))
+			me.generate();
+		me.value = temp_iX;
+	}
+	
+	me.generate();
 }
 
 function nobles(world)
@@ -2684,7 +2858,7 @@ var nobleBaron = {name:"Baron",code:"C",rule:function(world) { return world.tcs.
 var nobleMarquis = {name:"Marquis",code:"D",rule:function(world) { return world.tcs.has("Pi"); } };
 var nobleViscount = {name:"Viscount",code:"e",rule:function(world) { return world.tcs.has("Ph"); } };
 var nobleCount =  {name:"Count",code:"E",rule:function(world) { return world.tcs.has("In") || world.tcs.has("Hi"); } };
-var nobleDuke = {name:"Duke",code:"f",rule:function(world) { return world.iX() >= 4; } };
+var nobleDuke = {name:"Duke",code:"f",rule:function(world) { return world.importance.value >= 4; } };
 var nobleCapitalDuke = {name:"Duke (capital)",code:"F",rule:function(world) { return world.tcs.has("Cp"); } };
 
 var allNobles = [nobleKnight, nobleBaronet, nobleBaron, nobleMarquis, nobleViscount, nobleCount, nobleDuke, nobleCapitalDuke ];
@@ -2853,7 +3027,7 @@ function star(isPrimary)
 	{
 		var data = STAR_DATA.find(function(v) {return v.name == me.toString()});
 		me.radii = data.radii * me.sizeVary;
-		me.radius = data.radii*695700;
+		me.radius = me.radii*695700;
 		me.jump_point = me.radius*200;
 		me.mass = data.mass * me.massVary;
 		me.luminosity = data.luminosity * me.luminosityVary;
@@ -2908,6 +3082,18 @@ function star(isPrimary)
 		return detailsBtn;
 	}
 	
+	me.timetoJumpPoint = function(accel, distance, solveType)
+	{
+		var pObj = {};
+		pObj.t = false;
+		pObj.d = Math.max(0, me.jump_point*1000 - distance * 150000000000);
+		if(pObj.d == 0)
+			return "Ship already past jump point.";
+		pObj.a = accel * 9.81;
+		var calcObj = new intraSystemTravel(pObj, solveType);
+		return calcObj.timeString();
+	}
+	
 	me.editDetails = function()
 	{
 		divsToShow(12);
@@ -2917,6 +3103,14 @@ function star(isPrimary)
 		document.getElementById("luminosityVary").value = me.luminosityVary;
 		document.getElementById("sizeVary").value = me.sizeVary;
 		document.getElementById("massVary").value = me.massVary;
+		document.getElementById("starMass").innerHTML = "" + me.mass.toLocaleString("en-AU", {style:"decimal", maximumFractionDigits:6}) + " Sol";
+		document.getElementById("starRadius").innerHTML = "" + me.radii.toLocaleString("en-AU", {style:"decimal", maximumFractionDigits:6}) + " Sol";
+		document.getElementById("starDiameter").innerHTML = "" + (2*me.radius).toLocaleString("en-AU", {style:"decimal", maximumFractionDigits:0}) + " km";
+		document.getElementById("starLumin").innerHTML = "" + me.luminosity.toLocaleString("en-AU", {style:"decimal", maximumFractionDigits:6}) + " Sol";
+		document.getElementById("starJP").innerHTML = "" + me.jump_point.toLocaleString("en-AU", {style:"decimal", maximumFractionDigits:0}) + " km";
+		document.getElementById("shipTime").innerHTML = me.timetoJumpPoint(parseInt(document.getElementById("shipAccel").value), parseFloat(document.getElementById("shipDistance").value), true);
+		document.getElementById("shipTimeCA").innerHTML = me.timetoJumpPoint(parseInt(document.getElementById("shipAccel").value), parseFloat(document.getElementById("shipDistance").value), false);
+		document.getElementById("shipDistanceToJP").innerHTML = "" + (me.jump_point - document.getElementById("shipDistance").value * 150000000).toLocaleString("en-AU", {style:"decimal", maximumFractionDigits:0}) + " km";
 		
 		document.getElementById("starName").onchange = me.updateDetails;
 		document.getElementById("spectralClass").onchange = me.updateDetails;
@@ -2924,6 +3118,8 @@ function star(isPrimary)
 		document.getElementById("luminosityVary").onchange = me.updateDetails;
 		document.getElementById("sizeVary").onchange = me.updateDetails;
 		document.getElementById("massVary").onchange = me.updateDetails;
+		document.getElementById("shipDistance").onchange = me.updateDetails;
+		document.getElementById("shipAccel").onchange = me.updateDetails;
 		
 	}
 	
@@ -2937,6 +3133,7 @@ function star(isPrimary)
 		me.massVary = document.getElementById("massVary").value;
 		me.getData();
 		me.set.updateTable();
+		me.editDetails();
 	}
 
 	me.nameTextBox = function()
@@ -3635,9 +3832,15 @@ function orbitSet(centralStar, companionStar, mainWorld, systemObj)
 	{
 		if(me.full())
 			return false;
-		orbitNumber = me.findClosestAvailable(orbitNumber);
+		var increment = Math.round((orbitNumber - Math.floor(orbitNumber))*10);
+		if(increment > 5)
+		{
+			orbitNumber++;
+			increment -= 10;
+		}			
+		orbitNumber = me.findClosestAvailable(Math.floor(orbitNumber));
 		me.setZone(contents, orbitNumber);
-		me.orbits.push(new orbit(me, orbitNumber, contents));
+		me.orbits.push(new orbit(me, orbitNumber, contents, increment));
 		return true;
 	}
 
@@ -3970,7 +4173,7 @@ function satelliteOrbitSet(planet)
 	}
 }
 
-function orbit(orbitSet, orbitNumber, contents)
+function orbit(orbitSet, orbitNumber, contents, increment)
 {
 	var me = this;
 	me.set = orbitSet;
@@ -3978,7 +4181,10 @@ function orbit(orbitSet, orbitNumber, contents)
 	me.contents.orbit = me;
 	me.baseOrbit = orbitNumber;
 	me.isSatellite = me.baseOrbit.o !== undefined
-	me.increment = flux();
+	if(increment == 0 && contents.constructor.name != "mainWorld")
+		me.increment = flux();
+	else
+		me.increment = increment;
 	me.objectID = 0;
 	
 	me.dbObj = function()
@@ -4040,7 +4246,7 @@ function orbit(orbitSet, orbitNumber, contents)
 								{name:"distance", contents:me.orbitDistance() + " AU", isText:true},{name:"name", contents:me.contents.nameTextBox(), isText:false},
 								{name:"description",contents:me.contents.toString(), isText:true},
 								{name:"uwp",contents:"Size: " + pseudoHex(me.contents.size), isText:true},
-								{name:"tc",contents:""},{name:"details",contents:"",isText:true},{name:"scrub",contents:me.scrub(),isText:false},{name:"temperature",contents:"", isText:true}];
+								{name:"tc",contents:""},{name:"details",contents:me.calcDetails(),isText:false},{name:"scrub",contents:me.scrub(),isText:false},{name:"temperature",contents:"", isText:true}];
 				break;
 			case "orbitSet":
 				row_contents = [{name:"baseOrbit", contents:me.baseOrbit, isText:true},{name:"baseOrbitAdjBtns",contents:"", isText:true},
@@ -4075,7 +4281,7 @@ function orbit(orbitSet, orbitNumber, contents)
 				var row_contents_b = [{name:"name", contents:me.contents.nameTextBox(),isText:false},
 								{name:"description",contents:me.contents.generationObject.name, isText:true},
 								{name:"uwp",contents:me.contents.uwp, isText:true},{name:"tc",contents:me.contents.tcs, isText:true},
-								{name:"details",contents:(me.contents.generationObject.name == "Planetoids" || me.contents.constructor.name == "ring" ? false : me.calcDetails()), isText:false},{name:"scrub",contents:me.scrub(),isText:false},
+								{name:"details",contents:(me.contents.constructor.name == "ring" ? false : me.calcDetails()), isText:false},{name:"scrub",contents:me.scrub(),isText:false},
 								{name:"temperature",contents:me.contents.calcTemperatureC() + "&deg;C", isText:true}];
 				row_contents = row_contents_a.concat(row_contents_b);
 		}
@@ -4808,4 +5014,3 @@ function portDetails(world)
 	
 	me.generate();
 }
-

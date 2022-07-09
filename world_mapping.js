@@ -39,6 +39,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		me.map_top_offset = 200;
 		me.mapHeight = me.map_top_offset+(3*me.world.uwp.size+1)*28+MAP_KEY_HEIGHT;
 	}
+	me.parentObj.setAttributeNS(null,"height","");
+	me.parentObj.setAttributeNS(null,"width","100%");	
 	me.parentObj.setAttributeNS(null,"viewBox","0 0 " + me.mapWidth + " " + me.mapHeight);
 	me.topCoverTrianglePoints = [];
 	me.bottomCoverTrianglePoints = [];
@@ -84,6 +86,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	
 	me.generate = function()
 	{	
+		if(me.world.uwp.size == 0)
+			return;
 		if(!me.blank)
 		{
 			desert();
@@ -187,7 +191,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		var worldSize = me.world.uwp.size;
 		if(worldSize == 0)
 		{
-			addText(0, 40, "Sorry, cannot produce a world map for asteroids or planetoids.", "Arial, sans-serif", "2em", "black", me.parentObj);
+			addText(0, 40, "Sorry, cannot produce a world map for asteroids, planetoids", "Arial, sans-serif", "2em", "black", me.parentObj);
+			addText(0, 80, "or worlds reduced to size 0.", "Arial, sans-serif", "2em", "black", me.parentObj);
 			return;
 		}
 		for(var i=0;i<me.worldTriangles.length;i++)
@@ -213,6 +218,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				new_left_offset = selectedHex.left_offset + (worldSize-y-1)*32;
 				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 				copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
+				copyOfIt.clickEnabled = false;
 				copyOfIt.render(me.editMode);
 				x++;
 			}
@@ -230,6 +236,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 					new_left_offset = selectedHex.left_offset + (worldSize-(me.totalRows-y))*32;
 				copyOfIt = new worldHex(me, me.parentObj, selectedHex.parentTriangle, new_left_offset, selectedHex.top_offset, selectedHex.hexID);
 				copyOfIt.terrainTypes = array_fnc.copy.call(selectedHex.terrainTypes);
+				copyOfIt.clickEnabled = false;
 				copyOfIt.render(me.editMode);
 				x++;
 			}
@@ -736,7 +743,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function icecaps()
 	{
-		if(me.systemZone == "I")
+		if(me.systemZone == "I" || me.world.tcs.has("Tz"))
 			return;
 		var iceCapRows = Math.floor(me.world.uwp.hydro/2)-1;
 		if(me.world.uwp.size == 1)
@@ -1772,6 +1779,11 @@ var islandTerrain = {name:"Island", code:32, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
+															if(!aWorldHex.has(oceanTerrain) && !aWorldHex.has(iceFieldTerrain) && !aWorldHex.has(icecapTerrain))
+															{
+																aWorldHex.add(oceanTerrain);
+																oceanTerrain.draw(aWorldHex);
+															}
 															var islandFill = uPObj.prefs.black_and_white_map ? uPObj.prefs.mountain_terrain_bw_bg : uPObj.prefs.clear_terrain_default_bg;
 															addCircle(l+16, t+17, 5, 1, "black", islandFill,aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:0};
@@ -2602,7 +2614,8 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		}
 		//the following is useful debugging code
 		//addText(me.left_offset+2, me.top_offset+16, me.name, "Arial", "10px","black",me.parentObj);
-		//addText(me.left_offset+2, me.top_offset+32, "["+me.x+","+me.y+"]", "Arial", "10px","red",me.parentObj);
+		//addText(me.left_offset+2, me.top_offset+16, (me.parentTriangle ? me.parentTriangle.id : ""), "Arial", "16px","#10ef10",me.parentObj);
+		//addText(me.left_offset+2, me.top_offset+32, "["+(me.x !== undefined ? me.x : "U")+","+(me.y !== undefined ? me.y : "U")+"]", "Arial", "10px","#10ef10",me.parentObj);
 	}
 	
 	me.editTerrain = function()
@@ -2674,10 +2687,11 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 				neighbours.push(me.map.rows[3*wsize-2][i]);
 			return neighbours;
 		}
-		if(me.pentagon && (me.parentTriangle.id - 1) % 4 == 0) // NORTHERN PENTAGONS
+		if(me.pentagon && (me.parentTriangle.id - 1) % 4 == 0) // NORTHERN PENTAGONS - all neighbours broken, need to match World Hex Map context
 		{
-			neighbours.push(me.map.fetchHex(me.x-1, me.y-1));
-			neighbours.push(me.map.fetchHex(me.x-1, me.y-1)); // first two neighbours are the same as this is a PENTAGON
+			var triCol = (me.parentTriangle.id - 1) / 4;
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x-triCol, me.y-1)); // first two neighbours are the same as this is a PENTAGON
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-1, me.y+1));
@@ -2686,12 +2700,12 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		}
 		if(me.pentagon && (me.parentTriangle.id + 1) % 4 == 0) // SOUTHERN PENTAGONS
 		{
-			neighbours.push(me.map.fetchHex(me.x, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x-1, me.y+1)); 
 			neighbours.push(me.map.fetchHex(me.x-1, me.y+1)); // these two neighbours are the same as this is a PENTAGON
 			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			neighbours.push(me.map.fetchHex(me.x, me.y-1));
 			return neighbours;
 		}
 		if(me.y == 0)
@@ -2706,109 +2720,109 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 		}
 		if(me.y == me.map.rows.length-1)
 		{
-			neighbours.push(me.map.hexes[1]); // SOUTH POLE will be one of the neighbours
-			neighbours.push(me.map.fetchHex(me.x*2, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x*2+1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x*2+2, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			neighbours.push(me.map.hexes[1]); // SOUTH POLE will be one of the neighbours			
+			neighbours.push(me.map.fetchHex(me.x*2, me.y-1));
 			return neighbours;
 		}
 		if(me.northPolarEdge)
 		{
 			var triCol = me.parentTriangle.id % 4;
-			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x+triCol+2, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x+triCol, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
 			return neighbours;
 		}
 		if(me.map.fetchHex(me.x-1, me.y).northPolarEdge)
 		{
 			var triCol = me.parentTriangle.id / 4;
-			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x-triCol, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x+triCol, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-1,me.y));
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
 			return neighbours;
 		}
 		if(me.map.fetchHex(me.x-1, me.y).pentagon && (me.parentTriangle.id) % 4 == 1) // Northern Pentagon east neighbours
 		{
 			var triCol = (me.parentTriangle.id - 1) / 4;
-			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x-triCol, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-1, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x, me.y-1));
+			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y-1));
 			return neighbours;
 		}
 		if(me.southPolarEdge)
 		{
 			var triCol = (me.parentTriangle.id - 3) / 4;
-			neighbours.push(me.map.fetchHex(me.x+triCol, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+triCol+2, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			neighbours.push(me.map.fetchHex(me.x+triCol, me.y-1));
 			return neighbours;
 		}
 		if(me.map.fetchHex(me.x-1, me.y).southPolarEdge)
 		{
 			var triCol = (me.parentTriangle.id - 3) / 4;
-			neighbours.push(me.map.fetchHex(me.x+triCol, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x-triCol, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			neighbours.push(me.map.fetchHex(me.x+triCol, me.y-1));
 			return neighbours;
 		}
 		if(me.map.fetchHex(me.x-1, me.y).pentagon && (me.parentTriangle.id) % 4 == 3) // Southern Pentagon east neighbours
 		{
 			var triCol = (me.parentTriangle.id - 3) / 4;
-			neighbours.push(me.map.fetchHex(me.x, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+triCol+1, me.y-1));
 			neighbours.push(me.map.fetchHex(me.x+1, me.y));
 			neighbours.push(me.map.fetchHex(me.x-triCol, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-triCol-1, me.y+1));
 			neighbours.push(me.map.fetchHex(me.x-1, me.y));
+			neighbours.push(me.map.fetchHex(me.x, me.y-1));
 			return neighbours;
 		}
 		if(me.parentTriangle.id % 4 == 0) // northern polar triangles, all other hexes
 		{
 			var triCol = me.parentTriangle.id / 4;
-			neighbours.push(me.map.fetchHex(me.x - triCol - 1, me.y - 1));
 			neighbours.push(me.map.fetchHex(me.x - triCol, me.y - 1));
 			neighbours.push(me.map.fetchHex(me.x + 1, me.y));
 			neighbours.push(me.map.fetchHex(me.x + triCol + 1, me.y + 1));
 			neighbours.push(me.map.fetchHex(me.x + triCol, me.y + 1));
 			neighbours.push(me.map.fetchHex(me.x - 1, me.y));
+			neighbours.push(me.map.fetchHex(me.x - triCol - 1, me.y - 1));
 			return neighbours;
 		}
 		if(me.parentTriangle.id % 4 == 3) // southern polar triangles, all other hexes
 		{
 			var triCol = (me.parentTriangle.id - 3) / 4;
-			neighbours.push(me.map.fetchHex(me.x + triCol, me.y - 1));
 			neighbours.push(me.map.fetchHex(me.x + triCol + 1, me.y - 1));
 			neighbours.push(me.map.fetchHex(me.x + 1, me.y));
 			neighbours.push(me.map.fetchHex(me.x - triCol, me.y + 1));
 			neighbours.push(me.map.fetchHex(me.x - triCol - 1, me.y + 1));
 			neighbours.push(me.map.fetchHex(me.x - 1, me.y));
+			neighbours.push(me.map.fetchHex(me.x + triCol, me.y - 1));
 			return neighbours;
 		}
-		// all remaining hexes use these to get their neighbours
-		neighbours.push(me.map.fetchHex(me.x, me.y - 1));
+		// all remaining hexes use these to get their neighbours UPTO - north west, not north east should be neighbour[0]
 		neighbours.push(me.map.fetchHex(me.x + 1, me.y - 1));
 		neighbours.push(me.map.fetchHex(me.x + 1, me.y));
 		neighbours.push(me.map.fetchHex(me.x, me.y + 1));
 		neighbours.push(me.map.fetchHex(me.x - 1, me.y + 1));
 		neighbours.push(me.map.fetchHex(me.x - 1, me.y));
+		neighbours.push(me.map.fetchHex(me.x, me.y - 1));
 		return neighbours;
 	}
 
@@ -4298,10 +4312,10 @@ function localHexMap(parentObj, localHexToMap)
 		{
 			if(neighbours[i])
 			{
-				overallNeighbours.push(new localHex(me, me.parentObj, overallHex.left_offset+offsets[i].x, overallHex.top_offset+offsets[i].y));
-				overallNeighbours[i].terrainTypes = array_fnc.copy.call(neighbours[i].terrainTypes);
-				overallNeighbours[i].clickEnabled = false;
-				overallNeighbours[i].render();
+				var j = overallNeighbours.push(new localHex(me, me.parentObj, overallHex.left_offset+offsets[i].x, overallHex.top_offset+offsets[i].y)) - 1;
+				overallNeighbours[j].terrainTypes = array_fnc.copy.call(neighbours[i].terrainTypes);
+				overallNeighbours[j].clickEnabled = false;
+				overallNeighbours[j].render();
 			}
 		}
 		me.key.render();
@@ -4487,6 +4501,17 @@ function addCircle(cx, cy, r, strokeWidth, stroke, fill, parentObj)
 	parentObj.appendChild(circle);
 }
 
+function addDashedCircle(cx, cy, r, strokeWidth, stroke, fill, dash_array, parentObj)
+{
+	var circle = document.createElementNS(svgNS,"circle");
+	circle.setAttributeNS(null,"cx",cx);
+	circle.setAttributeNS(null,"cy",cy);
+	circle.setAttributeNS(null,"r",r);
+	circle.setAttributeNS(null,"style","stroke=width:" + strokeWidth + ";stroke:" + stroke + ";fill:" + fill + ";stroke-dasharray:" + dash_array);
+	parentObj.appendChild(circle);
+}
+
+
 function addPath(pathInstructions, strokeWidth, stroke, fill, parentObj)
 {
 	var path = document.createElementNS(svgNS,"path");
@@ -4529,7 +4554,8 @@ function editingToolBar(worldMap)
 	
 	me.init = function()
 	{
-		var left_offset = 2, top_offset = 2;
+		if(me.toolBarDiv.hasChildNodes())
+			return;
 		for(var x in allTerrain)
 		{
 			var terrain = allTerrain[x];
@@ -4552,3 +4578,42 @@ function editingToolBar(worldMap)
 	}	
 	me.init();
 } 
+
+function beltMap(world, parentObj, containerDiv)
+{
+	var me = this;
+	me.world = world;
+	me.parentObj = parentObj;
+	me.div = containerDiv;
+	me.mapWidth = 3000;
+	me.mapHeight = 100;
+	me.parentObj.setAttributeNS(null,"width",me.mapWidth);
+	me.parentObj.setAttributeNS(null,"height",me.mapHeight);
+	me.parentObj.setAttributeNS(null,"viewBox","0 0 " + me.mapWidth + " " + me.mapHeight);
+	
+	me.generate = function()
+	{
+		var b_multi = 10;
+		var l_multi = 1;
+		var inner_bound = 350;
+		var n_bound = inner_bound+me.world.beltDetails.beltZones.n*b_multi;
+		var m_bound = n_bound+me.world.beltDetails.beltZones.m*b_multi;
+		var c_bound = m_bound+me.world.beltDetails.beltZones.c*b_multi;
+		var n_label = inner_bound-195;
+		var m_label = n_bound-195;
+		var c_label = m_bound-195;
+		
+		addDashedCircle("-200","50","" + c_bound,"2","black","#A4A4A4","5,5",me.parentObj);
+		addDashedCircle("-200","50","" + m_bound,"2","black","#D8D8D8","5,5",me.parentObj);
+		addDashedCircle("-200","50","" + n_bound,"2","black","#F2F2F2","5,5",me.parentObj);
+		addDashedCircle("-200","50","" + inner_bound,"2","black","white","5,5",me.parentObj);
+		addText("10","20","Belt Details", "Optima", "80", "black", me.parentObj);
+		addText("30", "60", "To Star", "Arial", "12", "black", me.parentObj);
+		addPath("M10 54 L20 50 L20 58 Z","1","black","black",me.parentObj);
+		addPath("M155 80 L165 70 M155 80 L165 90 M155 80 L" + (c_bound - 205) + " 80 L" + (c_bound - 215) + " 70 M" + (c_bound - 205) + " 80 L" + (c_bound - 215) + " 90","4","black","none",me.parentObj);
+		addText("" + (100+(c_bound - inner_bound)/2), "95", "Width: " + me.world.beltDetails.orbitWidth + " AU", "Arial", "10", "black", me.parentObj);
+		addText("" + n_label, "50", "N-Zone", "Arial", "12", "black", me.parentObj);
+		addText("" + m_label, "50", "M-Zone", "Arial", "12", "black", me.parentObj)
+		addText("" + c_label, "50", "C-Zone", "Arial", "12", "white", me.parentObj)
+	}
+}
