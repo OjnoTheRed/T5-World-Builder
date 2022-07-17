@@ -141,7 +141,7 @@ function world()
 	me.sector = "";
 	me.subSector = "";
 	me.nativeIntLife = new nil(me);
-	me.seed = "";
+	me.seed = 0;
 	me.popMulti = 0;
 	me.map = null;
 	me.mapData = null;
@@ -1543,7 +1543,7 @@ var all_details =
 	{
 		me.name = o.name;
 		me.isMainWorld = o.isMainWorld;
-		me.seed = o.seed;
+		me.seed = parseInt(o.seed);
 		me.generationObject = ALL_GENERATION_OBJECTS.find(function(v) { return v.name == o.generationObject });
 		me.populLimit = o.populLimit;
 		WORLD_DIAMETER = o.diameter;
@@ -1725,7 +1725,7 @@ function mainWorld(generationObject)
 		me.nativeIntLife.generate();
 		me.worlds = dice(2);
 		me.stars.generate();
-		me.system = me.name;
+		me.system = "The " + me.name + " System (" + me.hex + " " + me.sector + ")";
 	}
 
 	me.toString = function()
@@ -1799,12 +1799,14 @@ function mainWorld(generationObject)
 		dataObj.cx = me.culturalExt.toString();
 		dataObj.nobility = me.noblesExt.toString();
 		dataObj.w = me.worlds;
+		dataObj.sector = me.sector;
 		return dataObj;
 	}
 
 	me.readDataObj = function(dataObj)
 	{
 		me.subSector = dataObj.ss;
+		me.sector = dataObj.sector;
 		me.hex = dataObj.hex;
 		me.name = dataObj.name;
 		me.uwp = new uwp(null,me);
@@ -1826,7 +1828,7 @@ function mainWorld(generationObject)
 		if(isNaN(me.gas_giants))
 			me.gas_giants = 0;
 		me.allegiance = dataObj.allegiance;
-		me.stars.readString(dataObj.stars);
+		me.stars.starString = dataObj.stars;
 		me.economicExt = new eX(me);
 		me.economicExt.readString(dataObj.ex);
 		me.culturalExt = new cX(me);
@@ -1840,7 +1842,7 @@ function mainWorld(generationObject)
 			me.worlds = dice(2);
 		else
 			me.worlds = Math.min(12,me.worlds);
-		me.nativeIntLife.generate();
+		//me.nativeIntLife.generate();
 	}
 
 	var inherited_dbObj = me.dbObj;
@@ -1873,6 +1875,7 @@ function mainWorld(generationObject)
 		me.gas_giants = o.gas_giants;
 		me.worlds = o.worlds;
 		me.allegiance = o.allegiance;
+		me.seed = parseInt(o.seed);
 		me.economicExt = new eX(me);
 		me.economicExt.read_dbObj(o.economicExt);
 		me.culturalExt = new cX(me);
@@ -3261,6 +3264,7 @@ function starSystem(world)
 	me.world = world;
 	me.stars = [];
 	me.companions = [];
+	me.starString = "";
 
 	me.generate = function()
 	{
@@ -3394,10 +3398,8 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	var me = this;
 	me.mainWorld = mainWorldObj;
 	me.stars = me.mainWorld.stars;
-	me.primary = me.stars.stars[0];
-	me.companion = me.stars.companions[0];
-	me.orbits = new orbitSet(me.primary, me.companion, me.mainWorld, me);
-	me.orbitSets = [me.orbits];
+	me.orbits = null;
+	me.orbitSets = [];
 	me.name = "";
 	me.loadKey = null;
 	me.totalAvailOrb = 0;
@@ -3414,7 +3416,16 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	{
 		me.name = me.mainWorld.name ? (me.mainWorld.name + " system") : "Unnamed system";
 		me.name += me.mainWorld.sector ? (" (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")") : "";
+		me.mainWorld.system = me.name;
 		init_rng(me.seed);
+		if(me.stars.stars.starString)
+			me.stars.stars.readString(me.stars.stars.starString);
+		else if(me.stars.stars.length == 0)
+			me.stars.generate();
+		me.primary = me.stars.stars[0];
+		me.companion = me.stars.companions[0];
+		me.orbits = new orbitSet(me.primary, me.companion, me.mainWorld, me);
+		me.orbitSets = [me.orbits];
 		STAR_COUNT = 0;
 		var precedenceCount = 1;
 		for(var i=1;i<me.stars.stars.length;i++)
@@ -3444,7 +3455,6 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 								{
 									me.totalAvailOrb += orbit_set.availableOrbitCount();
 								});
-		var orbitsNeeded = parseInt(me.mainWorld.gas_giants) + parseInt(me.mainWorld.belts) + parseInt(me.mainWorld.worlds) + 1;
 		var mwType = "";
 		if(!uPObj.prefs.main_world_is_sat && !uPObj.prefs.main_world_not_sat && me.mainWorld.uwp.size != 0)
 		{
@@ -3464,28 +3474,6 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 			me.mainWorld.isSatellite = false;
 		if(mwType == "Lk")
 			me.mainWorld.tcs.add("Lk");
-		if(me.mainWorld.isSatellite)
-			orbitsNeeded--;
-		if(orbitsNeeded > me.totalAvailOrb)
-		{
-			var numObjNerfed = orbitsNeeded - me.totalAvailOrb;
-			if(numObjNerfed <= me.mainWorld.worlds)
-				me.mainWorld.worlds -= numObjNerfed;
-			else
-			{
-				numObjNerfed -= me.mainWorld.worlds;
-				me.mainWorld.worlds = 0;
-				if(numObjNerfed <= me.mainWorld.belts)
-					me.mainWorld.belts -= numObjNerfed;
-				else
-				{
-					numObjNerfed -= me.mainWorld.belts;
-					me.mainWorld.belts = 0;
-					if(numObjNerfed <= me.mainWorld.gas_giants)
-						me.mainWorld.gas_giants -= numObjNerfed;
-				}
-			}
-		}
 		var mainWorldPlaced = false;
 		if(!uPObj.prefs.main_world_hz_only)
 		{
@@ -3542,7 +3530,8 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 		}
 		if(!mainWorldPlaced)
 			me.orbitSets[0].add(0, me.mainWorld); // Last resort: if somehow the main world has not been placed, put it in orbit 0
-		
+
+		me.mainWorld.system = me.name;
 		me.mainWorld.tcs.generate();
 	
 		var ice_g = false;
@@ -3577,7 +3566,8 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 			orbit_set == max_orbit_set ? orbit_set=0 : orbit_set++;
 		}
 		orbit_set = 0;
-		for(i=0;i<me.mainWorld.worlds;i++)
+		var numWorlds = me.mainWorld.worlds - me.mainWorld.belts - me.mainWorld.gas_giants - 1;
+		for(i=0;i<numWorlds;i++)
 		{
 			if(i==me.mainWorld.worlds-1)
 				var ppTable = new dice_table(WORLD2_PLACE_TABLE);
@@ -3695,7 +3685,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	me.read_dbObj = function(o)
 	{
 		me.name = o.name;
-		me.seed = o.seed;
+		me.seed = parseInt(o.seed);
 		//mainWorld has to be read and generated to create a fullSystem class object, so these lines are deprecated
 		//me.mainWorld = new mainWorld();
 		//me.mainWorld.read_dbObj(o.mainWorld);

@@ -3090,7 +3090,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 
 
 
-	var userSeed = document.getElementById("seed").value;
+	var userSeed = parseInt(document.getElementById("seed").value);
 	var seedUsed = userSeed;
 	if(userSeed)
 		init_rng(seedUsed);

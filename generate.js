@@ -5,7 +5,7 @@ var user_pref_db, mySystem, origMWData, request, sys_db, sysDiv, symbolDiv, deta
 
 function initLoad()
 {
-	init_rng(Date.now());
+	//init_rng(Date.now());
 	sysDiv = document.getElementById("sys_table");
 	symbolDiv = document.getElementById("symbol_map");
 	detailDiv = document.getElementById(WORLD_DETAILS_DIV_NAME);
@@ -93,11 +93,11 @@ function worldLoadSpin(worldListDoc)
 		aWorld = new mainWorld();
 		aWorld.readDataObj(worldList[worldEntry]);
 		aWorld.sector = "Spinward Marches";
-		aWorld.seed = aWorld.hex + aWorld.hex;
+		aWorld.seed = parseInt(aWorld.hex + aWorld.hex);
 		aWorld.system = aWorld.name + " (" + aWorld.hex + " " + aWorld.sector + ")";
 		worldArray.push(aWorld);
 	}
-	var randomWorld = worldArray[rng(worldArray.length-1)];
+	var randomWorld = worldArray[Math.floor(Math.random()*worldArray.length)];
 	origMWData = randomWorld.saveDataObj();
 	mySystem = new fullSystem(randomWorld, sysDiv, symbolDiv, detailDiv, true);
 	loadSystemOntoPage(mySystem);
@@ -300,7 +300,7 @@ function import_sys(input_file_obj)
 		mySystem.read_dbObj(sys_obj);
 		origMWData = temp_mainWorld.saveDataObj();
 		currentWorld = mySystem.mainWorld;
-		init_rng(mySystem.mainWorld.seed);
+		//init_rng(mySystem.mainWorld.seed);
 		loadSystemOntoPage(mySystem);
 	},false);
 
@@ -412,6 +412,7 @@ function svgToPng(worldMapSVGID, fileName)
 function readURL()
 {
 	var URLParams = new URLSearchParams(window.location.search);
+	URLParams.delete("fbclid");
 	if(URLParams.toString() == "")
 		return false;
 	var myWorld = new mainWorld();
@@ -464,12 +465,9 @@ function readURL()
 		myWorld.noblesExt.readString(nobz);
 	myWorld.allegiance = URLParams.get("allegiance");
 	var stellar = URLParams.get("stellar");
-	if(!stellar)
-		myWorld.stars.generate();
-	else
-		if(stellar)
-			myWorld.stars.readString(stellar);
-	myWorld.seed = URLParams.get("seed") || ("" + myWorld.hex + myWorld.hex);
+	if(stellar)
+		myWorld.stars.starString = stellar;
+	myWorld.seed = parseInt(URLParams.get("seed") || ("" + myWorld.hex + myWorld.hex));
 	myWorld.travelZone = URLParams.get("travelZone");
 	var systemName = URLParams.get("system");
 	if(!systemName)
@@ -750,7 +748,7 @@ function worldLoadParse(worldListDoc, selectObject)
 		aWorld = new mainWorld();
 		aWorld.readDataObj(worldList[worldEntry]);
 		aWorld.sector = selectObject.options[selectObject.selectedIndex].text.replace(/\s+\(.+\)/g,"");
-		aWorld.seed = aWorld.hex + aWorld.hex;
+		aWorld.seed = parseInt(aWorld.hex + aWorld.hex);
 		aWorld.system = aWorld.name + " (" + aWorld.hex + " " + aWorld.sector + ")";
 		worldArray.push(aWorld);
 	}
@@ -800,23 +798,11 @@ function readUserInput()
 	var worlds = parseInt(document.getElementById("Worlds").value);
 	var allegiance = document.getElementById("allegiance").value;
 	var stellar_data = document.getElementById("Stellar_Data").value;
-	var userSeed = document.getElementById("seed").value;
-	if(userSeed)
-	{
-		init_rng(userSeed);
-		seedUsed = userSeed;
-	}
-	else
-	{
-		seedUsed = Date.now() >>> 0;
-		init_rng(seedUsed);
-		document.getElementById("seed").value = seedUsed;
-	}
-
+	var userSeed = parseInt(document.getElementById("seed").value);
 	var myWorld = new mainWorld();
 	var thereIsAnError = false;
-	myWorld.seed = seedUsed;
 	myWorld.hex = worldHex;
+	myWorld.seed = parseInt(worldHex + worldHex);
 	myWorld.sector = sectorName;
 	myWorld.name = worldName;
 	myWorld.system = "The " + myWorld.name + " System (" + myWorld.hex + " " + myWorld.sector + ")";
@@ -863,16 +849,13 @@ function readUserInput()
 	myWorld.worlds = worlds;
 	myWorld.noblesExt.readString(nobz);
 	myWorld.allegiance = allegiance;
-	try
-	{
-		myWorld.stars.readString(stellar_data);
-	}
-	catch(errorE)
+	if(!stellar_data)
 	{
 		document.getElementById("Stellar_Data").style.color = "red";
 		document.getElementById("guide_16").style.color = "red";
 		thereIsAnError = true;
 	}
+	myWorld.stars.starString = stellar_data;
 	if(thereIsAnError)
 		return false;
 	return myWorld;
@@ -896,7 +879,7 @@ function loadWorld(worldObject)
 	document.getElementById("Gas_Giants").value = worldObject.gas_giants;
 	document.getElementById("Worlds").value = worldObject.worlds;
 	document.getElementById("allegiance").value = worldObject.allegiance;
-	document.getElementById("Stellar_Data").value = worldObject.stars.toString();
+	document.getElementById("Stellar_Data").value = worldObject.stars.starString;
 	document.getElementById('seed').value = worldObject.seed;
 }
 
@@ -1097,6 +1080,8 @@ function regenerateSystem()
 	localMainWorld.readDataObj(origMWData);
 	localMainWorld.seed = parseInt(document.getElementById("seed").value);
 	mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
+//	mySystem.seed = localMainWorld.seed;
+//	mySystem.generate();
 	currentWorld = mySystem.mainWorld;
 	loadSystemOntoPage(mySystem);
 	divsToShow(1);
@@ -1105,7 +1090,7 @@ function regenerateSystem()
 
 function regenerateSystemRS()
 {
-	init_rng(Date.now());
+	//init_rng(Date.now());
 	var newSeed = rng(4294967295);
 	document.getElementById("seed").value = newSeed;
 	mySystem = null;
