@@ -10,6 +10,14 @@ function init_rng(seed)
 	}
 }
 
+function r_dice(numDice)
+{
+	var result = 0;
+	for(var i=0;i<numDice;i++)
+		result += Math.floor(Math.random()*6) + 1;
+	return result;
+}
+
 function dice(numDice)
 {
 	var result = 0;
@@ -47,6 +55,16 @@ function d2()
 function flux()
 {
 	return dice(1)-dice(1);
+}
+
+function highFlux()
+{
+	return Math.abs(dice(1)-dice(1));
+}
+
+function lowFlux()
+{
+	return -Math.abs(dice(1)-dice(1));
 }
 
 function radioSelect(buttonSet)

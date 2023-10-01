@@ -84,6 +84,17 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 													} ) } );
 	}
 	
+	me.croppedMap = function()
+	{
+		var fileName = me.world.name.replace(/'/g,"") + " UWP " + me.world.uwp + " world map cropped.png";
+		var width = (5*(me.world.uwp.size)*32);
+		var height = ((3*me.world.uwp.size)*28);
+		var scale = 3;
+		if(width*scale > 4096)
+			scale = 4096 / width;
+		saveSvgAsPng(document.querySelector("#" + WORLD_MAP_SVG_NAME), fileName, {scale:scale, left:me.mapCornerPoints[0].x, top:me.mapCornerPoints[0].y, width:width, height:height});
+	}
+	
 	me.generate = function()
 	{	
 		if(me.world.uwp.size == 0)
@@ -315,6 +326,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			addPath(s, 2, "black", "white", me.parentObj);
 		}
 		var sizeUsed = me.world.uwp.size < 5 ? 5 : me.world.uwp.size;
+		// left blank-out rectangle
 		addRectangle(0, me.mapCornerPoints[0].y, me.mapCornerPoints[0].x,me.mapCornerPoints[2].y - me.mapCornerPoints[0].y + 18,"white",0,"none", me.parentObj);
 		addLine(me.mapCornerPoints[0].x, me.mapCornerPoints[0].y, me.mapCornerPoints[1].x, me.mapCornerPoints[1].y, "2px","black", me.parentObj);
 		s = "" + (me.mapCornerPoints[1].x-1) + "," + me.mapCornerPoints[1].y + " ";
@@ -322,6 +334,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		s += ""  + me.mapCornerPoints[1].x-1 + "," + me.mapCornerPoints[2].y;
 		addPolygon(s, 0, "none", "white", me.parentObj);
 		addLine(me.mapCornerPoints[1].x, me.mapCornerPoints[1].y, me.mapCornerPoints[2].x, me.mapCornerPoints[2].y, "2px","black", me.parentObj);
+		// right blank-out rectangle
 		addRectangle(me.mapCornerPoints[4].x,me.mapCornerPoints[4].y,6*(sizeUsed+1)*32 - me.mapCornerPoints[4].x + 10,me.mapCornerPoints[5].y - me.mapCornerPoints[4].y + 18,"white",0,"none", me.parentObj);
 		addLine(me.mapCornerPoints[4].x, me.mapCornerPoints[4].y, me.mapCornerPoints[5].x, me.mapCornerPoints[5].y, "2px","black", me.parentObj);
 		s = "" + (me.mapCornerPoints[5].x+1) + "," + me.mapCornerPoints[5].y + " ";
@@ -336,6 +349,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			me.worldText();
 			me.key.render();
 		}
+		
+		// addRectangle(me.mapCornerPoints[0].x, me.mapCornerPoints[0].y, 5*(me.world.uwp.size)*32, (3*me.world.uwp.size)*28, "none", "4px", "red", me.parentObj); 
 
 	}
 
@@ -519,7 +534,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	{
 		if(me.world.uwp.hydro == 0)
 			return;
-		me.key.addHex(oceanTerrain);
 		if(me.world.uwp.hydro == 10)
 		{
 			oceans3();
@@ -626,7 +640,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function mountains()
 	{
-		me.key.addHex(mountainTerrain);
 		if(me.world.uwp.size == 1)
 		{
 			var numMountains = dice(1);
@@ -646,7 +659,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function chasms()
 	{
-		me.key.addHex(chasmTerrain);
 		if(me.world.uwp.size == 1)
 		{
 			var shuffledHexes = shuffle(me.hexes);
@@ -667,7 +679,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function precipices()
 	{
-		me.key.addHex(precipiceTerrain);
 		if(me.world.uwp.size == 1)
 		{
 			array_fnc.random.call(me.hexes).add(precipiceTerrain);
@@ -682,7 +693,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	{
 		if(!me.world.tcs.has("Di"))
 			return;
-		me.key.addHex(ruinsTerrain);
 		if(me.world.uwp.size == 1)
 		{
 			numRuins = dice(1);
@@ -704,7 +714,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	{
 		if(!me.world.tcs.has("Va"))
 			return;
-		me.key.addHex(cratersTerrain);
 		if(me.world.uwp.size == 1)
 		{
 			var numCraters = dice(1);
@@ -792,6 +801,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	{
 		if(!me.world.tcs.has("Fr"))
 			return;
+		
 		for(var i=0;i<me.hexes.length;i++)
 		{
 			var hex = me.hexes[i];
@@ -1102,6 +1112,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(me.world.uwp.TL < 8)
 			numResources -= (me.world.belts + me.world.gas_giants);
 		numResources = Math.min(numResources,me.hexes.length-2);
+		if(numResources <= 0)
+			return;
 		if(me.world.uwp.size == 1)
 		{
 			numResources = Math.min(numResources,12);
@@ -1237,7 +1249,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				else
 				{
 					hex.add(bakedLandsTerrain);
-					me.key.addHex(bakedLandsTerrain);
 				}
 			}
 		}
@@ -2441,7 +2452,7 @@ function mapHex(mapObj, parentObj, left_offset, top_offset)
 	me.name = "(" + me.columnNumber + "," + me.rowNumber + ")";
 	me.renderFlag = true;
 	me.adjacentHexes = [];
-	me.world = me.map.world;
+	if(me.map) me.world = me.map.world;
 	me.clickEnabled = true;
 	me.edge = false;
 	me.id = 0;
@@ -2595,12 +2606,12 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 			me.hexElem.onclick = function() { me.editTerrain(); };
 		if(me.isTool)
 			me.hexElem.onclick = function() { CURRENT_TOOL_CODE = me.terrainTypes[0].code; me.toolbar.map(function(v) { v.style.backgroundColor = "white"; });  me.toolDiv.style.backgroundColor = "red";};
-
+		
 		for(var i=0;i<me.terrainTypes.length;i++)
 		{
 			me.terrainTypes[i].draw(me);
-			if(!editFlag)
-				me.map.key.addHex(me.terrainTypes[i]);
+			if(!editFlag && (me.map instanceof worldMap))
+				me.map.key.addHex(me.terrainTypes[i]); 
 		}
 		
 		if(me.hexElem.style.fill == "none" /*&& me.parentTriangle*/ && !me.map.blank)
@@ -3026,6 +3037,8 @@ var HEX_MAP_WIDTH = 720;
 var worldHexCounter = 0;
 function generateHexMap(parentHex, mapType, mapClass)
 {
+	var saveAreaName = "worldHexMap" + ++worldHexCounter;
+	var mapSVGID = "worldHexMapSVG" + worldHexCounter;
 	var infoPara = document.createElement("P");
 	var infoText = document.createTextNode("Click on any hex on the " + mapType + " map to generate the map for that hex.");
 	infoPara.className = DEFAULT_INFO_PARAGRAPH_CLASS;
@@ -3038,8 +3051,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 	hexMapContainer.style.height = (HEX_MAP_TOP_OFFSET*2 + HEX_MAP_HEIGHT + 80) + "px";
 	hexMapContainer.style.zIndex = worldHexCounter+1;
 	hexMapContainer.style.top = "4px";
-	hexMapContainer.style.left = "4px";
-	//hexMapContainer.style.overflow = "scroll";
+	hexMapContainer.style.left = "4px";	//hexMapContainer.style.overflow = "scroll";
 
 	var downloadMapButton = document.createElement("INPUT");
 	downloadMapButton.setAttribute("name","downloadMap" + worldHexCounter);
@@ -3067,10 +3079,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 	closeButton.onclick = function() { hexMapContainer.style.display = "none"; };
 	hexMapContainer.appendChild(closeButton);
 
-
 	var hexMapDiv = document.createElement("DIV");
-	var saveAreaName = "worldHexMap" + ++worldHexCounter;
-	var mapSVGID = "worldHexMapSVG" + worldHexCounter;
 	hexMapDiv.setAttribute("id", saveAreaName);
 	hexMapDiv.setAttribute("class", "noBorder");
 	hexMapDiv.style.backgroundColor = "white";
@@ -3104,7 +3113,6 @@ function generateHexMap(parentHex, mapType, mapClass)
 	map.generate();
 	map.render();
 	map.outline();
-	//hexMapContainer.scrollIntoView({behavior: "smooth", block: "start", inline: "start"});
 }
 
 var VERTICAL_HEXES = 0;

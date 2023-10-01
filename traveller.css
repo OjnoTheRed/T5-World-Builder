@@ -87,6 +87,7 @@ li.normal {
 }
 
 .userInput {
+	position:fixed;
 	background-color: gray;
 	border-color: white;
 	border-width: 2px;
@@ -94,9 +95,36 @@ li.normal {
 	padding: 0.2em;
 	display:none;
 	z-index:1;
-	position:fixed;
 }
 
+.alertBox {
+	position:fixed;	
+	z-index:1;
+	width: 160px;
+	/*height: 100px;*/
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	padding: 0.2em;
+	display:none;
+	background-color: #f0f0f0;
+	border-color: red;
+	border-width: 2px;
+	border-style: solid;
+	text-align: center;
+}
+
+.alertBoxHeading {
+	padding: 0.2em;
+	margin: 0;
+	background-color: black;
+	font-family: Optima, Arial, Sans-serif;
+	font-weight: bold;
+	color: white;
+	font-size: 1em;
+	font-style: italic;
+	text-align:left;
+}
 
 div.subcontainer {
 	margin:0;
@@ -189,7 +217,7 @@ div.contained-flex {
 	margin-left:0;
 	margin-right:0.3em;
 	border-style:none;
-	padding:0;
+	padding:0 0 0 0;
 }
 
 .contained-flex-vertical {
@@ -291,11 +319,21 @@ h1 {
 }
 
 h2 {
+	margin-top: 0px;
+	font-size: 0.85em;
+	font-family: Arial, sans-serif;
+	font-weight: bold;
+	font-variant: small-caps;
+	padding: 0 0 0 0;
+	margin: 0.2em 0 0 0;
+}
+
+/*{
 	margin-top: 1em;
 	margin-bottom: 0em;
 	font-family: Optima, Arial, sans-serif;
 	font-weight: bold;
-}
+} */
 
 h3 {
 	margin: 0 0 0.2em 0;
@@ -306,7 +344,10 @@ h3 {
 
 h4 {
 	margin-top: 0px;
+	font-size: 0.85em;
 	font-family: Arial, sans-serif;
+	font-weight: bold;
+	font-variant: small-caps;
 }
 
 h5 {
@@ -750,5 +791,3 @@ Subdued brighter red = #c3073f
 	margin: 2px 2px 2px 2px;
 	padding: 2px 2px 2px 2px;
 }
-
-

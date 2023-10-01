@@ -16,10 +16,11 @@
 	<script src="planet_building_world_class.js"></script>
 	<script src="world_mapping.js"></script>
 	<script src="generate.js"></script>
+	<script src="beast.js"></script>
+	<script src="beast_tjl.js"></script>
 	<link rel="stylesheet" type="text/css" href="traveller.css">
 </head>
 <body onload="initLoad();" >
-<!--	<button onclick="convertStarData();">Convert</button> -->
 	<div class="container">
 		<h1 class="title"><img src="150px-Imperial_Sunburst-Sun-IISS-Traveller.gif" height="30" width="30">Traveller Worlds</h1>
 		<h1 class="titleStrap">TRAVELLER<sup style="margin-left:0.25em;color:white;font-weight:bold;font-family:Arial">5</sup></h1>
@@ -33,6 +34,8 @@
 				<button class="dropdown_button" onclick="editUserPrefs();">Your Preferences</button>
 				<button class="dropdown_button" onclick="divsToShow(1);">Full Star System</button>
 				<button class="dropdown_button" onclick="divsToShow(2);">Current World</button>
+				<button class="dropdown_button" onclick="beasts();">Beasts (demo)</button>
+				<button class="dropdown_button" onclick="tjl_beasts();">Beasts (experimental)</button>
 				<button class="dropdown_button" onclick="divsToShow(5);">Blank Maps</button>
 				<button class="dropdown_button" onclick="divsToShow(6);">API Documentation</button>
 				<a class="dropdown_button" target="_blank" href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit?usp=sharing">Map Data documentation</a>
@@ -52,6 +55,7 @@
 			<div class="dropdown-content">
 				<button class="dropdown_button" id="downloadMapSVG">Download SVG format</button>
 				<button class="dropdown_button" id="downloadMapPNG">Download PNG format</button>
+				<button class="dropdown_button" is="downloadCroppedSVG" onclick="croppedMap();">Download cropped PNG format</button>
 				<button class="dropdown_button" id="downloadMapData">Download map data</button>
 				<button class="dropdown_button" id="slideLeft" onclick="currentWorld.map.slideTerrain(false);">Slide Hexes west</button>
 				<button class="dropdown_button" id="slideRight" onclick="currentWorld.map.slideTerrain(true);">Slide Hexes east</button>
@@ -366,6 +370,15 @@
 					<p class="guidelines">Orbital Distance:</p>
 					<p class="worldDetails" id="orbit_distance"></p>
 					</div>
+					<div class="formItem">
+						<p class="guidelines">Adjust orbit with first up and down arrows; adjust the decimal place with the second:</p>
+						<p id="orbitButtons"></p>					
+					</div>
+					<div class="formItem">
+					<p class="guidelines" id="orbital_period_lbl">Orbital Period:</p>
+					<p class="worldDetails" id="orbital_period_text"></p>
+					<span class="tooltiptext">Calculated Orbital period in Earth Years</span>
+					</div>
 				</div>
 				<div class="transparent" style="margin-bottom:0.1em;" id="tz_msg" hidden>
 					<h3 style="color:red;">World is Tidally Locked to its star</h3>
@@ -375,20 +388,56 @@
 					<h3 style="color:red;">World is a satellite Tidally Locked to its planet</h3>
 					<p>The world's rotational period is the same as its orbital period and cannot be changed.  The Axial Tilt represents the inclination of its orbit around the planet relative to the planet's orbit around the star and so there can be seasonal influences.  One side is always facing towards the planet, leading to long days and nights relative to the parent star.  <b>Note:</b> The T5 rules specify that satellite orbits 'em' and closer will be locked to their planet.  If a randomly generated satellite rotation or user entered result is greater than the orbital period, it will be reduced to the orbital period and regarded as tidally locked.</p>
 				</div>
-				<p class="guidelines">Adjust orbit with first up and down arrows; adjust the decimal place with the second:</p>
-				<p id="orbitButtons"></p>
-				<div class="formItem">
-				<p class="guidelines" id="orbital_period_lbl">Orbital Period:</p>
-				<p class="worldDetails" id="orbital_period_text"></p>
-				<span class="tooltiptext">Calculated Orbital period in Earth Years</span>
-				</div>
 			</div>
 			<div>
 				<h2>Port Details</h2>
-				<p class="guidelines">Starport Class</p>
-				<p id="portClass"></p>
-				<p class="guidelines">Starport Facilities</p>
-				<p id="portFacilities"></p>
+				<div class="contained-flex">
+					<div class="formItem">
+						<p class="guidelines">Starport Class</p>
+						<p class="worldDetails" id="portClass"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Quality</p>
+						<p class="worldDetails" id="portQuality"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">High Port</p>
+						<p class="worldDetails" id="portHigh"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Down Port</p>
+						<p class="worldDetails" id="portDown"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Shipyards</p>
+						<p class="worldDetails" id="portShipyards"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Repairs</p>
+						<p class="worldDetails" id="portRepairs"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Refined Hydrogen Fuel</p>
+						<p class="worldDetails" id="port_fuelRefined"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Unrefined Hydrogen Fuel</p>
+						<p class="worldDetails" id="port_fuelRaw"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Fissionable Radioactives</p>
+						<p class="worldDetails" id="port_fuelRadio"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Anti-matter fuel slugs</p>
+						<p class="worldDetails" id="port_fuelAntiM"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Replacement Collector Canopies</p>
+						<p class="worldDetails" id="port_fuelColl"></p>
+					</div>
+					
+				</div>
 			</div>
 			<h2 id="regularSizeDetailsHeading" name="nonBelt">Size Details</h2>
 			<div class="contained-flex" id="regularSizeDetailsDIV" name="nonBelt">
@@ -401,16 +450,6 @@
 				<p class="guidelines" id="diameter_lbl">Diameter (km):</p>
 				<input class="worldDetails" id="diameter_edit" type="text" maxlength="5" value=""/>
 				<span class="tooltiptext">Equatorial Diameter of world in km</span>
-				</div>
-				<div class="formItem">
-				<p class="guidelines" id="jump_point_lbl">Jump Point (km):</p>
-				<p class="worldDetails" id="jump_point_edit"></p>
-				<span class="tooltiptext">Distance required to safely jump.  This distance includes clearing a planet's jump point for satellites, and the star.</span>
-				</div>
-				<div class="formItem">
-				<p class="guidelines" id="jump_point_timeslbl">Time to Jump Point at ...:</p>
-				<p class="worldDetails" id="jump_point_times"></p>
-				<span class="tooltiptext">Time to jump point at standard Gs from Maneuver Drives.</span>
 				</div>
 				<div class="formItem">
 				<p class="guidelines" id="density_type_lbl">Density Type:</p>
@@ -436,6 +475,16 @@
 				<p class="guidelines" id="rotational_period_lbl">Rotational Period (Hours):</p>
 				<input class="worldDetails" id="rotational_period_edit" type="text" maxlength="50" value=""/>
 				<span class="tooltiptext">Rotational Period in Earth Hours.  If Tz or Lk, rotation period &amp; orbital period are the same.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="jump_point_lbl">Jump Point (km):</p>
+				<p class="worldDetails" id="jump_point_edit"></p>
+				<span class="tooltiptext">Distance required to safely jump.  This distance includes clearing a planet's jump point for satellites, and the star.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="jump_point_timeslbl">Time to Jump Point at ...:</p>
+				<p class="worldDetails" id="jump_point_times"></p>
+				<span class="tooltiptext">Time to jump point at standard Gs from Maneuver Drives.</span>
 				</div>
 			</div>
 			<h2 id="beltDetailsHeading">Belt Details</h2>
@@ -491,9 +540,11 @@
 				</div>				
 			</div>
 			<h2>Atmosphere and Temperature details</h2>
-			<p class="guidelines">Atmosphere UWP digit explanation</p>
-			<p class="worldDetails" id="atmosUWPExpl"></p>
 			<div class="contained-flex" name="nonBelt">
+				<div class="formItem">
+				<p class="guidelines">Atmosphere UWP digit explanation</p>
+				<p class="worldDetails" id="atmosUWPExpl"></p>				
+				</div>
 				<div class="formItem">
 				<p class="guidelines" id="atmos_pressure_lbl">Atmospheric Pressure</p>
 				<input class="worldDetails" id="atmos_pressure_edit" type="text" maxlength="5" value=""/>
@@ -519,8 +570,6 @@
 				<input class="worldDetails" id="tilt_edit" type="text" maxlength="2" value=""/>
 				<span class="tooltiptext">Axial Tilt - used to calculate seasonal variations</span>
 				</div>
-			</div>
-			<div class="contained-flex">
 				<div class="formItem">
 				<p class="guidelines" id="base_world_temp_lbl">Base World Temperature</p>
 				<p class="worldDetails" id="base_world_temp_text"></p>
@@ -696,6 +745,8 @@
 				<div class="formItem">
 					<p class="guidelines">Law Level Digit from UWP</p>
 					<p class="worldDetails" id="lawDigit"></p>
+				</div>
+				<div class="formItem">
 					<p class="guidelines">Law level explanation</p>
 					<p class="worldDetails" id="lawExplanation"></p>
 				</div>
@@ -705,16 +756,91 @@
 				<div class="formItem">
 					<p class="guidelines">Technology Level Digit from UWP</p>
 					<p class="worldDetails" id="techDigit"></p>
-					<p class="guidelines">Technology Level explanation</p>
-					<p class="worldDetails" id="techExplanation"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Historical Era</p>
+					<p class="worldDetails" id="tecHist"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Energy</p>
+					<p class="worldDetails" id="tecEnergy"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Society</p>
+					<p class="worldDetails" id="tecSoc"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Environment</p>
+					<p class="worldDetails" id="tecEnv"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Communications</p>
+					<p class="worldDetails" id="tecComm"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Transport</p>
+					<p class="worldDetails" id="tecTra"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Medicine</p>
+					<p class="worldDetails" id="tecMed"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Developing Science</p>
+					<p class="worldDetails" id="tecSci"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Latest Technology</p>
+					<p class="worldDetails" id="tecTech"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Computers</p>
+					<p class="worldDetails" id="tecCmp"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Fastest Speeds</p>
+					<p class="worldDetails" id="tecSpeed"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Personal Weapons</p>
+					<p class="worldDetails" id="tecWpn"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Heavy Weapons</p>
+					<p class="worldDetails" id="tecHWpn"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Space Travel</p>
+					<p class="worldDetails" id="tecSpac"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Space Weapons</p>
+					<p class="worldDetails" id="tecSpacWpn"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Space Defences</p>
+					<p class="worldDetails" id="tecSpacDef"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Starship sensors</p>
+					<p class="worldDetails" id="tecSpacSen"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">World range sensors</p>
+					<p class="worldDetails" id="tecWorldSen"></p>
 				</div>
 			</div>
 			<div class="transparent" id="nobz" hidden>
 			<h2>Nobles</h2>
+			<div class="contained-flex">
+				<div class="formItem">
 				<p class="guidelines">Noble Codes</p>
-				<p><span id="nobz_codes"></span></p>
+				<p class="worldDetails"><span class="worldDetails" id="nobz_codes"></span></p>
+				</div>
+				<div class="formItem">
 				<p class="guidelines">Noble Descriptions</p>
-				<p><span id="nobz_descriptions"></span></p>
+				<p class="worldDetails"><span class="worldDetails" id="nobz_descriptions"></span></p>
+				</div>
 			</div>
 			<div class="transparent" id="eX" hidden>
 			<h2>Economic Extension</h2>
@@ -768,12 +894,6 @@
 					<select id="cX_Sy" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select>
 					<p id="cX_Sy_adj" class="cX_adjective"></p>
 					<span class="tooltiptext">Lower means use of more concrete symbols; higher means more abstract symbols.</span>
-				</div>
-				<div class="formItem">
-				<p class="guidelines">General description</p>
-				<p id="cX_description"></p>
-				<p>This way of looking at symbols taken from a post by Thomas Jones-Low found <a href="http://www.travellerrpg.com/CotI/Discuss/showpost.php?p=577390&postcount=29">here</a>.
-				<span class="tooltiptext">A general description of the culture.</span>
 				</div>
 			</div>
 			</div>
@@ -1099,6 +1219,29 @@
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
+		<h2 class="white">11 June 2023</h2>
+		<p class="white"><b>Layout Changes:</b> Working on planet detail layout changes to make it more compact and pleasing to the eye.  Paragraph explanations (apart from Government) changed to tables of information.</p>
+		<p class="white"><b>Bug Fix:</b> Export to CSV was not working; fixed.</p>
+		<h2 class="white">31 May 2023</h2>
+		<p class="white"><b>Bug Fix:</b> If 'allegiance' was not provided in the URL, then the world and system were prevented from generating by a fatal error.  Now fixed.</p>
+		<h2 class="white">8 May 2023</h2>
+		<p class="white"><b>Beast Armour:</b> Beast Armour generation added to "View > Beasts (experimental)".</p>
+		<p class="white"><b>Bug Fix:</b> Half-terrain from Twilight Zones appearing in key for that World Hex Map.  Now fixed.</p>
+		<p class="white"><b>Bug Fix:</b> Beasts of Size 4 did not have Strength modifier applied in Beasts (experimental).</p>
+		<p class="white"><b>Bug Fix:</b> Locomotion of Beasts in Beasts (experimental) had combinations not intended (e.g. Flyphibians in Clear terrain).</p>
+		<h2 class="white">6 May 2023</h2>
+		<p class="white"><b>Bug Fix:</b> Download buttons for World, Terrain and Local hexes were not working.  Fixed.</p>
+		<h2 class="white">5 May 2023</h2>
+		<p class="white"><b>Bug Fix:</b> Cropped Map image had incorrect file extension of "svg" instead of "png".  Fixed.</p>
+		<p class="white"><b>Experimental Beasts:</b> Beast tables generated through a modified rule set.  Thus, "View > Beasts (demo)" is RAW, "View > Beast (experimental)" is modified rules.</p>
+		<h2 class="white">18 April 2023</h2>
+		<p class="white"><b>Beast Maker demo:</b> For any world you can choose View > Beasts (demo) to generate beast tables for each of 11 terrain types.  This feature will be improved in future to fully edit the beasts including all T5 details and save the data with the system.</p>
+		<h2 class="white">8 April 2023</h2>
+		<p class="white"><b>Cropped Maps:</b> You can now use "Maps > Download cropped PNG format" to download the current world map in PNG format, cropped perfectly for using in a Plate-Carrée Converter (<a href="https://morfyddjames.github.io/platecarree.html">here</a> or <a href="https://inexorabletash.github.io/ico2equi/">here</a>), for use with the <a href="https://morfyddjames.github.io/index.html">Traveller World Viewer</a>.
+		<h2 class="white">10 September 2022</h2>
+		<p class="white"><b>Bug Fix:</b> Belts could not be placed by using "System Actions > Add a celestial object to the system" due to an error caused by the new Belt Details release.  Now fixed.</p>
+		<h2 class="white">24 July 2022</h2>
+		<p class="white"><b>Bug Fix:</b> The fix for the different results for seeds had knock-on errors that slipped through my testing, and affected nearly any world one would attempt to generate by navigating from TravellerMap.  Now fixed.</p>
 		<h2 class="white">17 July 2022</h2>
 		<p class="white"><b>Bug Fix:</b> This was a misconception on my part.  The "number of worlds" statistic for a system indicates the total number of gas giants, belts, and other worlds in the system.  I was getting it to generate other worlds ON TOP OF gas giants, belts and the main world.  Systems will look smaller from now on.</p>
 		<p class="white"><b>Bug Fix:</b> Saving and loading systems was changing the position of stars and messing with other objects as a consequence.  This was due to the seed for the system not being read correctly.</p>
@@ -1375,7 +1518,7 @@
 			<p class="white">Optima font is the <a href="http://www.freefontsdownload.net/free-optima-font-39.htm">free version</a>.</p>
 			<p class="white">Data parsing from travellermap.com uses some code taken from <a href="https://github.com/inexorabletash/travellermap/blob/master/make/routes.html#L150">here</a>.</p>
 			<p class="white">System symbolic map table uses ideas and CSS from Joshua Bell, taken from <a href="https://travellermap.com/tmp/sys.html">https://travellermap.com/tmp/sys.html</a>.</p>
-			<p class="white">Thinking about Symbols in the Cultural Extension uses ideas by Thomas Jones-Low found <a href="http://www.travellerrpg.com/CotI/Discuss/showpost.php?p=577390&postcount=29">here</a>.</p>
+			<p class="white">Thinking about Symbols in the Cultural Extension uses ideas by Thomas Jones-Low found <a target="_blank" href="http://www.travellerrpg.com/CotI/Discuss/showpost.php?p=577390&postcount=29">here</a>.</p>
 		</div>
 	</div>
 	<div class="container" id="legal" style="display:none;">
@@ -1390,7 +1533,447 @@
 			<p>A look at 'Your Preferences' <a href="https://www.youtube.com/embed/kJORn_5a_wo" target="_blank">on YouTube</a>.</p>
 			<p>Giving good feedback for TravellerWorlds - <a href="https://youtu.be/W_gn2pshn_A" target="_blank">my video</a>.</p>
 			<p>A google doc outlining the rules used by TravellerWorlds can be found <a href="https://docs.google.com/document/d/1O2P9gN9CkGMo-fAIaZpnb9Cfey5UPl2Xzr5xhQ1EHFg/edit?usp=sharing"  target="_blank">here.</a></p>
-			<p>A google doc explaining the export of map data can be found <a href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit" target="_blank">here</a>.
+			<p>A google doc explaining the export of map data can be found <a target="_blank" href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit">here</a>.
+		</div>
+	</div>
+	<div class="container" id="beasts" style="display:none;">
+		<h1>Beast Maker tables</h1>
+		<div class="contained">	
+			<p id="beastExplanation"></p>
+		</div>
+		<div class="contained" id="beastArea">
+		
+		</div>
+	</div>
+	<div id="myAlert" class="alertBox">
+		<p class="alertBoxHeading">Traveller Worlds</p>
+		<p id="alertMessage" style="margin-top:0.4em;"></p>
+		<button onclick="this.parentElement.style.display='none';">OK</button>
+	</div>
+	<div id="myConfirm" class="alertBox">
+		<p class="alertBoxHeading">Traveller Worlds</p>
+		<p id="confirmMessage" style="margin-top:0.4em;"></p>
+		<button id="confirmYes">Yes</button>
+		<button id="confirmNo">No</button>
+	</div>
+	<div class="container" id="beastDetail" style="display:none;">
+		<h1>Beast Details</h1>
+		<div class="contained-flex">
+			<div class="formItem">
+				<p class="guidelines" id="world_name_lbl">Beast Name</p>
+				<input class="worldDetails" id="beast_name_edit" type="text" maxlength="50" value="" />
+				<span class="tooltiptext">Name your beast here.</span>
+			</div>
+			<div class="formItem">
+				<p class="guidelines" id="">Niche</p>
+				<select class="worldDetails" id="niche_edit" onchange="updateSubNiche();">
+					<option>Producer</option>
+					<option>Herbivore</option>
+					<option>Omnivore</option>
+					<option>Carnivore</option>
+					<option>Scavenger</option>
+				</select>				
+			</div>
+			<div class="formItem">
+				<p class="guidelines" id="">Subniche</p>
+				<select class="worldDetails" id="subniche_edit">
+					<option></option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines" id="">Locomotion</p>
+				<select class="worldDetails" id="locomotion_edit">
+					<option>Walker</option>
+					<option>Amphibian</option>
+					<option>Triphibian</option>
+					<option>Aquatic</option>
+					<option>Diver</option>
+					<option>Flyer</option>
+					<option>Flyphibian</option>
+					<option>Swimmer</option>
+					<option>Static</option>
+					<option>Drifter</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Quantity</p>
+				<select class="worldDetails" id="quantity_edit">
+					<option>Solitary (1)</option>
+					<option>Single (1)</option>
+					<option>Pair (half D)</option>
+					<option>Small Group (1D)</option>
+					<option>Large Group (1D+2)</option>
+					<option>Pack (2D)</option>
+					<option>Small Herd (3D)</option>
+					<option>Large Herd (4D)</option>
+					<option>Small Swarm (6D)</option>
+					<option>Large Swarm (8D)</option>
+					<option>Hive (2D*2D)</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Size</p>
+				<select class="worldDetails" id="beast_size_edit" onchange="updateBeastStrength();>
+					<option value="R">Microscopic</option>
+					<option value="T">Miniscule</option>
+					<option value="1">Tiny</option>
+					<option value="2">Very Small</option>
+					<option value="3">Small</option>
+					<option value="4">Typical</option>
+					<option value="5">Large</option>
+					<option value="6">Very Large</option>
+					<option value="7">Gigantic</option>
+					<option value="8">Colossal</option>
+					<option value="9">Very Colossal</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Strength</p>
+				<select class="worldDetails" id="beast_strength_edit">
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Speed</p>
+				<select class="worldDetails" id="beast_speed_edit">
+					<option value="0">Static</option>
+					<option value="1">Walk</option>
+					<option value="2">Run</option>
+					<option value="3">Sprint</option>
+					<option value="4">Charge</option>
+					<option value="5">Fast</option>
+					<option value="6">Very Fast</option>
+					<option value="7">Extra Fast</option>
+					<option value="8">Highly Fast</option>
+				</select>
+			</div>			
+			<div class="formItem">
+				<p class="guidelines">Attack Target Number</p>
+				<select class="worldDetails" id="beast_attack_TN">
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="12">12</option>
+					<option value="13">13</option>
+					<option value="N">No</option>
+					<option value="S">If Surprise</option>
+					<option value="P">If Possible</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Flee Target Number</p>
+				<select class="worldDetails" id="beast_flee_TN">
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="N">No</option>
+					<option value="S+">If Surprised</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Weapon</p>
+				<select class="worldDetails" id="beast_weapon">
+					<option>Horns</option>
+					<option>Antlers</option>
+					<option>Tusks</option>
+					<option>Fangs</option>
+					<option>Teeth</option>
+					<option>Claws</option>
+					<option>Hooves</option>
+					<option>Spikes</option>
+					<option>Quills</option>
+					<option>Sting</option>
+					<option>Manipulator</option>
+					<option>Ped</option>
+					<option>Thag</option>
+					<option>Body</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Armour</p>
+				<select class="worldDetails" id="beast_armour_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="2">2D</option>
+					<option value="3">3D</option>
+					<option value="4">4D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">RadProof</p>
+				<select class="worldDetails" id="beast_radproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Flashproof</p>
+				<select class="worldDetails" id="beast_flashproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">SoundProof</p>
+				<select class="worldDetails" id="beast_soundproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Sealed</p>
+				<select class="worldDetails" id="beast_sealed_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+					<option value="2">2D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Insulated</p>
+				<select class="worldDetails" id="beast_insulated_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+					<option value="2">2D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">PsiProof</p>
+				<select class="worldDetails" id="beast_psiproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Stance</p>
+				<select class="worldDetails" id="beast_stance">
+					<option value="V">Verticle</option>
+					<option value="H">Horizontal</option>
+				</select>
+			</div>		
+			<div class="formItem">
+				<p class="guidelines">Symmetry</p>
+				<select class="worldDetails" id="beast_symmetry">
+					<option>Asymmetrical</option>
+					<option>Bilateral</option>
+					<option>Trilateral</option>
+					<option>Radial</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Breathing Location</p>
+				<select class="worldDetails" id="beast_breathing_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Brain Location</p>
+				<select class="worldDetails" id="beast_brain_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Senses Location</p>
+				<select class="worldDetails" id="beast_senses_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Feeding Location</p>
+				<select class="worldDetails" id="beast_feeding_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Front Limbs Group 1</p>
+				<select class="worldDetails" id="beast_front_limbs_1">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Front Limbs Group 2</p>
+				<select class="worldDetails" id="beast_front_limbs_2">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Rear Limbs Group 1</p>
+				<select class="worldDetails" id="beast_rear_limbs_1">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Rear Limbs Group 2</p>
+				<select class="worldDetails" id="beast_rear_Limbs_2">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Tail</p>
+				<select class="worldDetails" id="beast_tail">
+					<option value="P">Proboscis</option>
+					<option value="T">Tail</option>
+					<option value="V">Vestigial</option>
+					<option value="M">Manipulator</option>
+					<option value="A">Antennae</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Skeleton</p>
+				<select class="worldDetails" id="beast_skeleton">
+					<option>Fluid Interior Sacs</option>
+					<option>Cartilage interior</option>
+					<option>Bony Interior</option>
+					<option>Exoskeleton</option>
+					<option>Segmented Shell</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Fluids</p>
+				<select class="worldDetails" id="beast_fluids">
+					<option>Foam</option>
+					<option>Lymph</option>
+					<option>Hemolymph</option>
+					<option>Ichor</option>
+					<option>Blood</option>
+					<option>Gore</option>
+					<option>Slime</option>
+					<option>Scum</option>
+					<option>Humours</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Skin</p>
+				<select class="worldDetails" id="beast_skin">
+					<option>Feathery pelt</option>
+					<option>Furry Pelt</option>
+					<option>Leather</option>
+					<option>Skin</option>
+					<option>Fine Scales</option>
+					<option>Scales</option>
+					<option>Spines</option>
+					<option>Plates</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Colour</p>
+				<select class="worldDetails" id="beast_colour">
+					<option>Brilliant</option>
+					<option>Bright</option>
+					<option>Drab</option>
+					<option>Camouflage</option>
+					<option>Monochrome</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Manipulators</p>
+				<select class="worldDetails" id="beast_manipulators">
+					<option>Tentacles</option>
+					<option>Grippers</option>
+					<option>Hands</option>
+					<option>Paws</option>
+					<option>Graspers</option>
+					<option>Sockets</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Width Divisor</p>
+				<select class="worldDetails" id="beast_body_width_divisor">
+					<option>100</option>
+					<option>20</option>
+					<option>12</option>
+					<option>11</option>
+					<option>10</option>
+					<option>9</option>
+					<option>8</option>
+					<option>7</option>
+					<option>6</option>
+					<option>1.5</option>
+					<option>1</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Width</p>
+				<p class="worldDetails" id="beast_width"></p>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Depth Divisor</p>
+				<select class="worldDetails" id="beast_body_depth_divisor">
+					<option>100</option>
+					<option>20</option>
+					<option>12</option>
+					<option>11</option>
+					<option>10</option>
+					<option>9</option>
+					<option>8</option>
+					<option>7</option>
+					<option>6</option>
+					<option>1.5</option>
+					<option>1</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Depth</p>
+				<p class="worldDetails" id="beast_depth"></p>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Density</p>
+				<select class="worldDetails" id="beast_density">
+					<option value="0.1">Sack</option>
+					<option value="0.5">Hollow</option>
+					<option value="0.9">Light</option>
+					<option value="1.0">Standard</option>
+					<option value="1.1">Dense</option>
+					<option value="1.5">Very Dense</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Volume</p>
+				<p class="worldDetails" id="beast_volume"></p>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Mass</p>
+				<p class="worldDetails" id="beast_mass"></p>
+			</div>
+<!--			<div class="formItem">
+				<p class="guidelines"></p>
+				<input class="worldDetails" id="" type="text" maxlength="50" />
+				<select class="worldDetails" id="">
+					<option></option>
+				</select>
+			</div> -->
 		</div>
 	</div>
 </body>

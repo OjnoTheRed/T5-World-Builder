@@ -146,6 +146,7 @@ function world()
 	me.map = null;
 	me.mapData = null;
 	me.beltDetails = null;
+	me.portDetails = null;
 
 	me.nameTextBox = function()
 	{
@@ -222,7 +223,6 @@ function world()
 																				};
 
 												});
-			updateCultureDescription();
 			eX_div.hidden = false;
 			eX_details.map(function(item)		{
 													var elem = document.getElementById(item.id);
@@ -1298,9 +1298,12 @@ function world()
 		return tempTable;
 	}
 	
+	var PORT_DETAILS;
 	me.portDetails = function()
 	{
-		return new portDetails(me);		
+		if(!PORT_DETAILS)
+			PORT_DETAILS = new portDetails(me);
+		return PORT_DETAILS;
 	}
 	
 	me.populCount = function()
@@ -1359,6 +1362,7 @@ function world()
 		switch(uwpProperty)
 		{
 			case "port":
+				PORT_DETAILS = false;
 				break;
 			case "size":
 				DENSITY_TYPE = false;
@@ -1396,6 +1400,7 @@ function world()
 					me.culturalExt.generate();
 				}
 			case "all":
+				PORT_DETAILS = false;
 				TEMP_TABLE = false;
 				SEASON_EFFECT_PER_ROW = false;
 				RESOURCES = false;
@@ -1434,7 +1439,7 @@ function world()
 var all_details = 
 [
 	{ id:"world_name_edit", units:function() { return false; }, name:"World Name", contents:function() { return (me.name ? me.name : ("Unnamed " + me.generationObject.name)); }, validate:function(s) { return s != ""; }, text_string:function() { return me.name; }, update:function(v) { me.name = v; }, data_string:function() { return me.name; }  }, 
-	{ id:"orbit_text", units:function() { return false }, name:"Orbit", contents:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, text_string:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, data_string:function() { return this.text_string(); }  }, 
+	{ id:"orbit_text", units:function() { return false }, name:"Orbit", contents:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, text_string:function() { return me.isSatellite ? me.orbit.baseOrbit.o : me.orbit.number(); }, data_string:function() { return this.text_string(); }  },  
 	{ id:"orbit_distance", units:function() { return (me.isSatellite ? "km" : "AU"); }, name:"Orbital Distance", contents:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, text_string:function() { return me.orbit.orbitDistance() + (me.isSatellite ? " km" : " AU"); }, data_string:function() { return me.orbit.orbitDistance(); }  }, 
 	{ id:"diameter_edit", units:function() { return "km"; }, name:"Diameter", contents:function() { return me.diameter(); }, validate:function(s) { return !isNaN(parseInt(s)) && parseInt(s) < 1.61*(me.uwp.size*1000 + 500) && parseInt(s) > 1.61*(me.uwp.size*1000 - 500); }, text_string:function() { return (me.diameter() + " km"); }, update:function(v) { WORLD_DIAMETER = v; }, data_string:function() { return me.diameter(); }  }, 
 	{ id:"jump_point_edit", units:function() { return "km"; }, name:"Jump Point distance", contents:function() { return me.jumpPoint(); }, validate:function() { return true; }, text_string:function() { return (me.jumpPoint() + " km"); }, update:function() { me.jumpPoint(); }, data_string:function() { return me.jumpPoint(); }  }, 
@@ -1463,7 +1468,16 @@ var all_details =
 	{ id:"native_int_life_text", units:function() { return false; }, name:"Native Intelligent Life", contents:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString() }, update:function() { me.nativeIntLife.generate(); }, text_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); }, data_string:function() { me.nativeIntLife.generate(); return me.nativeIntLife.toString(); }  }, 
 	{ id:"seismic_edit", units:function() { return false; }, name:"Seismic Stress", contents:function() { return me.getStress(); }, validate:function(s) { return !isNaN(parseInt(s)); }, text_string:function() { return ("Stress factor is " + me.getStress() + "<br />Occurence of a volcanic eruption or earthquake in a 24-hour period:<br />Formidable (4D) < " + (me.getStress() - 4) + "<br /><b>Note:</b> DM -2 if on a Volcano hex, DM -2 if on a fault line."); }, update:function(v) { STRESS_FACTOR = v; }, data_string:function() { return me.getStress(); }  }, 
 	{ id:"portClass", units:function() { return false; }, name:"Port Class", contents:function() { return me.uwp.port; }, text_string:function() { return me.uwp.port; }, data_string:function() { return me.uwp.port; }  }, 
-	{ id:"portFacilities", units:function() { return false; }, name:"Port Facilities", contents:function() { return me.portDetails(); }, text_string:function() { return me.portDetails(); }, data_string:function() { return me.portDetails().toString().replace(/,/g,""); }  }, 
+	{ id:"portQuality", units:function() { return false; }, name:"Port Quality", contents:function() { return me.portDetails().quality + " " + me.portDetails().which; }, text_string:function() { return me.portDetails().quality + " " + me.portDetails().which; }, data_string:function() { return (me.portDetails().quality + " " + me.portDetails().which).replace(/,/g,""); }  }, 
+	{ id:"portHigh", units:function() { return false; }, name:"High Port", contents:function() { return me.portDetails().highport ? "Yes" : "No"; }, text_string:function() { return me.portDetails().highport ? "Yes" : "No"; }, data_string:function() { return me.portDetails().highport ? "Yes" : "No"; }  }, 
+	{ id:"portDown", units:function() { return false; }, name:"Down Port", contents:function() { return me.portDetails().downport == "beacon" ? "Beacon Only" : (me.portDetails().downport ? "Yes" : "No"); }, text_string:function() { return me.portDetails().downport == "beacon" ? "Beacon Only" : (me.portDetails().downport ? "Yes" : "No"); }, data_string:function() { return me.portDetails().downport == "beacon" ? "Beacon Only" : (me.portDetails().downport ? "Yes" : "No"); }  }, 
+	{ id:"portShipyards", units:function() { return false; }, name:"Shipyard Capability", contents:function() { return me.portDetails().yard ? me.portDetails().yard : "No capability"; }, text_string:function() { return me.portDetails().yard ? me.portDetails().yard : "No capability"; }, data_string:function() { return me.portDetails().yard ? me.portDetails().yard : "No capability"; }  }, 
+	{ id:"portRepairs", units:function() { return false; }, name:"Repairs Capability", contents:function() { return me.portDetails().repairs; }, text_string:function() { return me.portDetails().repairs; }, data_string:function() { return me.portDetails().repairs; }  }, 
+	{ id:"port_fuelRefined", units:function() { return false; }, name:"Refined Fuel", contents:function() { return me.portDetails().refined ? "Yes" : "No"; }, text_string:function() { return me.portDetails().refined ? "Yes" : "No"; }, data_string:function() { return me.portDetails().refined ? "Yes" : "No"; }  }, 
+	{ id:"port_fuelRaw", units:function() { return false; }, name:"Unrefined Fuel", contents:function() { return me.portDetails().raw ? "Yes" : "No"; }, text_string:function() { return me.portDetails().raw ? "Yes" : "No"; }, data_string:function() { return me.portDetails().raw ? "Yes" : "No"; }  }, 
+	{ id:"port_fuelRadio", units:function() { return false; }, name:"Fissible Radioactives", contents:function() { return me.portDetails().radioact ? "Yes" : "No"; }, text_string:function() { return me.portDetails().radioact ? "Yes" : "No"; }, data_string:function() { return me.portDetails().radioact ? "Yes" : "No"; }  }, 
+	{ id:"port_fuelAntiM", units:function() { return false; }, name:"Anti-Matter Slugs", contents:function() { return me.portDetails().antimatter ? "Yes" : "No"; }, text_string:function() { return me.portDetails().antimatter ? "Yes" : "No"; }, data_string:function() { return me.portDetails().antimatter ? "Yes" : "No"; }  }, 
+	{ id:"port_fuelColl", units:function() { return false; }, name:"Replacement Collectors", contents:function() { return me.portDetails().collector ? "Yes" : "No"; }, text_string:function() { return me.portDetails().collector ? "Yes" : "No"; }, data_string:function() { return me.portDetails().collector ? "Yes" : "No"; }  }, 
 	{ id:"sizeUWPexp", units:function() { return false; }, name:"Size UWP Digit Explanation", contents:function() { return SIZE_DESCRIPTIONS[me.uwp.size]; },  text_string:function() { return SIZE_DESCRIPTIONS[me.uwp.size]; }, data_string:function() { return SIZE_DESCRIPTIONS[me.uwp.size].replace(/,/g,""); }  }, 
 	{ id:"atmosUWPExpl", units:function() { return false; }, name:"Atmosphere UWP Digit Explanation", contents:function() { return ("The atmosphere is " + ATMOS_DESCRIPTIONS[me.uwp.atmos]); }, text_string:function() { return ("The atmosphere is " + ATMOS_DESCRIPTIONS[me.uwp.atmos]); }, data_string:function() { return ("The atmosphere is " + ATMOS_DESCRIPTIONS[me.uwp.atmos].replace(/,/g,"")); }  }, 
 	{ id:"populDigExp", units:function() { return false; }, name:"Population Digit Explanation", contents:function() { return (me.uwp.popul + " - population is in the order of 10<sup>" + me.uwp.popul + "</sup>."); }, text_string:function() { return (me.uwp.popul + " - population is in the order of 10<sup>" + me.uwp.popul + "</sup>."); }, data_string:function() { return (me.uwp.popul + " - population is in the order of 10<sup>" + me.uwp.popul + "</sup>."); }  }, 
@@ -1474,30 +1488,43 @@ var all_details =
 	{ id:"lawDigit", units:function() { return false;}, name:"Law Level Digit", contents:function(){ return me.uwp.law; }, text_string:function(){ return me.uwp.law; }, data_string:function(){ return me.uwp.law; }},
 	{ id:"lawExplanation", units:function() { return false;}, name:"Law Level explanation", contents:function() { return me.lawDetails(); }, text_string:function() { return me.lawDetails(); }, data_string:function() { return me.lawDetails(); }},
 	{ id:"techDigit", units:function() { return false;}, name:"Technology Level Digit", contents:function() { return me.uwp.TL; }, text_string:function() { return me.uwp.TL; }, data_string:function() { return me.uwp.TL; }},
-	{ id:"techExplanation", units:function() { return false;}, name:"Technology Level explanation", contents:function() { return me.techDetails(); }, text_string:function() { return me.techDetails(); }, data_string:function() { return me.techDetails(); }}
+	{ id:"tecHist", units:function() { return false;}, name:"Earth Historical Era", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.era; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.era; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.era; } }, 
+	{ id:"tecEnergy", units:function() { return false;}, name:"Energy", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.energy; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.energy; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.energy; } }, 
+	{ id:"tecSoc", units:function() { return false;}, name:"Society", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.society; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.society; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.society; } }, 
+	{ id:"tecEnv", units:function() { return false;}, name:"Environment", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.environ; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.environ; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.environ; } }, 
+	{ id:"tecComm", units:function() { return false;}, name:"Communications", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.comms; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.comms; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.comms; } }, 
+	{ id:"tecTra", units:function() { return false;}, name:"Transport", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.transport; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.transport; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.transport; } }, 
+	{ id:"tecMed", units:function() { return false;}, name:"Medicine", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.medicine; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.medicine; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.medicine; } }, 
+	{ id:"tecSci", units:function() { return false;}, name:"Latest Science", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.science; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.science; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.science; } }, 
+	{ id:"tecTech", units:function() { return false;}, name:"Latest Technology", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.tech; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.tech; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.tech; } }, 
+	{ id:"tecCmp", units:function() { return false;}, name:"Computers", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.computers; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.computers; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.computers; } }, 
+	{ id:"tecSpeed", units:function() { return false;}, name:"Travel Speeds", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return "Fastest speed is by " + techDes.speed1 + ", (speed " + techDes.speed2.speed + " or " + techDes.speed2.kph + " kph). "; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return "Fastest speed is by " + techDes.speed1 + ", (speed " + techDes.speed2.speed + " or " + techDes.speed2.kph + " kph). "; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return "Fastest speed is by " + techDes.speed1 + ", (speed " + techDes.speed2.speed + " or " + techDes.speed2.kph + " kph). "; } }, 
+	{ id:"tecWpn", units:function() { return false;}, name:"Personal Weapons", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.personalWpns; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.personalWpns; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.personalWpns; } }, 
+	{ id:"tecHWpn", units:function() { return false;}, name:"Heavy Weapons", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.hvyWpns; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.hvyWpns; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.hvyWpns; } }, 
+	{ id:"tecSpac", units:function() { return false;}, name:"Space Travel", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.spaceTravel; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.spaceTravel; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.spaceTravel; } }, 
+	{ id:"tecSpacWpn", units:function() { return false;}, name:"Space Weapons", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.weapons; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.weapons; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.weapons; } }, 
+	{ id:"tecSpacDef", units:function() { return false;}, name:"Space Defences", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.defenses; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.defenses; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.defenses; } }, 
+	{ id:"tecSpacSen", units:function() { return false;}, name:"Space Sensors", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.sensors1; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.sensors1; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.sensors1; } }, 
+	{ id:"tecWorldSen", units:function() { return false;}, name:"World Sensors", contents:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.sensors2; }, text_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.sensors2; }, data_string:function() { var techDes = TECH_DESCRIPTORS.find(function(v) { return v.TL == me.uwp.TL; }); return techDes.sensors2; } }
  ];
+
+ 
 	me.all_details = all_details;
 	ALL_DETAILS = all_details;
 
 	var cX_details = [
-		{id:"cX_H", adj_id:"cX_H_adj", name:"Heterogeneity",contents:function() { return me.culturalExt.homogeneity; }, text_string:function() { return HOMOGENEITY_DESCRIPTIONS[me.culturalExt.homogeneity].tm; }, data_string:function() { return pseudoHex(me.culturalExt.homogeneity); }, update:function(v) { me.culturalExt.homogeneity = parseInt(v); updateCultureDescription(); } },
-		{id:"cX_A", adj_id:"cX_A_adj", name:"Acceptance",contents:function() { return me.culturalExt.acceptance; }, text_string:function() { return ACCEPTANCE_DESCRIPTIONS[me.culturalExt.acceptance].tm; }, data_string:function() { return pseudoHex(me.culturalExt.acceptance); }, update:function(v) { me.culturalExt.acceptance = parseInt(v); updateCultureDescription(); } },
-		{id:"cX_St", adj_id:"cX_St_adj", name:"Strangeness",contents:function() { return me.culturalExt.strangeness; }, text_string:function() { return STRANGENESS_DESCRIPTIONS[me.culturalExt.strangeness].tm; }, data_string:function() { return pseudoHex(me.culturalExt.strangeness); }, update:function(v) { me.culturalExt.strangeness = parseInt(v); updateCultureDescription(); } },
-		{id:"cX_Sy", adj_id:"cX_Sy_adj", name:"Symbols",contents:function() { return me.culturalExt.symbols; }, text_string:function() { return ""; }, data_string:function() { return pseudoHex(me.culturalExt.symbols); }, update:function(v) { me.culturalExt.symbols = parseInt(v); updateCultureDescription(); } }
+		{id:"cX_H", adj_id:"cX_H_adj", name:"Heterogeneity",contents:function() { return me.culturalExt.homogeneity; }, text_string:function() { return HOMOGENEITY_DESCRIPTIONS[me.culturalExt.homogeneity].tm; }, data_string:function() { return pseudoHex(me.culturalExt.homogeneity); }, update:function(v) { me.culturalExt.homogeneity = parseInt(v); } },
+		{id:"cX_A", adj_id:"cX_A_adj", name:"Acceptance",contents:function() { return me.culturalExt.acceptance; }, text_string:function() { return ACCEPTANCE_DESCRIPTIONS[me.culturalExt.acceptance].tm; }, data_string:function() { return pseudoHex(me.culturalExt.acceptance); }, update:function(v) { me.culturalExt.acceptance = parseInt(v); } },
+		{id:"cX_St", adj_id:"cX_St_adj", name:"Strangeness",contents:function() { return me.culturalExt.strangeness; }, text_string:function() { return STRANGENESS_DESCRIPTIONS[me.culturalExt.strangeness].tm; }, data_string:function() { return pseudoHex(me.culturalExt.strangeness); }, update:function(v) { me.culturalExt.strangeness = parseInt(v); } },
+		{id:"cX_Sy", adj_id:"cX_Sy_adj", name:"Symbols",contents:function() { return me.culturalExt.symbols; }, text_string:function() { return ""; }, data_string:function() { return pseudoHex(me.culturalExt.symbols); }, update:function(v) { me.culturalExt.symbols = parseInt(v); } }
 	];
 
 	var eX_details = [
 		{id:"eX_R", name:"Resources",contents:function() { return me.economicExt.resources; }, data_string:function(){ return pseudoHex(me.economicExt.resources); }, update:function(v) { me.economicExt.resources = parseInt(v); } },
 		{id:"eX_L", name:"Labor",contents:function() { return me.economicExt.labour; }, data_string:function() { return pseudoHex(me.economicExt.labour); }, update:function(v) { me.economicExt.labour = parseInt(v); } },
 		{id:"eX_I", name:"Infrastructure",contents:function() { return me.economicExt.infrastructure; }, data_string:function() { return pseudoHex(me.economicExt.infrastructure); }, update:function(v) { me.economicExt.infrastructure = parseInt(v); } },
-		{id:"eX_E", name:"Efficiency",contents:function() { return me.economicExt.efficiency; }, data_string:function() { return "" + me.economicExt.efficiency > -1 ? "+" + me.economicExt.efficiency : me.economicExt.efficiency; }, update:function(v) { me.economicExt.efficiency = parseInt(v); } }
+		{id:"eX_E", name:"Efficiency",contents:function() { return me.economicExt.efficiency; }, data_string:function() { return me.economicExt.efficiency > -1 ? "+" + me.economicExt.efficiency : me.economicExt.efficiency; }, update:function(v) { me.economicExt.efficiency = parseInt(v); } }
 	];
-
-	function updateCultureDescription()
-	{
-		var elem = document.getElementById("cX_description");
-		elem.innerHTML = me.culturalExt.statement();
-	}
 
 	me.dbObj = function()
 	{
@@ -1670,6 +1697,9 @@ function mainWorld(generationObject)
 	me.worlds = 0;
 	me.allegiance = "Im";
 	me.stars = new starSystem(me);
+	me.starString = "";
+	me.dataObj = {};
+	me.processData = true;
 	
 	me.symbolName = function()
 	{
@@ -1805,44 +1835,88 @@ function mainWorld(generationObject)
 
 	me.readDataObj = function(dataObj)
 	{
-		me.subSector = dataObj.ss;
-		me.sector = dataObj.sector;
-		me.hex = dataObj.hex;
-		me.name = dataObj.name;
+		me.dataObj = dataObj;
+		me.subSector = me.dataObj.ss;
+		me.sector = me.dataObj.sector;
+		me.hex = me.dataObj.hex;
+		me.name = me.dataObj.name;
+	}
+
+	me.processDataObj = function()
+	{
+		me.hex = me.dataObj.hex;
+		me.sector = me.dataObj.sector;
+		me.subSector = me.dataObj.ss;
+		me.name = me.dataObj.name;
+		me.seed = me.dataObj.seed;
+		me.system = me.dataObj.system ? me.dataObj.system : "The " + me.name + " system (" + me.hex + " " + me.sector + ")";
 		me.uwp = new uwp(null,me);
-		me.uwp.readUWP(dataObj.uwp);
+		if(me.dataObj.uwp)
+			me.uwp.readUWP(me.dataObj.uwp);
+		else
+			me.uwp.generate();
 		if(me.uwp.size == 0)
 			me.generationObject = planetoidsUWP;
 		me.bases = new bases(me);
-		me.bases.readString(dataObj.bases);
+		if(me.dataObj.bases !== null)
+			me.bases.readString(me.dataObj.bases);
 		me.tcs = new tcs(me);
-		me.tcs.readString(dataObj.remarks);
-		me.travelZone = dataObj.zone;
-		me.popMulti = parseInt(dataObj.pbg.substr(0,1));
+		if(me.dataObj.remarks)
+			me.tcs.readString(me.dataObj.remarks);
+		else
+			me.tcs.generate();
+		me.travelZone = me.dataObj.zone;
+		if(me.dataObj.pbg)
+		{
+			me.popMulti = parseInt(me.dataObj.pbg.substr(0,1));
+			me.belts = parseInt(me.dataObj.pbg.substr(1,1));
+			me.gas_giants = parseInt(me.dataObj.pbg.substr(2,1));
+		}
+		else
+		{
+			me.popMulti = parseInt(me.dataObj.popMulti);
+			me.belts = parseInt(me.dataObj.belts);
+			me.gas_giants = parseInt(me.dataObj.gas_giants);
+		}
 		if(isNaN(me.popMulti))
-			me.popMulti = 1;
-		me.belts = parseInt(dataObj.pbg.substr(1,1));
+			me.popMulti = me.uwp.popul == 0 ? 0 : rng(9);
 		if(isNaN(me.belts))
-			me.belts = 0;
-		me.gas_giants = parseInt(dataObj.pbg.substr(2,1));
+			me.belts = Math.max(0, dice(1)-3);
 		if(isNaN(me.gas_giants))
-			me.gas_giants = 0;
-		me.allegiance = dataObj.allegiance;
-		me.stars.starString = dataObj.stars;
+			me.gas_giants = Math.max(0, Math.floor(dice(2)/2-2));
+		me.allegiance = me.dataObj.allegiance;
+		if(me.allegiance === null)
+			me.allegiance = "";
+		if(me.dataObj.stars)
+			me.stars.readString(me.dataObj.stars);
+		else
+			me.stars.generate();
 		me.economicExt = new eX(me);
-		me.economicExt.readString(dataObj.ex);
+		if(me.dataObj.ex)
+			me.economicExt.readString(me.dataObj.ex);
+		else
+			me.economicExt.generate();
 		me.culturalExt = new cX(me);
-		me.culturalExt.readString(dataObj.cx);
+		if(me.dataObj.cx)
+			me.culturalExt.readString(me.dataObj.cx);
+		else
+			me.culturalExt.generate();
 		me.importance = new iX(me);
-		me.importance.readString(dataObj.ix);
+		if(me.dataObj.ix)
+			me.importance.readString(me.dataObj.ix);
+		else
+			me.importance.generate();
 		me.noblesExt = new nobles(me);
-		me.noblesExt.readString(dataObj.nobility);
-		me.worlds = parseInt(dataObj.w);
+		if(me.dataObj.nobility !== null)
+			me.noblesExt.readString(me.dataObj.nobility);
+		else
+			me.noblesExt.generate();
+		me.worlds = parseInt(me.dataObj.w);
 		if(isNaN(me.worlds))
 			me.worlds = dice(2);
 		else
 			me.worlds = Math.min(12,me.worlds);
-		//me.nativeIntLife.generate();
+		me.nativeIntLife.generate();
 	}
 
 	var inherited_dbObj = me.dbObj;
@@ -2732,25 +2806,6 @@ function cX(world)
 		for(var p in o)
 			me[p] = o[p];
 	}
-
-	me.statement = function()
-	{
-		var s = me.world.name + "'s culture is ";
-		s += HOMOGENEITY_DESCRIPTIONS[me.homogeneity].tm + ", ";
-		s += ACCEPTANCE_DESCRIPTIONS[me.acceptance].tm + ", and ";
-		s += STRANGENESS_DESCRIPTIONS[me.strangeness].tm + ".  ";
-		s += "It could also be described as ";
-		s += HOMOGENEITY_DESCRIPTIONS[me.homogeneity].js + ", ";
-		s += ACCEPTANCE_DESCRIPTIONS[me.acceptance].js + ", and ";
-		s += STRANGENESS_DESCRIPTIONS[me.strangeness].js + ".  ";
-		s += "Symbols can be broadly interpreted as a society's general adoption or culturual attitude to technology and science.  ";
-		s += "This world's symbols are at " + me.symbols + " compared to technology level of " + me.world.uwp.TL + ".  They have TL" + me.symbols + " attitudes in a TL" + me.world.uwp.TL + " environment. ";
-		if(me.symbols >= me.world.uwp.TL)
-			s+= "As symbols are ahead of technology, society here could either be used to higher technology that has regressed, or technology is progressing and in this society early adopters are pushing symbols like language into new places.  Alternately, contact with off-world technology could be heavily influencing local lower-tech culture.";
-		else
-			s+= "As symbols are below the level of technology, either technology is racing ahead and the population is struggling to keep up, or culture is regressing from a higher technology base and will possibly drag technology down with it.";
-		return s;
-	}
 }
 
 function iX(world)
@@ -3407,21 +3462,19 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 	me.symbolDiv = symbolDiv;
 	me.detailsDiv = detailsDiv;
 	me.detailsSaved = false;
-	me.seed = me.mainWorld.seed ? me.mainWorld.seed : rng(4294967295);
+	me.seed = me.mainWorld.dataObj.seed;
 
 	if(arguments.length < 5)
 		generate_now = true;
 
 	me.generate = function()
 	{
-		me.name = me.mainWorld.name ? (me.mainWorld.name + " system") : "Unnamed system";
-		me.name += me.mainWorld.sector ? (" (" + me.mainWorld.hex + " " + me.mainWorld.sector + ")") : "";
-		me.mainWorld.system = me.name;
 		init_rng(me.seed);
-		if(me.stars.stars.starString)
-			me.stars.stars.readString(me.stars.stars.starString);
-		else if(me.stars.stars.length == 0)
-			me.stars.generate();
+		if(me.mainWorld.processData)
+			me.mainWorld.processDataObj();
+		else
+			me.mainWorld.stars.readString(me.mainWorld.stars.starString);
+		me.name = me.mainWorld.system ? (me.mainWorld.system) : "Unnamed system";
 		me.primary = me.stars.stars[0];
 		me.companion = me.stars.companions[0];
 		me.orbits = new orbitSet(me.primary, me.companion, me.mainWorld, me);
@@ -4305,20 +4358,24 @@ function orbit(orbitSet, orbitNumber, contents, increment)
 		scrubBtn.title = "That's EXTERMINATUS for all you 40k fans";
 		scrubBtn.onclick = function()
 		{
-			if(!window.confirm("This will remove the selected orbit and its contents completely including any satellites.  This cannot be undone. Are you SURE?"))
-				return;
-			if(!me.isSatellite)
-			{
-				me.set.orbits.splice(me.set.orbits.findIndex(function(v){ return v.baseOrbit == me.baseOrbit; }),1);
-				me.set.updateTable();
-			}
-			else
-			{
-				me.set.orbits.splice(me.set.orbits.findIndex(function(v){ return v.baseOrbit.o == me.baseOrbit.o; }),1);
-				me.set.planet.orbit.set.updateTable();
-			}
+			tw_confirm("This will remove the selected orbit and its contents completely including any satellites.  This cannot be undone. Are you SURE?", scrub_exec); 
 		}
 		return scrubBtn;
+	}
+	
+	function scrub_exec()
+	{
+		document.getElementById("myConfirm").style.display = "none";
+		if(!me.isSatellite)
+		{
+			me.set.orbits.splice(me.set.orbits.findIndex(function(v){ return v.baseOrbit == me.baseOrbit; }),1);
+			me.set.updateTable();
+		}
+		else
+		{
+			me.set.orbits.splice(me.set.orbits.findIndex(function(v){ return v.baseOrbit.o == me.baseOrbit.o; }),1);
+			me.set.planet.orbit.set.updateTable();
+		}		
 	}
 
 	me.toTableRow = function()
@@ -4786,7 +4843,7 @@ function orbit(orbitSet, orbitNumber, contents, increment)
 						if(!uPObj.prefs.download_world_detail)
 							s += "," + x.contents.albedo() + "," + x.contents.greenhouse() + "," + x.contents.calcTemperatureC();
 						else
-							x.contents.all_details.map(function(item) { s += item.name == "World Name" ? "" : "," + item.data_string().replace(/,/g," "); });
+							x.contents.all_details.map(function(item) { s += item.name == "World Name" ? "" : "," + ("" + item.data_string()).replace(/,/g," "); });
 				}
 				s += "\r\n";
 			}
@@ -4900,16 +4957,16 @@ function gasMix(world, irritantFlag)
 }
 
 var portData = [
-{type:"A", which:"starport", quality:"Excellent", refined:true, raw:true, yard:"starships", repairs:"a complete overhaul", downport:true},
-{type:"B", which:"starport", quality:"Good", refined:true, raw:true, yard:"spacecraft", repairs:"a complete overhaul", downport:true},
-{type:"C", which:"starport", quality:"Routine", refined:false, raw:true, yard:false, repairs:"major repairs", downport:true},
-{type:"D", which:"starport", quality:"Poor", refined:false, raw:true, yard:false, repairs:"minor repairs", downport:true},
-{type:"E", which:"starport", quality:"Frontier", refined:false, raw:false, yard:false, repairs:"no repairs", downport:"beacon"},
-{type:"X", which:"starport", quality:"None", refined:false, raw:false, yard:false, repairs:"no repairs", downport:false},
-{type:"F", which:"spaceport", quality:"Good", refined:false, raw:true, yard:"No", repairs:"minor repairs", downport:true},
-{type:"G", which:"spaceport", quality:"Poor", refined:false, raw:true, yard:"No", repairs:"slight repairs", downport:true},
-{type:"H", which:"spaceport", quality:"Basic", refined:false, raw:false, yard:"No", repairs:"no repairs", downport:true},
-{type:"Y", which:"spaceport", quality:"None", refined:false, raw:false, yard:"No", repairs:"no repairs", downport:false}
+{type:"A", which:"starport", quality:"Excellent", refined:true, raw:true, yard:"starships", repairs:"A complete overhaul", downport:true},
+{type:"B", which:"starport", quality:"Good", refined:true, raw:true, yard:"spacecraft", repairs:"A complete overhaul", downport:true},
+{type:"C", which:"starport", quality:"Routine", refined:false, raw:true, yard:false, repairs:"Major repairs", downport:true},
+{type:"D", which:"starport", quality:"Poor", refined:false, raw:true, yard:false, repairs:"Minor repairs", downport:true},
+{type:"E", which:"starport", quality:"Frontier", refined:false, raw:false, yard:false, repairs:"No repairs", downport:"beacon"},
+{type:"X", which:"starport", quality:"None", refined:false, raw:false, yard:false, repairs:"No repairs", downport:false},
+{type:"F", which:"spaceport", quality:"Good", refined:false, raw:true, yard:false, repairs:"Minor repairs", downport:true},
+{type:"G", which:"spaceport", quality:"Poor", refined:false, raw:true, yard:false, repairs:"Slight repairs", downport:true},
+{type:"H", which:"spaceport", quality:"Basic", refined:false, raw:false, yard:false, repairs:"No repairs", downport:"beacon"},
+{type:"Y", which:"spaceport", quality:"None", refined:false, raw:false, yard:false, repairs:"No repairs", downport:false}
 ];
 function portDetails(world)
 {
@@ -4940,17 +4997,6 @@ function portDetails(world)
 		me.collector = me.genCollector();
 	}
 	
-	me.toString = function()
-	{
-		var s = "The " + me.which + " is type " + me.type + " - " + me.quality + ". ";
-		s += "There is " + (me.downport ? "a" : "no") + " downport, and " + (me.highport ? "a" : "no") + " highport in orbit. ";
-		s += me.yard ? ("The port has shipyards capable of building " + me.yard + ". ") : "The port has no shipyards and cannot build ships. ";
-		s += "Visiting ships can receive " + me.repairs + " at this port. ";
-		s += me.raw ? ("Fuels the port can supply include unrefined hydrogen, " + (me.refined ? "refined hydrogen, " : "") + (me.radioact ? "fissionable radioactives, " : "") + (me.antimatter ? "anti-matter fuel slugs, " : "") + (me.collector ? "replacement collector canopies, " : "")) : "No fuel is available.";
-		s = s.replace(/,\s$/g,".");
-		return s;
-	}
-
 	me.genHighPort = function()
 	{
 		switch(me.type)

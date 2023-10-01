@@ -5,7 +5,6 @@ var user_pref_db, mySystem, origMWData, request, sys_db, sysDiv, symbolDiv, deta
 
 function initLoad()
 {
-	//init_rng(Date.now());
 	sysDiv = document.getElementById("sys_table");
 	symbolDiv = document.getElementById("symbol_map");
 	detailDiv = document.getElementById(WORLD_DETAILS_DIV_NAME);
@@ -20,7 +19,7 @@ function initLoad()
 
 
 	if(!window.indexedDB)
-		window.alert("Your browser does not support a stable version of IndexedDB.  Saving of your preferences and work may not be available.");
+		tw_alert("Your browser does not support a stable version of IndexedDB.  Saving of your preferences and work may not be available.");
 	var r = window.indexedDB.open("traveller_worlds_prefs",4);
 
 	r.onerror = function(event)
@@ -93,12 +92,12 @@ function worldLoadSpin(worldListDoc)
 		aWorld = new mainWorld();
 		aWorld.readDataObj(worldList[worldEntry]);
 		aWorld.sector = "Spinward Marches";
-		aWorld.seed = parseInt(aWorld.hex + aWorld.hex);
+		aWorld.dataObj.seed = parseInt(aWorld.hex + aWorld.hex);
 		aWorld.system = aWorld.name + " (" + aWorld.hex + " " + aWorld.sector + ")";
 		worldArray.push(aWorld);
 	}
 	var randomWorld = worldArray[Math.floor(Math.random()*worldArray.length)];
-	origMWData = randomWorld.saveDataObj();
+	origMWData = Object.assign({},randomWorld.dataObj);
 	mySystem = new fullSystem(randomWorld, sysDiv, symbolDiv, detailDiv, true);
 	loadSystemOntoPage(mySystem);
 }
@@ -110,8 +109,10 @@ function initialSystem()
 		loadDoc("https://travellermap.com/data/Spinward%20Marches/tab", worldLoadSpin); // the code under 'else' also runs in worldLoadSpin because loadDoc is asynchronous
 	else // most straightforward case - go ahead and compute the details on the given data
 	{
-		origMWData = givenWorld.saveDataObj();
-		mySystem = new fullSystem(givenWorld, sysDiv, symbolDiv, detailDiv, true);
+		origMWData = Object.assign({}, givenWorld);
+		var localMainWorld = new mainWorld();
+		localMainWorld.dataObj = givenWorld;
+		mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
 		loadSystemOntoPage(mySystem);
 	}
 }
@@ -216,7 +217,7 @@ function save_sys()
 		SAVED_SYSTEMS[event.target.result] = sys_obj;
 		load_saved_systems();
 		mySystem.detailsSaved = true;
-		alert("System successfully saved.");
+		tw_alert("System successfully saved.");
 	}
 }
 
@@ -245,11 +246,16 @@ function update_sys()
 
 function load_sys()
 {
+	if(mySystem.detailsSaved == false)
+		tw_confirm("Current system not saved.  Save the current system?", function() {update_sys(); load_sys_exec();}, load_sys_exec);
+}
+
+function load_sys_exec()
+{
+	document.getElementById("myConfirm").style.display = "none";
+	var sys_obj;
 	var s = document.getElementById("saved_systems");
 	var k = parseInt(s.options[s.selectedIndex].value);
-	var sys_obj;
-	if(mySystem.detailsSaved == false && confirm("Current system not saved.  Press OK to save, Cancel to abandon changes.") == true)
-		update_sys();
 	sys_db.transaction("savedSystems").objectStore("savedSystems").get(k).onsuccess = function(event)
 	{
 		sys_obj = event.target.result;
@@ -263,13 +269,18 @@ function load_sys()
 		currentWorld = mySystem.mainWorld;
 		loadSystemOntoPage(mySystem);
 		divsToShow(1);
-	};
+	};		
 }
 
 function del_sys()
 {
-	if(!confirm("This action cannot be undone.  Press OK to delete system shown in the Saved Systems box, or Cancel to abort."))
+	tw_confirm("This action cannot be undone.  Are you SURE you want to do this?", del_sys_execute)
 		return;
+}
+
+function del_sys_execute()
+{
+	document.getElementById("myConfirm").style.display = "none";
 	var s = document.getElementById("saved_systems");
 	var k = parseInt(s.options[s.selectedIndex].value);
 	var t = sys_db.transaction("savedSystems","readwrite").objectStore("savedSystems").delete(k).onsuccess = function(event)
@@ -404,9 +415,18 @@ function giveRandomSeed()
 	document.getElementById('seed').value = newSeed;
 }
 
-function svgToPng(worldMapSVGID, fileName)
+function svgToPng(worldMapSVGID, fileName, propObj)
 {
-	saveSvgAsPng(document.querySelector("#" + worldMapSVGID), fileName, {scale: 3.0}); //user-defined scale to be added later
+	if(arguments.length < 3)
+		saveSvgAsPng(document.querySelector("#" + worldMapSVGID), fileName, {scale: 3.0}); 
+	else
+		saveSvgAsPng(document.querySelector("#" + worldMapSVGID), fileName, propObj);
+}
+
+function croppedMap()
+{
+	currentWorld.map.croppedMap();
+	
 }
 
 function readURL()
@@ -415,65 +435,42 @@ function readURL()
 	URLParams.delete("fbclid");
 	if(URLParams.toString() == "")
 		return false;
-	var myWorld = new mainWorld();
-	myWorld.hex = URLParams.get("hex");
-	myWorld.sector = URLParams.get("sector");
-	myWorld.name = URLParams.get("name");
-	try
-	{
-		myWorld.uwp.readUWP(URLParams.get("uwp"));
-	}
-	catch(errorE)
-	{
-		myWorld.uwp.createUWP();
-	}
-	myWorld.tcs.generate();
-	var tc = URLParams.getAll("tc");
-	for(var i=0;i<tc.length;i++)
-		myWorld.tcs.add(tc[i]);
+	var myWorldDataObj = {};
+	myWorldDataObj.hex = URLParams.get("hex");
+	myWorldDataObj.sector = URLParams.get("sector");
+	myWorldDataObj.ss = "";
+	myWorldDataObj.name = URLParams.get("name");
+	myWorldDataObj.seed = parseInt(URLParams.get("seed"));
+	if(isNaN(myWorldDataObj.seed))
+		myWorldDataObj.seed = Math.floor(Math.random()*4294967295); 
+	myWorldDataObj.uwp = URLParams.get("uwp");
+	myWorldDataObj.remarks = URLParams.getAll("tc").join(" ");
 	var pbgString = URLParams.get("pbg");
 	if(pbgString)
 	{
-		myWorld.popMulti = parseInt(pbgString.substr(0,1));
-		myWorld.belts = parseInt(pbgString.substr(1,1));
-		myWorld.gas_giants = parseInt(pbgString.substr(2,1));
+		myWorldDataObj.popMulti = parseInt(pbgString.substr(0,1));
+		myWorldDataObj.belts = parseInt(pbgString.substr(1,1));
+		myWorldDataObj.gas_giants = parseInt(pbgString.substr(2,1));
 	}
 	else
 	{
-		myWorld.popMulti = parseInt(URLParams.get("popMulti"));
-		if(isNaN(myWorld.popMulti))
-			myWorld.popMulti = rng(9);
-		myWorld.belts = URLParams.get("belts") !== null ? parseInt(URLParams.get("belts")) : Math.max(0, dice(1)-3);
-		myWorld.gas_giants = URLParams.get("gas_giants") !== null ? parseInt(URLParams.get("gas_giants")) : Math.max(0, Math.floor(dice(2)/2-2));
+		myWorldDataObj.popMulti = parseInt(URLParams.get("popMulti"));
+		myWorldDataObj.belts = URLParams.get("belts");
+		myWorldDataObj.gas_giants = URLParams.get("gas_giants");
 	}
-	myWorld.worlds = parseInt(URLParams.get("worlds"));
-	if(isNaN(myWorld.worlds))
-		myWorld.worlds = dice(2);
-	myWorld.economicExt.readString(URLParams.get("eX"));
-	myWorld.culturalExt.readString(URLParams.get("cX"));
-	myWorld.importance.readString(URLParams.get("iX"));
-	var basesString = URLParams.get("bases");
-	if(!basesString)
-		myWorld.bases.generate();
-	else
-		if(basesString)
-			myWorld.bases.readString(basesString);
-	var nobz = URLParams.get("nobz");
-	if(!nobz)
-		myWorld.noblesExt.generate();
-	else
-		myWorld.noblesExt.readString(nobz);
-	myWorld.allegiance = URLParams.get("allegiance");
-	var stellar = URLParams.get("stellar");
-	if(stellar)
-		myWorld.stars.starString = stellar;
-	myWorld.seed = parseInt(URLParams.get("seed") || ("" + myWorld.hex + myWorld.hex));
-	myWorld.travelZone = URLParams.get("travelZone");
-	var systemName = URLParams.get("system");
-	if(!systemName)
-		myWorld.system = myWorld.name + " (" + myWorld.hex + " " + myWorld.sector + ")";
-	myWorld.nativeIntLife.generate();
-	return myWorld;
+	myWorldDataObj.w = parseInt(URLParams.get("worlds"));
+	myWorldDataObj.ex = URLParams.get("eX");
+	myWorldDataObj.cx = URLParams.get("cX");
+	myWorldDataObj.ix = URLParams.get("iX");
+	myWorldDataObj.bases = URLParams.get("bases");
+	myWorldDataObj.nobility = URLParams.get("nobz");
+	myWorldDataObj.allegiance = URLParams.get("allegiance");
+	myWorldDataObj.stars = URLParams.get("stellar");
+	myWorldDataObj.zone = URLParams.get("travelZone");
+	myWorldDataObj.system = URLParams.get("system");
+	if(!myWorldDataObj.system) 
+		myWorldDataObj.name + " (" + myWorldDataObj.hex + " " + myWorldDataObj.sector + ")";
+	return myWorldDataObj;
 }
 
 function regenerateMap()
@@ -542,7 +539,7 @@ function saveUserPrefs()
 			var info = objStoreTitleReq.result;
 			info.prefs = uPObj.toObj();
 			var updateRequest = profileObjectStore.put(info);
-			alert("New preferences have been saved");
+			tw_alert("New preferences have been saved");
 		}
 	};
 }
@@ -582,6 +579,7 @@ function divsToShow(optionChosen)
 	document.getElementById("newCelestialObject").style.display = "none";
 	document.getElementById("worldMapEditorContainer").style.display = "none";
 	document.getElementById("ggContainer").style.display = "none";
+	document.getElementById("beasts").style.display = "none";
 	switch(optionChosen)
 	{
 		case 1:
@@ -663,6 +661,9 @@ function divsToShow(optionChosen)
 			break;
 		case 15:
 			document.getElementById("ggContainer").style.display = "block";
+			break;
+		case 16:
+			document.getElementById("beasts").style.display = "block";
 			break;
 			
 	}
@@ -747,9 +748,9 @@ function worldLoadParse(worldListDoc, selectObject)
 	{
 		aWorld = new mainWorld();
 		aWorld.readDataObj(worldList[worldEntry]);
-		aWorld.sector = selectObject.options[selectObject.selectedIndex].text.replace(/\s+\(.+\)/g,"");
-		aWorld.seed = parseInt(aWorld.hex + aWorld.hex);
-		aWorld.system = aWorld.name + " (" + aWorld.hex + " " + aWorld.sector + ")";
+		aWorld.dataObj.sector = selectObject.options[selectObject.selectedIndex].text.replace(/\s+\(.+\)/g,"");
+		aWorld.dataObj.seed = parseInt(aWorld.hex + aWorld.hex);
+		aWorld.dataObj.system = "The " + aWorld.name + " (" + aWorld.hex + " " + aWorld.sector + ")";
 		worldArray.push(aWorld);
 	}
 	worldArray.sort( function (a, b)
@@ -858,29 +859,29 @@ function readUserInput()
 	myWorld.stars.starString = stellar_data;
 	if(thereIsAnError)
 		return false;
+	myWorld.processData = false;
 	return myWorld;
 }
 
 function loadWorld(worldObject)
 {
-	document.getElementById("element_7").value = worldObject.hex + " " + worldObject.sector;
-	document.getElementById("element_1").value = worldObject.name;
-	document.getElementById("element_2").value = worldObject.uwp.toString();
-	document.getElementById("tcs_input").innerHTML = worldObject.tcs;
-	setAdditionalTCs(worldObject);
-	document.getElementById("iX_input").value = worldObject.importance.value;
-	document.getElementById("eX_input").value = worldObject.economicExt.toString().substr(1,5);
-	document.getElementById("cX_input").value = worldObject.culturalExt.toString().substr(1,4);
-	document.getElementById("Nobz").value = worldObject.noblesExt.toString();
-	document.getElementById("Bases").value = worldObject.bases.toString();
-	document.getElementById("Zone").value = worldObject.travelZone;
-	document.getElementById("Pop_Multi").value = worldObject.popMulti;
-	document.getElementById("Planetoid").value = worldObject.belts;
-	document.getElementById("Gas_Giants").value = worldObject.gas_giants;
-	document.getElementById("Worlds").value = worldObject.worlds;
-	document.getElementById("allegiance").value = worldObject.allegiance;
-	document.getElementById("Stellar_Data").value = worldObject.stars.starString;
-	document.getElementById('seed').value = worldObject.seed;
+	document.getElementById("element_7").value = worldObject.dataObj.hex + " " + worldObject.dataObj.sector;
+	document.getElementById("element_1").value = worldObject.dataObj.name;
+	document.getElementById("element_2").value = worldObject.dataObj.uwp;
+	document.getElementById("tcs_input").innerHTML = worldObject.dataObj.remarks;
+	document.getElementById("iX_input").value = worldObject.dataObj.ix.substr(2,2).trim();
+	document.getElementById("eX_input").value = worldObject.dataObj.ex.substr(1,5);
+	document.getElementById("cX_input").value = worldObject.dataObj.cx.substr(1,4);
+	document.getElementById("Nobz").value = worldObject.dataObj.nobility;
+	document.getElementById("Bases").value = worldObject.dataObj.bases;
+	document.getElementById("Zone").value = worldObject.dataObj.zone;
+	document.getElementById("Pop_Multi").value = worldObject.dataObj.pbg.substr(0,1);
+	document.getElementById("Planetoid").value = worldObject.dataObj.pbg.substr(1,1);
+	document.getElementById("Gas_Giants").value = worldObject.dataObj.pbg.substr(2,1);
+	document.getElementById("Worlds").value = worldObject.dataObj.w;
+	document.getElementById("allegiance").value = worldObject.dataObj.allegiance;
+	document.getElementById("Stellar_Data").value = worldObject.dataObj.stars;
+	document.getElementById('seed').value = worldObject.dataObj.seed;
 }
 
 function setAdditionalTCs(worldObj)
@@ -1132,12 +1133,12 @@ function addObject()
 	var orbitNum = JSON.parse(document.getElementById("newOrbitSelect").value);
 	if(orbitNum.satellite && objectType == "gasGiant")
 	{
-		window.alert("Error: you may not put a gas giant as a satellite of another object");
+		tw_alert("Error: you may not put a gas giant as a satellite of another object");
 		return;
 	}
 	if(orbitNum.satellite && objectType == "star")
 	{
-		window.alert("Error: you may not put a star as a satellite of another object");
+		tw_alert("Error: you may not put a star as a satellite of another object");
 		return;
 	}
 	switch(objectType)
@@ -1145,7 +1146,7 @@ function addObject()
 		case "star":
 			if(mySystem.orbitSets.length > 4)
 			{
-				window.alert("Error: you cannot have more than 4 stars with orbit sets in a star system");
+				tw_alert("Error: you cannot have more than 4 stars with orbit sets in a star system");
 				return;
 			}
 			var addedStar = new star(false);
@@ -1174,7 +1175,7 @@ function addObject()
 				{ 
 					if(thePlanet.satelliteSystem.occupied({ o:"ay", m:1 }) && thePlanet.satelliteSystem.occupied({ o:"bee", m:2 }) && thePlanet.satelliteSystem.occupied({ o:"cee", m:3 }))
 					{
-						window.alert("Error: all the ring slots for that planet are occupied.");
+						tw_alert("Error: all the ring slots for that planet are occupied.");
 						return;
 					}
 					addedWorld = new ring(thePlanet);
@@ -1189,8 +1190,8 @@ function addObject()
 			else
 			{
 				addedWorld = new minorWorld(genObject, mySystem.mainWorld);
-				addedWorld.generate();
 				mySystem.orbitSets[orbitNum.set].add(orbitNum.num, addedWorld);
+				addedWorld.generate();
 			}
 	}
 	loadSystemOntoPage(mySystem);
@@ -1234,7 +1235,7 @@ function convertStarData()
 		var au = i/10;
 		s += "AU: " + au + ", Orbit: " + convertAUtoOrbit(au) + "\n";
 	}
-	alert(s);
+	tw_alert(s);
 */
 	var NEW_STAR_DATA = [];
 	for(var i=0;i<STAR_DATA.length;i++)
@@ -1250,7 +1251,7 @@ function convertStarData()
 	var textBlob = JSON.stringify(NEW_STAR_DATA);
 	var blob = new Blob([textBlob], {type: "text/plain;charset=utf-8"});
 	saveAs(blob, "new_star_data.txt");
-	alert("ok");
+	tw_alert("Data saved as new_star_data.txt");
 }
 
 function convertAUtoOrbit(au_measure)
@@ -1272,4 +1273,51 @@ function convertAUtoOrbit(au_measure)
 		incrCount++;
 	}
 	return j+incrCount/10;
+}
+
+function beasts()
+{
+	document.getElementById("beastExplanation").innerHTML = "These are randomly generated 1D beast tables for 11 terrain types in this world using the T5 rules.  Note that beast tables refer to Terrain Hexes and not World Hexes, and so some terrain such as Forest never appears at the world level.  This feature is in draft form at the moment; in future, a random selection of events will be added, and all beast details will be editable and all details such as edibility etc. from the BeastMaker rules will be added and the data will be saved with the system file.";
+	divsToShow(16);
+	var beastDiv = document.getElementById("beastArea");
+	while(beastDiv.hasChildNodes())
+		beastDiv.removeChild(beastDiv.childNodes[0]);
+	NATIVE_TERRAIN_ALL.map(function(terrainElem) {
+		var bTable = new beastTable(currentWorld, terrainElem);
+		beastDiv.appendChild(bTable.toTable());		
+	});
+}
+
+function tjl_beasts()
+{
+	document.getElementById("beastExplanation").innerHTML = "These are randomly generated 1D beast tables for the terrain types in this world using the T5 rules.  Note that beast tables refer to Terrain Hexes and not World Hexes, and so some terrain such as Forest never appears at the world level.  This feature is in draft form at the moment; in future, a random selection of events will be added, and all beast details will be editable and all details such as edibility etc. from the BeastMaker rules will be added and the data will be saved with the system file.";
+	divsToShow(16);
+	var beastDiv = document.getElementById("beastArea");
+	while(beastDiv.hasChildNodes())
+		beastDiv.removeChild(beastDiv.childNodes[0]);
+	tjl_NATIVE_TERRAIN_ALL.map(function(terrainElem) {
+		var bTable = new tjl_beastTable(currentWorld, terrainElem);
+		beastDiv.appendChild(bTable.toTable())
+	});
+}
+
+function tw_alert(msg)
+{
+	var alertBox = document.getElementById("myAlert");
+	document.getElementById("alertMessage").innerHTML = msg;
+	alertBox.style.display = "block";
+}
+
+function tw_confirm(msg, yesFn, noFn)
+{
+	var confirmBox = document.getElementById("myConfirm");
+	document.getElementById("confirmMessage").innerHTML = msg;
+	var yesBtn = document.getElementById("confirmYes");
+	var noBtn = document.getElementById("confirmNo");
+	yesBtn.onclick = yesFn;
+	if(!noFn)
+		noBtn.onclick = function(){ noBtn.parentElement.style.display = "none"; };
+	else
+		noBtn.onclick = noFn;
+	confirmBox.style.display = "block";
 }
