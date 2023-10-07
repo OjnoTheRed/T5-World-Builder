@@ -1726,6 +1726,7 @@ function mainWorld(generationObject)
 		newURL += "&" + encodeURIComponent("gas_giants") + "=" + encodeURIComponent(me.gas_giants);
 		newURL += "&" + encodeURIComponent("eX") + "=" + encodeURIComponent(me.economicExt);
 		newURL += "&" + encodeURIComponent("cX") + "=" + encodeURIComponent(me.culturalExt);
+		newURL += "&" + encodeURIComponent("iX") + "=" + encodeURIComponent(me.importance.value);
 		newURL += "&" + encodeURIComponent("nobz") + "=" + encodeURIComponent(me.noblesExt);
 		newURL += "&" + encodeURIComponent("worlds") + "=" + encodeURIComponent(me.worlds);
 		newURL += "&" + encodeURIComponent("allegiance") + "=" + encodeURIComponent(me.allegiance);
@@ -1903,7 +1904,7 @@ function mainWorld(generationObject)
 			me.culturalExt.generate();
 		me.importance = new iX(me);
 		if(me.dataObj.ix)
-			me.importance.readString(me.dataObj.ix);
+			me.importance.readDigit(me.dataObj.ix);
 		else
 			me.importance.generate();
 		me.noblesExt = new nobles(me);
@@ -2865,6 +2866,18 @@ function iX(world)
 		var temp_iX = parseInt(s.substr(2,2));
 		if(!Number.isInteger(temp_iX))
 			me.generate();
+		else
+			me.value = temp_iX;
+	}
+	
+	me.readDigit = function(s) // must be an integer or string representing an integer from -5 to +5
+	{
+		var temp_iX = parseInt(s);
+		if(isNaN(temp_iX) || !Number.isInteger(temp_iX) || temp_iX < -5 || temp_iX > 5)
+		{
+			me.generate();
+			return;
+		}
 		me.value = temp_iX;
 	}
 	
