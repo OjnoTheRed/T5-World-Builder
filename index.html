@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Traveller Worlds</title>
+	<meta charset="UTF-8">
+	<meta name="description" content="A generator of extended world maps and star systems using the Traveller5 RPG rules, with Official Traveller Universe data drawn from travellermap.com, user entered data, or randomly generated data." >
+	<script src="FileSaver.js"></script>
+	<script src="burtle.js"></script>
+	<script src="saveSvgAsPng.js"></script>
+	<script src="url-search-params.js"></script>
+	<script src="generic.js"></script>
+	<script src="government_details.js"></script>
+	<script src="starData.js"></script>
+	<script src="orbit_data.js"></script>
+	<script src="planet_building_tables.js"></script>
+	<script src="planet_building_world_class.js"></script>
+	<script src="world_mapping.js"></script>
+	<script src="generate.js"></script>
+	<script src="beast.js"></script>
+	<script src="beast_tjl.js"></script>
+	<link rel="stylesheet" type="text/css" href="traveller.css">
+</head>
+<body onload="initLoad();" >
+	<div class="container">
+		<h1 class="title"><img src="150px-Imperial_Sunburst-Sun-IISS-Traveller.gif" height="30" width="30">Traveller Worlds</h1>
+		<h1 class="titleStrap">TRAVELLER<sup style="margin-left:0.25em;color:white;font-weight:bold;font-family:Arial">5</sup></h1>
+		<h1 class="subtitle">Science Fiction Adventure</h1>
+		<h1 class="subtitle">in the Far Future</h1>
+	</div>
+	<div class="menuBar" id="mapMenuBar">
+		<div class="dropdown">
+			<button class="dropbtn">View</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" onclick="editUserPrefs();">Your Preferences</button>
+				<button class="dropdown_button" onclick="divsToShow(1);">Full Star System</button>
+				<button class="dropdown_button" onclick="divsToShow(2);">Current World</button>
+				<button class="dropdown_button" onclick="beasts();">Beasts (demo)</button>
+				<button class="dropdown_button" onclick="tjl_beasts();">Beasts (experimental)</button>
+				<button class="dropdown_button" onclick="divsToShow(5);">Blank Maps</button>
+				<button class="dropdown_button" onclick="divsToShow(6);">API Documentation</button>
+				<a class="dropdown_button" target="_blank" href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit?usp=sharing">Map Data documentation</a>
+				<button class="dropdown_button" onclick="divsToShow(7);">Change Log</button>
+				<button class="dropdown_button" onclick="divsToShow(8);">Credits</button>
+				<button class="dropdown_button" onclick="divsToShow(9);">Legal</button>
+				<button class="dropdown_button" onclick="divsToShow(10);">Contact</button>
+				<button class="dropdown_button" onclick="divsToShow(11);">Help</button>
+			</div>
+		</div>
+		<div class="dropbtn_div" style="display:inline-block;">
+			<p class="guidelines" style="color:white">Seed:</p>
+			<input id="seed" type="text" style="width:70px" />
+		</div>
+		<div class="dropdown">
+			<button class="dropbtn">Map Actions</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" id="downloadMapSVG">Download SVG format</button>
+				<button class="dropdown_button" id="downloadMapPNG">Download PNG format</button>
+				<button class="dropdown_button" is="downloadCroppedSVG" onclick="croppedMap();">Download cropped PNG format</button>
+				<button class="dropdown_button" id="downloadMapData">Download map data</button>
+				<button class="dropdown_button" id="slideLeft" onclick="currentWorld.map.slideTerrain(false);">Slide Hexes west</button>
+				<button class="dropdown_button" id="slideRight" onclick="currentWorld.map.slideTerrain(true);">Slide Hexes east</button>
+				<button class="dropdown_button" id="regen" onclick="regenerateMap();">Regenerate Map (current seed)</button>
+				<button class="dropdown_button" id="regenRS" onclick="renegerateMapRS();">Regenerate Map (new random seed)</button>
+				<button class="dropdown_button" id="redrawMap" onclick="redrawMap();">Redraw map from data (without regenerating)</button>
+				<button class="dropdown_button" id="noTZ" onclick="removeTZ();">Remove Twilight Zone</button>
+				<button class="dropdown_button" id="editThisMap" onclick="editMap();">Edit the current map</button>
+			</div>
+		</div>
+		<div class="dropbtn_div" style="display:inline-block;">
+			<p class="guidelines" style="color:white">Saved Systems list:</p>
+			<select id="saved_systems" style="min-width:400px" onchange="load_sys();"></select>
+		</div>
+		<div class="dropdown">
+			<button class="dropbtn">System Actions</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" id="regenSys" onclick="regenerateSystem();">Regenerate system (current seed)</button>
+				<button class="dropdown_button" id="regenSysRS" onclick="regenerateSystemRS();">Regenerate system (new random seed)</button>
+				<button class="dropdown_button" id="addObjectToSys" onclick="divsToShow(13);">Add a celestial object to the system</button>
+				<button class="dropdown_button" id="saveAsText" onclick="downloadSystemText();">Download system details as text</button>
+				<button class="dropdown_button" id="saveAsHtml" onclick="downloadSystem();">Download system details as HTML</button>
+				<button class="dropdown_button" id="saveAsCSV" onclick="downloadSystemCSV();">Download system details as CSV</button>
+				<button class="dropdown_button" id="updateSys" onclick="update_sys();" >Save star system</button>
+				<button class="dropdown_button" id="saveSys" onclick="save_sys();" >Save As new star system</button>
+				<button class="dropdown_button" id="loadSys" onclick="load_sys();" >Load currently selected system</button>
+				<button class="dropdown_button" id="delSys" onclick="del_sys();" >Delete currently selected system</button>
+				<button class="dropdown_button" id="exportSys" onclick="export_sys();" >Export the current system as a JSON file</button>
+				<input class="dropdown_button" id="importSys" onchange="import_sys(this);" type="file" accept="json"><span class="dropdown_button">Import a system from your computer</span></input>
+			</div>
+		</div>
+		<div class="dropdown">
+			<button class="dropbtn">Generate</button>
+			<div class="dropdown-content">
+				<button class="dropdown_button" onclick="generateNew();" >New star system</button>
+				<a class="dropdown_button" href="subsector_gen.html" target="_blank">Subsector (demo only)</a>
+				<input class="dropdown_button" id="convertKristoff" onchange="convertKristoff(this);" type="file" accept="json"><span class="dropdown_button">Generate all T5 main world details</span></input>				
+			</div>
+		</div>
+	</div>
+	<div class="container" id="starContainer" style="margin-top:0.5em;display:none;">
+		<div class="contained">
+		<h2 style="margin-top:0;">Edit Star Details</h2>
+		<button onclick="divsToShow(1);" class="btn2">Return to full system</button>
+		<button onclick="divsToShow(2);" class="btn2">Return to Current World</button>
+		<table class="contained_tbl">
+		<tr><td class="contained_tbl" style="text-align:right;">Star Name:</td><td class="contained_tbl"><input type="text" id="starName" /></td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Spectral Class:</td><td class="contained_tbl">
+		<select class="worldDetails" id="spectralClass">
+			<option>O0</option>
+			<option>O1</option>
+			<option>O2</option>
+			<option>O3</option>
+			<option>O4</option>
+			<option>O5</option>
+			<option>O6</option>
+			<option>O7</option>
+			<option>O8</option>
+			<option>O9</option>
+			<option>B0</option>
+			<option>B1</option>
+			<option>B2</option>
+			<option>B3</option>
+			<option>B4</option>
+			<option>B5</option>
+			<option>B6</option>
+			<option>B7</option>
+			<option>B8</option>
+			<option>B9</option>
+			<option>A0</option>
+			<option>A1</option>
+			<option>A2</option>
+			<option>A3</option>
+			<option>A4</option>
+			<option>A5</option>
+			<option>A6</option>
+			<option>A7</option>
+			<option>A8</option>
+			<option>A9</option>
+			<option>F0</option>
+			<option>F1</option>
+			<option>F2</option>
+			<option>F3</option>
+			<option>F4</option>
+			<option>F5</option>
+			<option>F6</option>
+			<option>F7</option>
+			<option>F8</option>
+			<option>F9</option>
+			<option>G0</option>
+			<option>G1</option>
+			<option>G2</option>
+			<option>G3</option>
+			<option>G4</option>
+			<option>G5</option>
+			<option>G6</option>
+			<option>G7</option>
+			<option>G8</option>
+			<option>G9</option>
+			<option>K0</option>
+			<option>K1</option>
+			<option>K2</option>
+			<option>K3</option>
+			<option>K4</option>
+			<option>K5</option>
+			<option>K6</option>
+			<option>K7</option>
+			<option>K8</option>
+			<option>K9</option>
+			<option>M0</option>
+			<option>M1</option>
+			<option>M2</option>
+			<option>M3</option>
+			<option>M4</option>
+			<option>M5</option>
+			<option>M6</option>
+			<option>M7</option>
+			<option>M8</option>
+			<option>M9</option>
+		</select></td><td class="contained_tbl"></td><td class="contained_tbl"></td>
+		<td class="contained_tbl" style="text-align:right;">Ship Acceleration:</td>
+		<td class="contained_tbl">
+		<select class="worldDetails" id="shipAccel">
+			<option value="1" selected>1G</option>
+			<option value="2">2G</option>
+			<option value="3">3G</option>
+			<option value="4">4G</option>
+			<option value="5">5G</option>
+			<option value="6">6G</option>
+			<option value="7">7G</option>
+			<option value="8">8G</option>
+			<option value="9">9G</option>
+		</select>
+		</td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Spectral Size:</td>
+		<td class="contained_tbl"><select class="worldDetails" id="spectralSize">
+			<option>Ia</option>
+			<option>Ib</option>
+			<option>II</option>
+			<option>III</option>
+			<option>IV</option>
+			<option>V</option>
+			<option>VI</option>
+			<option>D</option>
+		</select></td><td class="contained_tbl"></td><td class="contained_tbl"></td>
+		<td class="contained_tbl" style="text-align:right;">Ship Distance from star (AU):</td>
+		<td class="contained_tbl"><input type="number" value="0.2" step="0.1" min="0.1" class="worldDetails" id="shipDistance" style="width:4em;" /></td>
+		<td class="contained_tbl" style="text-align:right;">Ship Distance to Jump Point (km):</td>
+		<td class="contained_tbl"><span class="worldDetails" id="shipDistanceToJP"></span></td>
+		
+		</tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Luminosity Multiplier:</td>
+		<td class="contained_tbl"><input type="number" step="0.01" id="luminosityVary" style="width:4em;"></input></td><td class="contained_tbl" style="text-align:right;">Luminosity:</td><td class="contained_tbl"><span id="starLumin" class="worldDetails"></span></td>
+		<td class="contained_tbl" style="text-align:right;">Time to jump point (stop / start):</td>
+		<td class="contained_tbl"><span class="worldDetails" id="shipTime"><span></td>
+		<td class="contained_tbl" style="text-align:right;">Time to jump point (continuous accel):</td>
+		<td class="contained_tbl"><span class="worldDetails" id="shipTimeCA"><span></td>
+		
+		</tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Size Multiplier:</td>
+		<td class="contained_tbl"><input type="number" step="0.01" id="sizeVary" style="width:4em;"></input></td><td class="contained_tbl" style="text-align:right;">Radius:</td><td class="contained_tbl"><span id="starRadius" class="worldDetails"></span></td><td class="contained_tbl" style="text-align:right;">Diameter:</td><td class="contained_tbl"><span id="starDiameter" class="worldDetails"></span></td><td class="contained_tbl" style="text-align:right;">Jump Point:</td><td class="contained_tbl"><span id="starJP" class="worldDetails"></span></td></tr>
+		<tr><td class="contained_tbl" style="text-align:right;">Mass Multiplier:</td>
+		<td class="contained_tbl"><input type="number" step="0.01" id="massVary" style="width:4em;"></input></td>
+		<td class="contained_tbl" style="text-align:right;">Mass:</td>
+		<td class="contained_tbl"><span id="starMass" class="worldDetails"></span></td></tr></table>
+		</div>
+	</div>
+	<div class="container" id="ggContainer" style="margin-top:0.5em;display:none;">
+		<div class="contained">
+		<h2 style="margin-top:0;">Edit Gas Giant Details</h2>
+		<button onclick="divsToShow(1);" class="btn2">Return to full system</button>
+		<button onclick="divsToShow(2);" class="btn2">Return to Current World</button><br />
+		<label class="guidelines">Gas Giant Name</label><br />
+		<input type="text" id="ggName" class="worldDetails" /><br />
+		<label class="guidelines">Gas Giant Size</label><br />
+		<select class="worldDetails" id="ggSize">
+			<option value="20">L</option>
+			<option value="21">M</option>
+			<option value="22">N</option>
+			<option value="23">P</option>
+			<option value="24">Q</option>
+			<option value="25">R</option>
+			<option value="26">S</option>
+			<option value="27">T</option>
+			<option value="28">U</option>
+			<option value="29">V</option>
+			<option value="30">W</option>
+			<option value="31">X</option>
+			<option value="32">Y</option>
+		</select><br />
+		<label class="guidelines">Giant Type</label><br />
+		<select class="worldDetails" id="ggType">
+			<option value="IG">Ice Giant</option>
+			<option value="GG">Gas Giant</option>
+		</select><br />
+		<label class="guidelines">Density</label><br />
+		<input type="number" step="0.01" id="ggDensity" style="width:4em;"/><br />
+		<label class="guidelines">Mass</label><br />
+		<p class="worldDetails" id="ggMass"></p>
+		<table class="contained_tbl">
+		<tr class="contained_tbl">
+			<td class="contained_tbl">
+				<label class="guidelines">Diameter</label><br />
+				<p class="worldDetails" id="ggDiameter"></p>
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Jump Point:</label><br />
+				<p class="worldDetails" id="ggJP"></p>
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Ship Distance from Gas Giant (km):</label><br />
+				<input type="number" value="100000" step="10000" class="worldDetails" id="ggShipDistance" />
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Ship Acceleration</label><br />
+				<select class="worldDetails" id="ggShipAccel">
+					<option value="1" selected>1G</option>
+					<option value="2">2G</option>
+					<option value="3">3G</option>
+					<option value="4">4G</option>
+					<option value="5">5G</option>
+					<option value="6">6G</option>
+					<option value="7">7G</option>
+					<option value="8">8G</option>
+					<option value="9">9G</option>
+				</select>				
+			</td>
+			<td class="contained_tbl">
+				<label class="guidelines">Time to Jump Point:</label><br />
+				<p class="worldDetails" id="ggJPTime"></p>
+			</td>
+			
+		</tr>
+		</table>
+		</div>
+	</div>
+	<div class="container" id="worldMapContainer" style="margin-top:0.5em;">
+		<div class="container" style="background-color:#ffffff;" >
+			<div class="contained" style="width:100%;height:800px" id="mapPlaceholder">
+				<p class="loadingAnimation">Rendering ...</p>
+			</div>
+			<div class="container" id="saveArea">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="worldMapSVG"></svg>
+			</div>
+		</div>
+		<div id="world_details" class="worldDetailDiv">
+			<div class="contained-flex">
+				<div class="formItem">
+				<p class="guidelines" id="world_name_lbl">World Name:</p>
+				<input class="worldDetails" id="world_name_edit" type="text" maxlength="50" value=""/>
+				<span class="tooltiptext">Name your world here.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Port:</p>
+				<select class="worldDetails" name="uwp" id="port"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>X</option><option>Y</option></select>
+				<span class="tooltiptext">Starport or Spaceport</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Size:</p>
+				<select class="worldDetails" name="uwp" id="size"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option></select>
+				<span class="tooltiptext">Size</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Atm::</p>
+				<select class="worldDetails" name="uwp" id="atmos"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+				<span class="tooltiptext">Atmosphere</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Hyd:</p>
+				<select class="worldDetails" name="uwp" id="hydro"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
+				<span class="tooltiptext">Hydrographics</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Pop:</p>
+				<select class="worldDetails" name="uwp" id="popul"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+				<span class="tooltiptext">Population</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Gov:</p>
+				<select class="worldDetails" name="uwp" id="gov"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+				<span class="tooltiptext">Government</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Law:</p>
+				<select class="worldDetails" name="uwp" id="law"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+				<span class="tooltiptext">Law Level</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">TL:</p>
+				<select class="worldDetails" name="uwp" id="TL"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option></select>
+				<span class="tooltiptext">Technology Level</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Remarks:</p>
+				<p class="worldDetails" id="tcs"></p>
+				<span class="tooltiptext">Trade Classifications and Remarks</span>
+				</div>
+				<div class="formItem">
+				<p class="worldDetails"><b>Note well:</b> the map will be redrawn using the seed above if you alter any UWP digit.  You can change this setting to prevent this by going to View > Your Preferences.  If you switch automatic redrawing off, the map may not match how you have changed the UWP (e.g. size or hydrographics may be wrong).</p>
+				</div>
+			</div>
+			<div>
+				<h2>Orbit Details</h2>
+				<div class="contained-flex">
+					<div class="formItem" id="orbitFormItem">
+					<p class="guidelines">Orbit:</p>
+					<p class="worldDetails" id="orbit_text"></p>
+					<select class="worldDetails" id="satOrbitSel"><option>ay</option><option>bee</option><option>cee</option><option>dee</option><option>ee</option><option>eff</option><option>gee</option><option>aitch</option><option>eye</option><option>jay</option><option>kay</option><option>ell</option><option>em</option><option>en</option><option>oh</option><option>pee</option><option>que</option><option>arr</option><option>ess</option><option>tee</option><option>yu</option><option>vee</option><option>dub</option><option>ex</option><option>wye</option><option>zee</option></select>
+					<span class="tooltiptext">Orbit number (decimal) around parent star.  This can be adjusted with the arrow buttons.</span>
+					</div>
+					<div class="formItem">
+					<p class="guidelines">Orbital Distance:</p>
+					<p class="worldDetails" id="orbit_distance"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Adjust orbit with first up and down arrows; adjust the decimal place with the second:</p>
+						<p id="orbitButtons"></p>					
+					</div>
+					<div class="formItem">
+					<p class="guidelines" id="orbital_period_lbl">Orbital Period:</p>
+					<p class="worldDetails" id="orbital_period_text"></p>
+					<span class="tooltiptext">Calculated Orbital period in Earth Years</span>
+					</div>
+				</div>
+				<div class="transparent" style="margin-bottom:0.1em;" id="tz_msg" hidden>
+					<h3 style="color:red;">World is Tidally Locked to its star</h3>
+					<p>The world's rotational period is the same as its orbital period and cannot be changed.  The Axial Tilt is zero and cannot be changed.  One side is always facing towards the star and is permanently day, the other is permanently night.  The 'day' and 'night' sides are set to the upper and lower temperature limits which is based on the atmosphere.</p>
+				</div>
+				<div class="transparent" style="margin-bottom:0.1em;" id="lk_msg" hidden>
+					<h3 style="color:red;">World is a satellite Tidally Locked to its planet</h3>
+					<p>The world's rotational period is the same as its orbital period and cannot be changed.  The Axial Tilt represents the inclination of its orbit around the planet relative to the planet's orbit around the star and so there can be seasonal influences.  One side is always facing towards the planet, leading to long days and nights relative to the parent star.  <b>Note:</b> The T5 rules specify that satellite orbits 'em' and closer will be locked to their planet.  If a randomly generated satellite rotation or user entered result is greater than the orbital period, it will be reduced to the orbital period and regarded as tidally locked.</p>
+				</div>
+			</div>
+			<div>
+				<h2>Port Details</h2>
+				<div class="contained-flex">
+					<div class="formItem">
+						<p class="guidelines">Starport Class</p>
+						<p class="worldDetails" id="portClass"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Quality</p>
+						<p class="worldDetails" id="portQuality"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">High Port</p>
+						<p class="worldDetails" id="portHigh"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Down Port</p>
+						<p class="worldDetails" id="portDown"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Shipyards</p>
+						<p class="worldDetails" id="portShipyards"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Repairs</p>
+						<p class="worldDetails" id="portRepairs"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Refined Hydrogen Fuel</p>
+						<p class="worldDetails" id="port_fuelRefined"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Unrefined Hydrogen Fuel</p>
+						<p class="worldDetails" id="port_fuelRaw"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Fissionable Radioactives</p>
+						<p class="worldDetails" id="port_fuelRadio"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Anti-matter fuel slugs</p>
+						<p class="worldDetails" id="port_fuelAntiM"></p>
+					</div>
+					<div class="formItem">
+						<p class="guidelines">Replacement Collector Canopies</p>
+						<p class="worldDetails" id="port_fuelColl"></p>
+					</div>
+					
+				</div>
+			</div>
+			<h2 id="regularSizeDetailsHeading" name="nonBelt">Size Details</h2>
+			<div class="contained-flex" id="regularSizeDetailsDIV" name="nonBelt">
+				<div class="formItem">
+				<p class="guidelines" id="diameter_lbl">Size UWP value explanation:</p>
+				<p class="worldDetails" id="sizeUWPexp"></p>
+				<span class="tooltiptext">What the size digit in the UWP means</span>
+				</div>				
+				<div class="formItem">
+				<p class="guidelines" id="diameter_lbl">Diameter (km):</p>
+				<input class="worldDetails" id="diameter_edit" type="text" maxlength="5" value=""/>
+				<span class="tooltiptext">Equatorial Diameter of world in km</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="density_type_lbl">Density Type:</p>
+				<select class="worldDetails" id="density_type"><option>Heavy Core</option><option>Molten Core</option><option>Rocky Body</option><option>Icy Body</option></select>
+				<span class="tooltiptext">Basic internal materials of world.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="density_lbl">Density (Earth=1):</p>
+				<input class="worldDetails" id="density_edit" type="text" maxlength="4" value=""/>
+				<span class="tooltiptext">Density where Earth = 1</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="mass_lbl">Mass (Earth=1):</p>
+				<p class="worldDetails" id="mass_text"></p>
+				<span class="tooltiptext">Mass in Earth Masses - calculated</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="gravity_lbl">Gravity (G):</p>
+				<p class="worldDetails" id="gravity_text"></p>
+				<span class="tooltiptext">Calculated gravity in Gs (Earth=1)</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="rotational_period_lbl">Rotational Period (Hours):</p>
+				<input class="worldDetails" id="rotational_period_edit" type="text" maxlength="50" value=""/>
+				<span class="tooltiptext">Rotational Period in Earth Hours.  If Tz or Lk, rotation period &amp; orbital period are the same.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="jump_point_lbl">Jump Point (km):</p>
+				<p class="worldDetails" id="jump_point_edit"></p>
+				<span class="tooltiptext">Distance required to safely jump.  This distance includes clearing a planet's jump point for satellites, and the star.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="jump_point_timeslbl">Time to Jump Point at ...:</p>
+				<p class="worldDetails" id="jump_point_times"></p>
+				<span class="tooltiptext">Time to jump point at standard Gs from Maneuver Drives.</span>
+				</div>
+			</div>
+			<h2 id="beltDetailsHeading">Belt Details</h2>
+			<div class="contained-flex" id="beltDetailsDIV">
+				<div class="formItem">
+					<p class="guidelines">Predominant Size</p>
+					<select class="worldDetails" id="beltPredomSize">
+						<option>1 m / under 1 dTon</option>
+						<option>5m / 5 dTons</option>
+						<option>10m / 50 dTons</option>
+						<option>25m / 500 dTons</option>
+						<option>50m / 5,000 dTons</option>
+						<option>100m / 50,000 dTons</option>
+						<option>300m / 1 million dTons</option>
+						<option>1km / 50 million dTons</option>
+						<option>5km / 5 billion dTons</option>
+						<option>50km / 5 trillion tons</option>
+						<option>500km / 5,000 trillion tons</option>
+					</select>
+					<span class="tooltiptext">Around 30% of objects will be approximately this size. Most will be smaller.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Maximum Size</p>
+					<select class="worldDetails" id="beltMaxSize">
+						<option value="as rolled">Predominant size is maximum size</option>
+						<option value="as rolled">Predominant size is maximum size</option>
+						<option>1 km / 50 million dTons</option>
+						<option>5km / 5 billion dTons</option>
+						<option>50km / 5 trillion tons</option>
+						<option>500km / 5,000 trillion tons</option>
+					</select>
+					<span class="tooltiptext">Some objects (approximately 1%) will be up to this size, unless the predominant size is the maximum size.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Belt Width (AU)</p>
+					<input type="number" min="0.01" max="10" step="0.1" id="beltWidth" style="width:80px;"/>
+					<span class="tooltiptext">The width of the belt in AU.  The middle of the belt will roughly be the indicated AU distance from the star.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">N-zone percentage</p>
+					<input type="number" min="0" max="100" step="1" id="belt_nZone" style="width:80px;" />
+					<span class="tooltiptext">The percentage of the width of the N-zone.  The N-zone is where Nickel / Iron objects dominate, drawn towards the star as they are denser and heavier.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">M-zone percentage</p>
+					<input type="number" min="0" max="100" step="1" id="belt_mZone" style="width:80px;" />
+					<span class="tooltiptext">The percentage of the width of the M-zone.  The M-zone a mixed zone of some Nickel / Iron objects, some rocky objects, and some carbonaceous and ice objects.</span>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">C-zone percentage</p>
+					<input type="number" min="0" max="100" step="1" id="belt_cZone" style="width:80px;" />
+					<span class="tooltiptext">The percentage of the width of the C-zone.  The C-zone is where carbonaceous and icy objects dominate, being lighter and not as drawn to the star.</span>
+				</div>				
+			</div>
+			<h2>Atmosphere and Temperature details</h2>
+			<div class="contained-flex" name="nonBelt">
+				<div class="formItem">
+				<p class="guidelines">Atmosphere UWP digit explanation</p>
+				<p class="worldDetails" id="atmosUWPExpl"></p>				
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="atmos_pressure_lbl">Atmospheric Pressure</p>
+				<input class="worldDetails" id="atmos_pressure_edit" type="text" maxlength="5" value=""/>
+				<span class="tooltiptext">Atmospheric Pressure in Earth Atmospheres</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="atmos_compo_lbl">Atmospheric Composition</p>
+				<input class="worldDetails" id="atmos_compo_edit" type="text" value="" style="width:400px" />
+				<span class="tooltiptext">Description of Atmopsheric Composition</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="albedo_lbl">Albedo</p>
+				<input class="worldDetails" id="albedo_edit" type="text" maxlength="4" value=""/>
+				<span class="tooltiptext">Albedo is the proportion of energy reflected into space (between 0 and 1)</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="greenhouse_lbl">Greenhouse Effect</p>
+				<input class="worldDetails" id="greenhouse_edit" type="text" maxlength="4" value=""/>
+				<span class="tooltiptext">The Greenhouse retention of heat by the atmosphere as a multipler (e.g. 1.05 = 5%)</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="tilt_lbl">Axial Tilt (degrees)</p>
+				<input class="worldDetails" id="tilt_edit" type="text" maxlength="2" value=""/>
+				<span class="tooltiptext">Axial Tilt - used to calculate seasonal variations</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="base_world_temp_lbl">Base World Temperature</p>
+				<p class="worldDetails" id="base_world_temp_text"></p>
+				<span class="tooltiptext">The average temperature for the world calculated using stellar luminosity, distance from the star, greenhouse effect and albedo.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="average_day_temp_lbl">Average Daytime Temperature</p>
+				<p class="worldDetails" id="average_day_temp_text"></p>
+				<span class="tooltiptext">The base temperature plus the typical temperature rise caused by the sun during the day.  The average daily maximum temperature.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="average_night_temp_lbl">Average Nighttime Temperature</p>
+				<p class="worldDetails" id="average_night_temp_text"></p>
+				<span class="tooltiptext">The base temperature minus the typical temperature fall during the night.  The average nightly minimum temperature.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="summer_increase_lbl">Summer Increase</p>
+				<p class="worldDetails" id="summer_increase_text"></p>
+				<span class="tooltiptext">The maximum increase of temperature in summer when a hemisphere is tilted towards the parent star.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="winter_decrease_lbl">Winter Decrease</p>
+				<p class="worldDetails" id="winter_decrease_text"></p>
+				<span class="tooltiptext">The maximum decrease of temperature in winter when a hemisphere is tilted away from the parent star.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="highest_day_temperature_lbl">Upper Temperature Limit</p>
+				<p class="worldDetails" id="highest_day_temperature_text"></p>
+				<span class="tooltiptext">Daytime temperature plus summer increase.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="coldest_night_temperature_lbl">Lower Temperature Limit</p>
+				<p class="worldDetails" id="coldest_night_temperature_text"></p>
+				<span class="tooltiptext">Nighttime temperature minus winter decrease.</span>
+				</div>
+			</div>
+			<h2>Hydrosphere Details</h2>
+			<div class="contained-flex" name="nonBelt">
+				<div class="formItem">
+				<p class="guidelines" id="hydro_perc_lbl">Hydrographic Percentage</p>
+				<input class="worldDetails" id="hydro_perc_edit" type="text" maxlength="2" value=""/>
+				<span class="tooltiptext">More precise percentage of planet covered in liquid.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="liq_comp_lbl">Surface Liquid Composition</p>
+				<input class="worldDetails" id="liq_comp_edit" type="text" maxlength="50" value=""/>
+				<span class="tooltiptext">Are you SURE that's water!?</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="native_life_lbl">Native Life?</p>
+				<select class="worldDetails" id="native_life_select"><option>Yes</option><option>No</option></select>
+				<span class="tooltiptext">The world has or does not have native life.  Regardless, the world may have imported species.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="seismic_lbl">Seismic Stress</p>
+				<input class="worldDetails" id="seismic_edit" type="text" maxlength="6" value=""/>
+				<span class="tooltiptext">Seismic Stress minus 4 is the daily chance on 4D for an earthquake, Mod +2 if on a fault line.</span>
+				</div>
+			</div>
+			<div class="contained-flex">
+				<div class="contained-flex-vertical">
+					<h3>Natural Resources</h3>
+					<div class="formItem">
+						<input class="worldDetails" id="agri_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="agri_lbl">Agricultural</span>
+						<span class="tooltiptext">Wood, meat, spices, fruit, grain</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="ores_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="ore_lbl">Ore</span>
+						<span class="tooltiptext">Iron ore, copper ore, tin ore, silver ore, alumina, rare earths</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="radi_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="radi_lbl">Radioactive</span>
+						<span class="tooltiptext">Uranium ore, thorium ore, radium ore</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="gems_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="gems_lbl">Gem and Crystal</span>
+						<span class="tooltiptext">Diamond, emerald, ruby, quartz, opals, granite, sapphire, amethyst</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="chem_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="chem_lbl">Petrochemical</span>
+						<span class="tooltiptext">Natural gas, oil, coal</span>
+					</div>
+				</div>
+				<div class="contained-flex-vertical">
+					<h3>Processed Resources</h3>
+					<div class="formItem">
+						<input class="worldDetails" id="agripr_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Agricultural</span>
+						<span class="tooltiptext">Liquor, dairy products, canned fruit, frozen vegetables, prepared food and sauces, confectionary, beverages, smoking products</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="allo_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Alloys</span>
+						<span class="tooltiptext">Steel, tungsten, iron, copper, bronze, brass, silver, aluminium</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="agro_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Agroproducts</span>
+						<span class="tooltiptext">Textiles, polymers, pharmaceuticals</span>
+					</div>
+				</div>
+				<div class="contained-flex-vertical">
+					<h3>Manufactured Resources</h3>
+					<div class="formItem">
+						<input class="worldDetails" id="weap_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Weapons</span>
+						<span class="tooltiptext">Firearms, ammunition, blades, body armor</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="part_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Mechanical Parts and Goods</span>
+						<span class="tooltiptext">Tools, vehicle parts, vacc suits, white goods</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="equi_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Heavy Equipment</span>
+						<span class="tooltiptext">Aircraft, ATV, AFV, machine tools, farm machinery</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="elec_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Electronics</span>
+						<span class="tooltiptext">Computers, electronic parts, cybernetic parts, computer parts, security systems, communicators</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="grav_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="_lbl">Gravitics</span>
+						<span class="tooltiptext">Anti-grav modules, grav belts, gravitic communicators</span>
+					</div>
+					<div class="formItem">
+						<input class="worldDetails" id="info_check" type="checkbox" name="resource" />
+						<span class="guidelines" id="info_check_lvl">Information</span>
+						<span class="tooltiptext">Scientific, Legal or Commercial data whether in paper or electronic forms.</span>
+					</div>
+				</div>
+			</div>
+			<h2>Population Details</h2>
+			<div class="contained-flex">
+				<div class="formItem">
+					<p class="guidelines">Population Digit from UWP</p>
+					<p class="worldDetails" id="populDigExp"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Population Multiplier</p>
+					<p class="worldDetails" id="popMultiExp"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Total Population</p>
+					<p class="worldDetails" id="populCalc"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines" id="native_int_life_lbl">Intelligent Life Status</p>
+					<p class="worldDetails" id="native_int_life_text"></p>
+					<span class="tooltiptext">Indication of the (Native) Intelligent Life on this world.</span>
+				</div>
+			</div>
+			<h2>Government Details</h2>
+			<div class="contained-flex" style="width:100%;">
+				<div class="formItem">
+					<p class="guidelines">Government Digit from UWP</p>
+					<p class="worldDetails" id="govDigExp"></p>
+					<p class="guidelines">More generated detail about government</p>
+					<textarea class="worldDetails" id="govDetailExp" style="width:100%;" rows="5"></textarea>
+					<p class="worldDetails" id="mattStevensLinkPara" style="display:none;">For more about this government detail, click <a href="" id="mattStevensLink" target="_blank">HERE</a></p>
+				</div>
+			</div>
+			<h2>Law Details</h2>
+			<div class="contained-flex" style="width:100%;">
+				<div class="formItem">
+					<p class="guidelines">Law Level Digit from UWP</p>
+					<p class="worldDetails" id="lawDigit"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Law level explanation</p>
+					<p class="worldDetails" id="lawExplanation"></p>
+				</div>
+			</div>
+			<h2>Technology Details</h2>
+			<div class="contained-flex" style="width:100%;">
+				<div class="formItem">
+					<p class="guidelines">Technology Level Digit from UWP</p>
+					<p class="worldDetails" id="techDigit"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Historical Era</p>
+					<p class="worldDetails" id="tecHist"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Energy</p>
+					<p class="worldDetails" id="tecEnergy"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Society</p>
+					<p class="worldDetails" id="tecSoc"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Environment</p>
+					<p class="worldDetails" id="tecEnv"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Communications</p>
+					<p class="worldDetails" id="tecComm"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Transport</p>
+					<p class="worldDetails" id="tecTra"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Medicine</p>
+					<p class="worldDetails" id="tecMed"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Developing Science</p>
+					<p class="worldDetails" id="tecSci"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Latest Technology</p>
+					<p class="worldDetails" id="tecTech"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Computers</p>
+					<p class="worldDetails" id="tecCmp"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Fastest Speeds</p>
+					<p class="worldDetails" id="tecSpeed"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Personal Weapons</p>
+					<p class="worldDetails" id="tecWpn"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Heavy Weapons</p>
+					<p class="worldDetails" id="tecHWpn"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Space Travel</p>
+					<p class="worldDetails" id="tecSpac"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Space Weapons</p>
+					<p class="worldDetails" id="tecSpacWpn"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Space Defences</p>
+					<p class="worldDetails" id="tecSpacDef"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">Starship sensors</p>
+					<p class="worldDetails" id="tecSpacSen"></p>
+				</div>
+				<div class="formItem">
+					<p class="guidelines">World range sensors</p>
+					<p class="worldDetails" id="tecWorldSen"></p>
+				</div>
+			</div>
+			<div class="transparent" id="nobz" hidden>
+			<h2>Nobles</h2>
+			<div class="contained-flex">
+				<div class="formItem">
+				<p class="guidelines">Noble Codes</p>
+				<p class="worldDetails"><span class="worldDetails" id="nobz_codes"></span></p>
+				</div>
+				<div class="formItem">
+				<p class="guidelines">Noble Descriptions</p>
+				<p class="worldDetails"><span class="worldDetails" id="nobz_descriptions"></span></p>
+				</div>
+			</div>
+			<div class="transparent" id="eX" hidden>
+			<h2>Economic Extension</h2>
+			<div class="contained-flex">
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Resources</p>
+					<select id="eX_R" style="float:left;"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select>
+					<span class="tooltiptext">The raw resources available to this world.</span>
+				</div>
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Labor</p>
+					<p id="eX_L"></p>
+					<span class="tooltiptext">A measure of the labor force available.</span>
+				</div>
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Infrastructure</p>
+					<p id="eX_I"></p>
+					<span class="tooltiptext">How sophisticated the infrastructure is.</span>
+				</div>
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Efficiency</p>
+					<select id="eX_E" style="float:left;"><option>-5</option><option>-4</option><option>-3</option><option>-2</option><option>-1</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+					<p id="cX_Sy_adj" class="cX_adjective"></p>
+					<span class="tooltiptext">Impediments to or enablers of economic growth; negative efficiency means the world is a net importer.</span>
+				</div>
+			</div>
+			</div>
+			<div class="transparent" id="cX" hidden>
+			<h2>Cultural Extension</h2>
+			<div class="contained-flex">
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Heterogeneity</p>
+					<select id="cX_H" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+					<p id="cX_H_adj" class="cX_adjective"></p>
+					<span class="tooltiptext">Higher is more culturally diverse</span>
+				</div>
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Acceptance</p>
+					<select id="cX_A" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select>
+					<p id="cX_A_adj"  class="cX_adjective"></p>
+					<span class="tooltiptext">Higher means a greater acceptance of outsiders</span>
+				</div>
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Strangeness</p>
+					<select id="cX_St" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
+					<p id="cX_St_adj" class="cX_adjective"></p>
+					<span class="tooltiptext">Higher means more weird</span>
+				</div>
+				<div class="formItem" style="min-width:15%;">
+					<p class="guidelines">Symbols</p>
+					<select id="cX_Sy" style="float:left;"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select>
+					<p id="cX_Sy_adj" class="cX_adjective"></p>
+					<span class="tooltiptext">Lower means use of more concrete symbols; higher means more abstract symbols.</span>
+				</div>
+			</div>
+			</div>
+			<div id="iX">
+			<h2>Importance</h2>
+				<p class="guidelines">Importance</p>
+				<p><select id="world_ix">
+				<option>-4</option>
+				<option>-3</option>
+				<option>-2</option>
+				<option>-1</option>
+				<option>0</option>
+				<option>1</option>
+				<option>2</option>
+				<option>3</option>
+				<option>4</option>
+				<option>5</option>
+				</select>
+				
+				<span id="world_ix_desc"></span></p>
+			</div>
+			<h2 name="nonBelt">Temperature Table</h2>
+		</div>
+	</div>
+	<!-- map editing -->
+	<div class="container" id="worldMapEditorContainer" style="margin-top:0.5em;display:none">
+		<button class="btn1" onclick="finishEditingMap();">Save and Close</button>
+		<button class="btn1" onclick="cancelEditingMap();">Cancel Changes</button>
+		<div class="container" style="background-color:#ffffff;margin-top:0.5em" >
+			<div class="contained" style="width:100%;height:800px" id="mapEditPlaceholder">
+				<p class="loadingAnimation">Rendering ...</p>
+			</div>
+			<div id="mapEditToolbar" class="editToolbar"></div>
+			<div class="contained" id="editedMapArea">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="worldMapEditSVG">
+				</svg>
+			</div>
+		</div>
+	</div>	
+	<div class="container" id="systemDetails" style="display:none;">
+		<div style="clear:both;overflow-x:scroll;" id="symbol_map" class="sys"></div>
+		<div style="clear:both;" id="sys_table"></div>
+	</div>
+	<div class="container" id="pref_details" style="display:none;">
+		<div class="subcontainer" style="width:65%;">
+			<div class="contained" style="font-size:0.8em">
+			<h2 style="margin-top: 0em;">System Generation Preferences</h2>
+			<input type="checkbox" id="main_world_hz_only" />Main world is placed in habitable zone only<br />
+			<input type="checkbox" id="main_world_is_sat" />Main world is placed as a satellite<br />
+			<input type="checkbox" id="main_world_not_sat" />Main world is placed as a planet<br />
+			<input type="checkbox" id="tz_no_sat" />Tidally locked worlds may not have satellites<br />
+			<input type="checkbox" id="barren_sys" />If main world population is zero, all system worlds are Barren<br />
+			<input type="checkbox" id="download_world_detail" />When downloading the system to save a local copy, include all details for all worlds<br />
+			</div>
+			<div class="contained" style="font-size:0.8em;">
+			<h2 style="margin-top: 0em;">Map Generation Preferences</h2>
+			<input type="number" min="0" max="100" style="width:30pt;" id="shoreline_extend_chance" />Shoreline Extend Chance (higher value = more ocean in coast hexes)<br />
+			<input type="number" min="0" max="100" style="width:30pt;" id="creep_into_tz_chance" />Chance of creeping into twilight zone (higher value = more frozen or heated in Twilight Zone)<br />
+			<input type="checkbox" id="black_and_white_map" />Black & White map<br />
+			<input type="checkbox" id="place_noble_estate" />Place a noble estate<br />
+			<input type="checkbox" id="place_several_noble_estates" />Place an estate for each noble present if multiple<br />
+			<input type="checkbox" id="allow_ocean_nobz" />Allow placement of noble estates in ocean hexes<br />
+			<input type="checkbox" id="redraw_maps_on_uwp_change" />Redraw maps when UWP values are changed for a world.  Turn off if you have edited the details as they will be overwritten.<br />
+			</div>
+		</div>
+		<div class="subcontainer" style="width:35%;">
+			<div style="float:right;margin-right:10pt;margin-top:10pt;">
+				<input id="savePrefs" type="button" value="Save" class="btn2" style="width:60pt;" onclick="saveUserPrefs();" /><br />
+				<input id="Cancel_pref_details" type="button" value="Close" class="btn2" style="width:60pt;" onclick="cancelUserPrefs();" /><br />
+				<input id="reset_prefs" type="button" value="Reset" class="btn2" style="width:60pt;" onclick="resetPrefs();" />
+			</div>
+			<div class="contained" style="font-size:0.8em">
+			<h2 style="margin-top: 0em;">Map Colours</h2>
+				<input type="color" id="clear_terrain_default_bg" />Clear Terrain (Atmosphere 2+)<br />
+				<input type="color" id="clear_terrain_mars_bg" />Clear Terrain (Atmosphere 1)<br />
+				<input type="color" id="clear_terrain_grey_bg" />Clear Terrain (Atmosphere 0)<br />
+				<input type="color" id="clear_terrain_bw_bg" />Clear Terrain (Black & White)<br />
+				<input type="color" id="mountain_terrain_default_bg" />Mountain Terrain (Atmosphere 2+)<br />
+				<input type="color" id="mountain_terrain_mars_bg" />Mountain Terrain (Atmosphere 1)<br />
+				<input type="color" id="mountain_terrain_grey_bg" />Mountain Terrain (Atmosphere 0)<br />
+				<input type="color" id="mountain_terrain_bw_bg" />Mountain Terrain (Black & White)<br />
+				<input type="color" id="ocean_bg" />Ocean<br />
+				<input type="color" id="ocean_depth_bg" />Ocean Depth<br />
+				<input type="color" id="ocean_abyss_bg" />Ocean Abyss<br />
+				<input type="color" id="ocean_bw_bg" />Ocean (Black & White)<br />
+				<input type="color" id="ocean_depth_bw_bg" />Ocean Depth (Black & White)<br />
+				<input type="color" id="ocean_abyss_bw_bg" />Ocean Abyss (Black & White)<br />
+				<input type="color" id="desert_terrain_bg" />Desert<br />
+				<input type="color" id="desert_terrain_bw_bg" />Desert (Black & White)<br />
+				<input type="color" id="border_colour" />Border Colour<br />
+			</div>
+		</div>
+	</div>
+	<div class="container" id="gen_new" style="display:none;">
+		<div class="subcontainer" style="width:25%">
+			<div class="contained">
+			<p class="guidelines">Default Sector:</p>
+			<p><select id="default_sector" onchange="loadWorlds(this); saveUserPrefs();">
+				<option value="ERROR">Error: sectors not loaded</option>
+			</select></p>
+			<p class="guidelines">Select a world:</p>
+			<p><select id="WorldSelect" style="max-width:100%;">
+				<option value="ERROR">Error: worlds not loaded</option>
+			</select>
+			<input id="chooseOTUWorld" type="button" value="Get Data for this world" class="btn2" onclick="doOTUGeneration();" disabled /></p>
+			<p>(Data imported directly from <a href="https://travellermap.com/">travellermap.com</a>).</p>
+			</div>
+		</div>
+		<div class="subcontainer" style="width:45%;">
+			<div class="contained">
+			<div class="contained-flex">
+				<div class="formItem">
+				<p class="guidelines" id="guide_7">Hex and Sector</p>
+				<input id="element_7" name="element_7" type="text" maxlength="50" value=""/>
+				<span class="tooltiptext">e.g. '3005 Spinward Marches'. Used in the map title.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_1">World Name</p>
+				<input id="element_1" name="element_1" type="text" maxlength="50" value=""/>
+				<span class="tooltiptext">e.g. 'Aramanx'.  Used in the map title and to label the mainworld of the system.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_2">UWP (in the format XNNNNNN-N)</p>
+				<input id="element_2" name="element_2" type="text" maxlength="9" value=""/>
+				<span class="tooltiptext">e.g. 'C657874-6'. Used for many aspects of the map.  Inserted into the generated star system.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_4">Trade Codes and Remarks</p>
+				<span class="tooltiptext">Calculated by the engine, not entered by the user.</span>
+				<p id="tcs_input"></p>
+				</div>
+			</div>
+			<div class="contained-flex">
+				<div class="formItem">
+				<p class="guidelines" id="guide_6">{Ix}</p>
+				<p><label for="iX_input">{ </label><input id="iX_input" type="text" maxlength="2" value="" style="width:15px"/><label for="iX_input"> }</label></p>
+				<span class="tooltiptext">T5 World Importance from -4 to +5. Ignored in map and system creation.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_3">(Ex)</p>
+				<p><label for="eX_input">(</label><input id="eX_input" type="text" maxlength="5" value="" style="width:40px"/><label for="eX_input">)</label></p>
+				<span class="tooltiptext">T5 Economic Extension; e.g. 'A73-1'. Used for placing Resource hexes on maps.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_5">[Cx]</p>
+				<p><label for="cX_input">[</label><input id="cX_input" type="text" maxlength="4" value="" style="width:30px"/><label for="cX_input">]</label></p>
+				<span class="tooltiptext">e.g. T5 Cultural Extension; e.g. '9717'. Ignored in map and system creation.</span>
+				</div>
+				<div class="formItem">
+				<p class="guidelines" id="guide_8">Nobility</p>
+				<p><input id="Nobz" type="text" maxlength="5" value="" style="width:40px"/></p>
+				<span class="tooltiptext">T5 Nobles present; e.g. 'ecB'. Ignored in map and system creation; a Noble Estate is always placed.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_9">Bases</p>
+				<p><input id="Bases" type="text" maxlength="2" value="" style="width:15px"/></p>
+				<span class="tooltiptext">Bases in T5 format; e.g. 'S' or 'NS'. Ignored in map creation and system creation.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_10">Zone</p>
+				<p><select id="Zone"><option> </option><option>A</option><option>R</option><option>B</option><option>F/U</option></select></p>
+				<span class="tooltiptext">A=Amber Zone<br />R=Red Zone<br />B=Balkanized (TNE indicator)<br />F/U=Forbidden/Unabsorbed (non-Imperial)<br />Used to calculate some Trade Classifications.</span>
+				</div>
+			</div>
+			<div class="contained-flex">
+				<div class="formItem">
+				<p class="guidelines" id="guide_12">Population<br />Multiplier</p>
+				<p><select id="Pop_Multi"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></p>
+				<span class="tooltiptext">Total world population = <i>Population Multiplier</i> &#215; 10<sup>Population Digit</sup>. Ignored in map and system creation.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_11">Planetoid<br />Belts</p>
+				<p><select id="Planetoid"><option>0</option><option>1</option><option>2</option><option>3</option></select></p>
+				<span class="tooltiptext">Number of system planetoid belts. Used in calculating resource hexes. This number of Planetoids are placed in system creation.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_13">Gas<br />Giants</p>
+				<p><select id="Gas_Giants"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></p>
+				<span class="tooltiptext">Number of gas giants in system.  Used in calculating resource hexes.  This number of Gas Giants are placed in system creation.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_14"><br />Worlds</p>
+				<p><select id="Worlds"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></p>
+				<span class="tooltiptext">Number of planets other than the main world and gas giants.  Ignored in map creation.  This number of worlds are placed in system generation.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_15"><br />Allegiance</p>
+				<p><input id="allegiance" type="text" maxlength="4" value="" style="width:45px;"/></p>
+				<span class="tooltiptext">Interstellar government code.  Ignored in map and system creation.</span>
+				</div>
+
+				<div class="formItem">
+				<p class="guidelines" id="guide_16"><br />Stellar Data</p>
+				<p><input id="Stellar_Data" type="text" maxlength="40" value=""/></p>
+				<span class="tooltiptext">System stars. Ignored in map creation and used as the basis for system generation.  Multiple stars will be placed randomly in the eight possible positions.</span>
+				</div>
+				<div class="transparent">
+					<p class="guidelines">Additional Trade codes</p>
+					<p class="formItem">
+						<input id="element_4_1" name="TradeCode" type="checkbox" value="Fr" />
+						<label for="element_4_1">Frozen (Fr)</label>
+						<span class="tooltiptext">Planet is further out than the Habitable Zone plus 2 orbits.  All lands and oceans are frozen.</span>
+					</p>
+					<p class="formItem">
+						<input id="element_4_2" name="TradeCode" type="checkbox" value="Tu" />
+						<label for="element_4_2">Tundra (Tu)</label>
+						<span class="tooltiptext">Planet is somewhat earth-like but in the next orbit out from the Habitable Zone.  Land and ocean near the ice caps is frozen.</span>
+					</p>
+					<p class="formItem"><input id="element_4_3" name="TradeCode" type="checkbox" value="Tz" />
+					<label for="element_4_3">Twilight Zone (Tz)</label>
+					<span class="tooltiptext">Planet is tidally locked to its star with one face always pointing towards it and another facing away.</span></p>
+					<p class="formItem"><input id="element_4_4" name="TradeCode" type="checkbox" value="Fa" />
+					<label for="element_4_4">Farming (Fa)</label>
+					<span class="tooltiptext">Planet is not a main world but is in the HZ and meets other criteria.</span></p>
+					<p class="formItem"><input id="element_4_5" name="TradeCode" type="checkbox" value="Mi" />
+					<label for="element_4_5">Mining (Mi)</label>
+					<span class="tooltiptext">Planet is not a main world and the main world is Industrial.</span></p>
+				</div>
+			</div>
+			<div class="transparent">
+				<input name="generateMissing" onclick="generateMissing();" type="button" class="btn2" value="Generate Missing World Details" style="font-size:1em;padding:3px"/>
+				<input name="clearWorldDetails" onclick="clearWorldDetails();" type="button" class="btn2" value="Clear World Details" style="font-size:1em;padding:3px"/>
+				<input name="makeMyWorld" onclick="makeMyWorld();" type="button" class="btn1" value="Make system and map" style="font-size:1em;padding:3px"/>
+			</div>
+			</div>
+		</div>
+	</div>
+	<div class="container" id="blankMapDiv" style="display:none;">
+		<div class="container" style="padding-bottom: 0.5em;">
+			<select id="blankSize">
+				<option value="1">Size 1</option>
+				<option value="2">Size 2</option>
+				<option value="3">Size 3</option>
+				<option value="4">Size 4</option>
+				<option value="5">Size 5</option>
+				<option value="6">Size 6</option>
+				<option value="7">Size 7</option>
+				<option value="8">Size 8</option>
+				<option value="9">Size 9</option>
+				<option value="10">Size A</option>
+				<option value="11">Size B</option>
+				<option value="12">Size C</option>
+				<option value="13">Size D</option>
+				<option value="14">Size E</option>
+				<option value="15">Size F</option>
+				<option value="16">Size G</option>
+				<option value="17">Size H</option>
+				<option value="18">Size J</option>
+				<option value="19">Size K</option>
+				<option value="20">Size L</option>
+			</select>
+			<button onclick="blankMapGen();" class="btn1">Generate Blank Map</button>
+			<button onclick="downloadBlankMapSVG();" class="btn1">Download map as SVG</button>
+			<button onclick="downloadBlankMapPNG();" class="btn1">Download map as PNG</button>
+		</div>
+		<div class="container" id="saveAreaBlank" style="background-color:#1a1a1d;" >
+			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" id="blankMapSVG"></svg>
+		</div>
+	</div>
+	<div class="container" id="newCelestialObject" style="display:none;"> <!-- new Object -->
+		<div class="contained">
+			<h2>Add world, gas giant or planetoid belt</h2>
+			<p>Select which available orbit to add an object, and select the object type.  The details will be randomly generated.  You can then edit them.</p>
+			<select id="newOrbitSelect"></select>
+			<select id="newObjectType">
+				<option value="gasGiant">Gas Giant</option>
+				<option value="star">Star</option>
+				<option value="Hospitable">Hospitable World</option>
+				<option value="Planetoids">Planetoid Belt (or Ring)</option>
+				<option value="Ice world">Ice World</option>
+				<option value="Rad world">Radiation World</option>
+				<option value="Inferno">Inferno World</option>
+				<option value="Big world">Big world</option>
+				<option value="Worldlet">Worldlet</option>
+				<option value="Inner world">Inner World</option>
+				<option value="Storm world">Storm World</option>
+			</select>
+			<button class="btn2" onclick="addObject();">Add object</button>
+		</div>
+	</div>
+	<div class="container" id="APIdoco" style="display:none;">
+		<div style="margin-bottom:0.2em;background-color:#4e4e50">
+			<h1>API Documentation</h1>
+		</div>
+		<p class="white">You can encode a link for a particular star system by using a URL.  For example:</p>
+		<p class="white" style="font-family:courier">http://travellerworlds.com/?name=Junidy&uwp=B434ABD-B</p>
+		<p class="white">This example will put the world name 'Junidy' in the World Name field, the UWP 'B434ABD-B' in the UWP field, and then randomly generate all remaining details before generating a world map and the star system.</p>
+		<p class="white">Note that when a system is generated, the main world map and details are generated and displayed; you can then navigate to each world via the Full Star System View and go to another world by pressing the "Details" button next to that world.</p>
+		<p class="white">All world variables relevant to a world map can be used.  Note that the URI needs to be encoded to ensure it works correctly.  The following is a comprehensive list of variables used and how they are handled.</p>
+		<p class="white"><b>hex</b> - the four-digit sector co-ordinate of the system (e.g. hex=3202 - Junidy is 3202 in the Spinward Marches). Default value: empty string.</p>
+		<p class="white"><b>sector</b> - the name of the sector (e.g. sector=Spinward%20Marches).   Default value: empty string.</p>
+		<p class="white"><b>name</b> - the name of the world (e.g. name=Junidy).  Default value: empty string.</p>
+		<p class="white"><b>system</b> - the name of the system; Default value: the name of the world followed by the hex location and sector in parentheses, e.g. "Junidy (3202 Spinward Marches)".  This is used by the map to make the location of the world meaningful when it is a non-main world.</p>
+		<p class="white"><b>uwp</b> - the uwp in the format SSAHPGL-T where S is the port (letters A-H, X, Y) and the remaining digits are extended hexademical.  Default value: randomly generated.</p>
+		<p class="white"><b>tc</b> - relevant two-letter trade classification, Can be specified as many times as there are relevant Trade Classifications, e.g. "tc=In&tc=Hi".  Default Value: generated TCs from UWP, whether the UWP is randomly generated or provided.  Use this to specify TCs that cannot be derived from the UWP (e.g. Twilight Zone).</p>
+		<p class="white"><b>iX</b> - the Importance rating of the world, e.g. iX=4.  Default value: generated by UWP, bases and TC values using T5 rules.</p>
+		<p class="white"><b>eX</b> - the Economic extension for the world including the parenthesis, e.g. eX=(D9E+4).  Default value: randomly generated using T5 rules.</p>
+		<p class="white"><b>cX</b> - the Cultural extension for the world including the brackets, e.g. cX=[5E86].  Default value: randomly generated using T5 rules.</p>
+		<p class="white"><b>pbg</b> - the PBG 3-digits (Population Multiplier, Belts, Gas Giants).  If no pbg parameter is specified, the script looks for the belts, gas_giants, and popMulti parameters and uses their defaults if they are not found.</p>
+		<p class="white"><b>popMulti</b> - the Population Multiplier (first digit of the PBG), e.g. popMulti=2.  Default value: randomly generated even chance 1 to 9.</p>
+		<p class="white"><b>belts</b> - the number of Planetoid Belts (second digit of the PBG), e.g. belts=1.  Default value: randomly generated using T5 rules.</p>
+		<p class="white"><b>gas_giants</b> - the number of Gas Giants (third digit of the PBG), e.g. gas_giants=0.  Default value: randomly generated using T5 rules.</p>
+		<p class="white"><b>worlds</b> - the total number of other worlds in the system, including gas giants, belts, the main world and other planets. If this value is less than gas giants plus belts plus the main world, it will be raised to that value.  Default value: randomly generated using T5 rules.</p>
+		<p class="white"><b>bases</b> - a string containing all bases present, e.g. bases=NS or bases=W.  Possible bases read are N, S, W, and D.  Default value: test for bases randomly using Starport and T5 rules.  Specify bases= to force bases to be nothing.</p>
+		<p class="white"><b>travelZone</b> - either A, R or blank, e.g. travelZone=A.  Default value: blank.
+		<p class="white"><b>nobz</b> - a string specifying all Nobles for this world, e.g. nobz=BcC.  Default value: generated from TCs.</p>
+		<p class="white"><b>allegiance</b> - a string specifying the allegiance of the system, e.g. allegiance=Im.  Default value: blank.</p>
+		<p class="white"><b>stellar</b> - all stars in Traveller notation separated by a space, e.g. stellar=F7%20V%20M2%20V.  Default value: randomly generated using T5 rules.
+		<p class="white"><b>seed</b> - the seed used to randomly generate the map. Default value: the hex of the system concatenated to itself.  If the hex is not specified, 'undefined' is used.</p>
+	</div>
+	<div class="container" id="changeLog" style="display:none;">
+		<div style="margin-bottom:0.2em;background-color:#4e4e50">
+			<h1>Change Log</h1>
+		</div>
+		<h2 class="white">3 October 2023</h2>
+		<p class="white"><b>New Host:</b> TravellerWorlds has switched to travellerworlds.com instead of an obscure amateur URL.  Ahhhh.  Professional looking URL.</p>
+		<p class="white"><b>Bug fix:</b> When a world's atmosphere is 9, atmospheric pressure was using the "very dense" table, which is reserved for extreme Venus-like cases.  Was leading to odd results. Many thanks to a sharp-eyed user for pointing this out!</p>
+		<p class="white"><b>Bug fix:</b> Importance was not reading correctly when passed in via GET data, e.g. from TravellerMap.  Allowing reading of the Importance instead of only generating it allows for custom mods to standard Importance values.</p>
+		<h2 class="white">11 June 2023</h2>
+		<p class="white"><b>Layout Changes:</b> Working on planet detail layout changes to make it more compact and pleasing to the eye.  Paragraph explanations (apart from Government) changed to tables of information.</p>
+		<p class="white"><b>Bug Fix:</b> Export to CSV was not working; fixed.</p>
+		<h2 class="white">31 May 2023</h2>
+		<p class="white"><b>Bug Fix:</b> If 'allegiance' was not provided in the URL, then the world and system were prevented from generating by a fatal error.  Now fixed.</p>
+		<h2 class="white">8 May 2023</h2>
+		<p class="white"><b>Beast Armour:</b> Beast Armour generation added to "View > Beasts (experimental)".</p>
+		<p class="white"><b>Bug Fix:</b> Half-terrain from Twilight Zones appearing in key for that World Hex Map.  Now fixed.</p>
+		<p class="white"><b>Bug Fix:</b> Beasts of Size 4 did not have Strength modifier applied in Beasts (experimental).</p>
+		<p class="white"><b>Bug Fix:</b> Locomotion of Beasts in Beasts (experimental) had combinations not intended (e.g. Flyphibians in Clear terrain).</p>
+		<h2 class="white">6 May 2023</h2>
+		<p class="white"><b>Bug Fix:</b> Download buttons for World, Terrain and Local hexes were not working.  Fixed.</p>
+		<h2 class="white">5 May 2023</h2>
+		<p class="white"><b>Bug Fix:</b> Cropped Map image had incorrect file extension of "svg" instead of "png".  Fixed.</p>
+		<p class="white"><b>Experimental Beasts:</b> Beast tables generated through a modified rule set.  Thus, "View > Beasts (demo)" is RAW, "View > Beast (experimental)" is modified rules.</p>
+		<h2 class="white">18 April 2023</h2>
+		<p class="white"><b>Beast Maker demo:</b> For any world you can choose View > Beasts (demo) to generate beast tables for each of 11 terrain types.  This feature will be improved in future to fully edit the beasts including all T5 details and save the data with the system.</p>
+		<h2 class="white">8 April 2023</h2>
+		<p class="white"><b>Cropped Maps:</b> You can now use "Maps > Download cropped PNG format" to download the current world map in PNG format, cropped perfectly for using in a Plate-Carrée Converter (<a href="https://morfyddjames.github.io/platecarree.html">here</a> or <a href="https://inexorabletash.github.io/ico2equi/">here</a>), for use with the <a href="https://morfyddjames.github.io/index.html">Traveller World Viewer</a>.
+		<h2 class="white">10 September 2022</h2>
+		<p class="white"><b>Bug Fix:</b> Belts could not be placed by using "System Actions > Add a celestial object to the system" due to an error caused by the new Belt Details release.  Now fixed.</p>
+		<h2 class="white">24 July 2022</h2>
+		<p class="white"><b>Bug Fix:</b> The fix for the different results for seeds had knock-on errors that slipped through my testing, and affected nearly any world one would attempt to generate by navigating from TravellerMap.  Now fixed.</p>
+		<h2 class="white">17 July 2022</h2>
+		<p class="white"><b>Bug Fix:</b> This was a misconception on my part.  The "number of worlds" statistic for a system indicates the total number of gas giants, belts, and other worlds in the system.  I was getting it to generate other worlds ON TOP OF gas giants, belts and the main world.  Systems will look smaller from now on.</p>
+		<p class="white"><b>Bug Fix:</b> Saving and loading systems was changing the position of stars and messing with other objects as a consequence.  This was due to the seed for the system not being read correctly.</p>
+		<p class="white"><b>Bug Fix:</b> The system generation was giving a different result almost every time, whether data was coming in from Traveller Map, the user was entering their own data, or the user was regenerating with the "current seed".  This error was due to me not being careful with when and where I initiated the RNG with the correct seed.</p>
+		<h2 class="white">9 July 2022</h2>
+		<p class="white"><b>Belt Details and map:</b> Planetoid and Asteroid Belts now have details generated - their zones, and the total belt width, and the predominate and maximum sizes of objects in the belt.  The Belt now has a map indicating the relative size of each zone. All belt details are fully editable and saveable with the system.</p>
+		<p class="white"><b>Twilight Zone alteration:</b> Ice cap terrain is now removed from Twilight Zone worlds.</p>
+		<p class="white"><b>Habitable Zone reset:</b> The Habitable Zone value for each star has now been refined to a decimal orbit (where each 0.1 is 10% of the distance from the inner orbit to the next orbit).  If the Main World is to be placed in the precise Habitable Zone (i.e. not HZ+1 or HZ-1) then TravellerWorlds now places it in this new refined value.  The new HZ value has been calculated by the distance that a planet with Greenhouse of +10% and Albedo of 0.3 would need to be from that star for an average temperature of 288 K / 15&deg;C.  Note that due to varying Albedo and Greenhouse effect this will not always be the exact temperature.  This more exact placement is to help world builders obtain more Earth-like conditions more easily; many results quite frankly created extreme worlds even if they were Ag Ri Ga worlds.</p>
+		<h2 class="white">4 July 2022</h2>
+		<p class="white"><b>Bug Fix:</b> Fixed an introduced bug stopping Local Hexes from completing correctly.</p>
+		<p class="white"><b>Bug Fix:</b> When Cultural Extension and Economic Extension data was not passed to TravellerWorlds it would freeze.</p>
+		<p class="white"><b>Importance:</b> Importance is now imported from data rather than only generated. It can also be edited by the user. Its default value is to generate the Importance rating using T5 rules, but it can be edited by the user (e.g. when establishing capitals).</p>
+		<p class="white"><b>Star Details:</b> When editing star details, calculated values (luminosity, mass, diameter, jump point) are displayed and updated as you edit.</p>		
+		<p class="white"><b>Gas Giant Details:</b> Gas giant details can now be edited, and details such as mass and jump points are displayed and updated as you edit.</p>
+		<h2 class="white">3 January 2022</h2>
+		<p class="white"><b>Bug Fix:</b> In the background, the map was generating a random map before loading the data because this was required for the setup before data was loaded.  Set up and generation are now separate procedures.</p>
+		<p class="white"><b>Bug Fix:</b> In map editing mode, certain hexes were incorrectly creating a World Hex Map when clicked.  Now fixed.</p>
+		<h2 class="white">27 December 2021</h2>
+		<p class="white"><b>Map Editing:</b> There is now a (very basic!) map editor.  This is an EARLY version and is still buggy, but the basics work.  Navigate to the world you wish to edit, and then choose Map Actions > Edit the Current Map.  Then click on one of the types of terrain at the top.  Clicking the hex will add the terrain.  You can remove symbols (e.g. rural, cities, etc.) by clicking again.  Base terrain (e.g. clear, oceans) cannot be removed but can be replace with other terrain.</p>
+		<p class="white"><b>Bug Fix:</b> Atmospheres of types exotic, corrosive and insidious had a bug where the atmospheric pressure table was not saving correctly, leading to all sorts of loading and saving problems.  Some of your older systems might still not be able to save or load correctly, many apologies.</p>
+		<p class="white"><b>Bug Fix:</b> The "Details" and "Scrub" buttons were not working correctly.  Now fixed.
+		<h2 class="white">23 December 2021</h2>
+		<p class="white"><b>Background mapping change:</b> new political border terrain added in anticipation of being able to edit maps.  Users can edit the downloaded JSON of worlds to add these codes in.  Users can also change the default colour for these borders.</p>
+		<h2 class="white">22 December 2021</h2>
+		<p class="white"><b>All UWP details explained:</b> Each digit of the UWP for each world is now fully explained - the last to be added were law level and technology level.</p>
+		<p class="white"><b>Add objects:</b> The user may now add objects to the system - stars, gas giants, planets and satellites</p>
+		<h2 class="white">28 November 2021</h2>
+		<p class="white"><b>Bug fix:</b> When changing orbits of worlds, Trade Classifications and Remarks (in particular: Ho, Co, Tu and Tz) were not updating correctly.  The drawback is only that 'custom' remarks such as Ownership codes (e.g. O:2355) will be removed if you change orbits.</p>
+		<p class="white"><b>Bug fix:</b> Orbits of satellites could be changed and the change of the name would save, but the orbital distance, rotation period and locking status would not change.  Now fixed - changing any satellite's orbit updates the orbital distance, orbital period, and recalculates whether the satellite is locked to its planet and if not randomly generates a rotation period.</p> 
+		<p class="white"><b>Bug fix:</b> When loading a system from a JSON file, TravellerWorlds was regenerating the map using the seed instead of loading the map data.  In theory, a user can edit the JSON file directly and upload the file to show terrain the user has put in such as extra cities, a second starport or other features.  At present, this editing can only be done by the user directly editing the JSON file using a text editor.</p>
+		<p class="white"><b>Bug fix:</b> If you change a digit of a UWP, the map will now automatically be redrawn.  In anticipation of users being able to edit their own maps, this can be turned off so that users can make minor adjustments if they have edited the map and prevent their work being overwritten.</p>
+		<h2 class="white">25 November 2021</h2>
+		<p class="white"><b>Bug fix:</b> Map data was not saving and importing correctly when using expanded noble estates</p>
+		<p class="white"><b>Bug fix:</b> When regenerating the whole system, the main world details were displaying incorrectly in the table showing symbols for each celestial object.</p>
+		<p class="white"><b>Edit Star Details:</b> You may now edit the Spectral Class and Spectral Size of the star, and vary its luminosity, size and mass using a multiplier for the base values.  At present, this still allows you to put in unrealistic values, so no warranties provided as to realism.</p>
+		<h2 class="white">18 May 2021</h2>
+		<p class="white"><b>Generate missing data:</b> upload a CSV file of names and UWPs, and get back a CSV file with all T5 details generated.</p>
+		<h2 class="white">16 May 2021</h2>
+		<p class="white"><b>Bug Fix:</b> Travel times to jump points were calculating incorrectly because I had forgotten to convert units properly.  Thanks to BasicPassage on Citizens of the Imperium for bringing it to my attention!</p>
+		<h2 class="white">15 May 2021</h2>
+		<p class="white"><b>Map Data download: </b> Terrain data for a world map (only) can be downloaded as a JSON file.  I will be posting a help page to explain how the data works so you can use it in your own projects.  In the background, when you save a system, the actual terrain data is saved and loaded, so you can generate maps until you get one you like before you save the system or download it as a JSON file.  JSON files of the whole system now include generated maps.  The ability to save the actual terrain data is a pre-requisite to being able to edit the data.  Yes, you read that right.  Watch this space, O Patient Users.</p>		
+		<h2 class="white">16 April 2021</h2>
+		<p class="white"><b>Matt Stevens government detail:</b> I use Matt Stevens wonderful series of articles to fill in a text giving more detail about the government for each world.  You can read more from him about how to give more detail for <a href="https://docs.google.com/document/d/1rG6hrkMR15-OieywgjNlcrJJ0LRJziQZrCdHe6OHI5w/edit" target="blank">dictators</a>, <a href="https://docs.google.com/document/d/13JQjvEYcGOHDhnEAS-FFgMS7gc7vZ_hIr4VdRNTQ-ck/edit" target="blank">bureaucracies</a>, <a href="https://docs.google.com/document/d/1-yPZi5wn56fJeDvCPpAWzenjGN0Ymm2Ry-ygxKtAZBc/edit" target="blank">democracies</a>, <a href="https://docs.google.com/document/d/1G1f2GfqDEOjDkZ8ZRxG8heCVmn-A8ZO-NbqY4hmcxJo/edit" target="blank">balkanisation</a>, <a href="https://docs.google.com/document/d/1WfnsPddSLM61SY_hV7YuRYSh5kZvXeGwpFAIdZnlRF0/edit?fbclid=IwAR18yzPFB0vLffCWkNDvK8-X1Fr3U_XzcAdKvXHwmtu3IymL2tAHyxs6N-0" target="blank">religious governments</a>, and <a href="https://docs.google.com/document/d/1Z0QZ4vdBW9cWaxR1m1PB08V9FELNbamMAQ9-m7RZT14/edit" target="blank">feudal technocracies</a>.</p>
+		<h2 class="white">26 December 2020</h2>
+		<p class="white"><b>TravellerWorlds launches</b> - I put all of the application onto one page, fixing multiple bugs. This vastly simplified the code.</p>
+		<p class="white"><b>Twilight Zone removal</b> - so many worlds end up being a 'Twilight Zone' because of system generation rules.  The user can now just remove the Twilight Zone from the map so that it is a help utility rather than imposing unexpected outcomes on a world builder.  You can always elect to keep the TZ, of course.  Rob Serling would be proud</p>
+		<p class="white"><b>Hex map generation</b> - when World, Terrain and Local hexes are created, they appear on top of the world map rather than appended to the bottom. They can still be downloaded onto a user's computer.</p>
+		<p class="white"><b>User Preferences</b> - you can now save a profile of your preferences - various system and map generation options INCLUDING choice of colours for the map!</p>
+		<h2 class="white">25 May 2019</h2>
+		<p class="white"><b>Change of Name:</b> Instead of "T5 World Builder" the website is now called "Traveller Worlds".  The URL is still the same, but ... watch this space.  Also layout changes.</p>
+		<p class="white"><b>System Symbol Map download:</b> the System Symbol Map is now downloaded with the HTML file</p>
+		<p class="white"><b>Scroll down to Hex Maps:</b> when you click on world, terrain or local hexes, the browser now scrolls down to the map for you.</p>
+		<h2 class="white">23 May 2019</h2>
+		<p class="white"><b>System layout change:</b> The system symbol map is now automatically generated when the system is generated.  Both the system table and the symbol map are updated when any world details are changed.</p>
+		<p class="white"><b>Details enhancement:</b> For main worlds only, the cultural extension and economic extension can be edited or recalculated in the World Details in the system editor.</p>
+		<p class="white"><b>Bug Fix:</b> Resources now working correctly in the world details.</p>
+		<p class="white"><b>Bug Fix and rules interpretation:</b> Resources fixed by giving all minor worlds a notional Economic Extension:  Resources = 2D; Labor = local population minus 1; Infrastructure is 0 if world has "Ba" and is 1 if world has "Lo" otherwise it is equal to main world Infrastructure minus 1; Efficiency is Main World efficiency minus 1.<p class="white">
+		<p class="white"><b>Bug Fix:</b> Satellite orbit selection box now appears only for satellite details and correctly alters the satellite orbit to the user's choice.</p>
+		<p class="white"><b>Bug Fix:</b> "Wasteland" incorrectly spelled as "Waste land".</p>
+		<h2 class="white">8 April 2019</h2>
+		<p class="white"><b>Bug Fix:</b> Download buttons for system data not working correctly, now fixed.</p>
+		<p class="white"><b>Native Life:</b> Native Life simplified.  Now simply a roll of Average (2D) < 2, Mod -3 if Atmosphere 0; Mod +4 if Atmosphere 4-9; Mod -2 if Hydrographics 0; Mod +1 if Hydrographics 2-8.</p>
+		<p class="white"><b>Native Intelligent Life:</b> Implemented a 'house rule': two variations on T5; a "no sign of intelligent life" for vacuum rock balls that are otherwise skipped in the NIL rules.  And 'Established Transplants' and 'Established Exotic Transplants' which are worlds with population 7+ without Native Life that otherwise meet the requirements for Natives and Exotic Natives.</p>
+		<h2 class="white">10 February 2019</h2>
+		<p class="white"><b>Bug Fix:</b> Fixed Blank Map feature - it works again.</p>
+		<p class="white"><b>Bug Fix:</b> System was not generating any minor worlds - this was due to code that was intended to cap the number of minor worlds plus gas giants plus belts plus the main world to fit in 20 available orbits.  Some legacy data in Traveller Map has more system objects than 20, enough to break the script.</p>
+		<h2 class="white">2 January 2019</h2>
+		<p class="white"><b>Bug Fix:</b> When the main world is a satellite, the planet it is orbiting (whether a Gas Giant or a Big World) now has other satellites generated correctly.  Previously the main world would be the only satellite of the planet.</p>
+		<h2 class="white">1 January 2019</h2>
+		<p class="white"><b>Save and reload your work:</b> When on the System page, you can save your modified system and re-load it at a later date.  The data is stored within your browser.  This allows you to manually alter any aspect of your star system, taking advantage of the calculators built into T5 World builder, and work on it over time before exporting it to your favourite format.</p>
+		<p class="white"><b>Import and Export systems:</b> In addition to saving your work within your browser, you can export it as a JSON file and also import saved JSON files.</p>
+		<p class="white"><b>Native Intelligent Life and Native Life:</b> if the T5 rules generate native intelligent life, the world now automatically has native life.</p>
+		<p class="white"><b>Bug Fix:</b> When the number of worlds in a system was not specified by Traveller Map data, the number was not being generated randomly.  Now fixed.</p>
+		<p class="white"><b>Data interpretation:</b> Many worlds in the OTU have a 'worlds' statistic of more than 12.  This has the potential to break the system generator if worlds plus gas giants plus belts plus the mainworld exceeds 20 orbit 'slots'.  For now, if the 'worlds' statistic is more than 12, it is reduced to 12.</p>
+		<p class="white"><b>Bug Fix:</b> Native Intelligent Life was not generating correctly.</p>
+		<h2 class="white">18 November 2018</h2>
+		<p class="white"><b>Edit World Details:</b> All planet and satellite details can now be edited when you press on the Details button next to them.  This allows all values including the UWP to be adjusted.  All details are automatically recalculated if needed in real time.</p>
+		<p class="white"><b>Jump Points:</b> As part of the new Edit World Details feature, every world's Jump Point is calculated in kilometres, including accounting for the parent star and parent planet (if the world is a satellite).  Also included is a table of travel times to the Jump Point from 1G to 6G.</p>
+		<p class="white"><b>New Satellite Option:</b> Under System Options, you can select an option that prevents tidally locked worlds having any satellites.  This comes from my own experimenting with Universe Sandbox - satellites of almost any Traveller size are torn apart if the world is close enough to the star.</p>
+		<p class="white"><b>Download World Details:</b> When the system is generated, there is a check-box to indicate you want all details of each world downloaded with the system data.  It is checked by default.  So I'm generally assuming you want more detail rather than less.</p>
+		<p class="white"><b>Small worlds:</b> The system generator now distinguishes between Asteroid and Planetoid belts and worlds that end up size 0 through modifiers or size limiting (typically satellites).  You can now generate and edit the details for these particular objects.  The diameter is randomly generated, ranging from about 260km - 700km.</p>
+		<p class="white"><b>New Barren Option:</b> Under System Options, you can indicate that if the main world population is zero, all minor worlds will be generated as barren (i.e. population, government, law level and TL will be zero).  If left unchecked, the T5 rules will be used, which can result in notional populations of less than 10.</p>
+		<p class="white"><b>Bug Fix:</b> When the size of the world is less than five and hydrographics more than seven, oceans were not being placed.  This is now fixed.</p>
+		<p class="white"><b>Bug Fix:</b> System orbit based Trade Classifications (e.g. Hot, Cold, Twilight Zone) now automatically update when orbit is adjusted.</p>
+		<p class="white"><b>Bug Fix:</b> Map was placing cities in every hex in Size 1 worlds regardless of population.  Now fixed to operate according to T5 rules.</p>
+		<h2 class="white">28 July 2018 - second release</h2>
+		<p class="white"><b>Layout:</b> changes to the home page to take advantage of a wider space for "Enter, Review and Change World Details".</p>
+		<p class="white"><b>Noble Estates:</b> option added to allow noble estates to be placed on ocean or sea hexes.</p>
+		<p class="white"><b>Multiple world maps:</b> option added to allow up to 10 maps to be generated at once.  This helps users hunt through several maps at once to find a suitable one.</p>
+		<h2 class="white">28 July 2018</h2>
+		<p class="white"><b>Code Optimization:</b> when the code needs to fetch individual hexes, it uses an associative array to look up the hex instead of iterating through all the hexes in a map to find the correct one.  Hopefully this gives a significant speed increase for future development where we want to do more complex stuff.</p>
+		<p class="white"><b>Minor bug fix:</b> map key for world maps was oddly offset off the map for smaller sizes (1, 2 and 3) and spilled over the right edge for larger sizes.</p>
+		<p class="white"><b>Bug fix:</b> black and white map and noble state flags were not being read correctly.</p>
+		<p class="white"><b>Bug fix:</b> for Terrain Hex and Local Hex maps, the 'shore line' now works as intended - "creeping" ocean or ice cap from neighbours onto the current hex.</p>
+		<h2 class="white">24 July 2018</h2>
+		<p class="white"><b>GET Data parameters:</b> added a 'pbg' parameter for more conveniently specifying the 'Population Multipler, Belts, Gas Giants' in a star system.</p>
+		<h2 class="white">23 July 2018</h2>
+		<p class="white"><b>Bug Fixes:</b> Fixed information about the random seed, system name and sector names in the URL passed to both the system and map generators.</p>
+		<p class="white"><b>Bug Fix:</b> Updated the API documentation to reflect developments in the code.</p>
+		<p class="white"><b>Layout change:</b> Changed the layout of the main T5 World Builder page to put map and system flags at the bottom, in anticipation of more options being added.</p>
+		<h2 class="white">21 July 2018</h2>
+		<p class="white"><b>Bug Fix:</b> The various 'download' buttons (HTML, Plain Text and CSV) downloaded the actual javascript functions instead of their function results.  Also, having changed from "energy absorption" to "albedo" for worlds, I had forgot to update the information in these downloads and so it would have included Energy Absorption (which is one minus albedo) instead of albedo, leading to confusing figures if you wanted to play with them yourself.</p>
+		<h2 class="white">15 July 2018</h2>
+		<p class="white"><b>Bug Fix:</b> The trade classification "Lk" (i.e. satellite is tidally locked to its planet) was not being correctly applied to satellites.  This had the consequence of the rotational period formula generating rotations much larger than the orbital period because the formula takes into account the planet's mass and distance from it.</p>
+		<p class="white"><b>Display change:</b> Star data (mass, luminosity and radii) is now spread over several columns, making the table look a bit better.</p>
+		<h2 class="white">14 July 2018</h2>
+		<p class="white"><b>Bug Fix:</b> Stars in legacy data drawn from <a href="https://travellermap.com/">travellermap.com</a> include disallowed classifications.  To make the data work, star data is converted as follows:<p class="white">
+		<p class="white">1) All stars in the format "M9 D", "F6 D" etc. are converted to the identical class with size "V" instead.</p>
+		<p class="white">2) F0 - F4 VI are converted to F5 VI</p>
+		<p class="white">3) K0 - K5 IV are converted to K6 IV</p>
+		<p class="white">4) M0 - M9 IV are converted to the identical class with size "V" instead.</p>
+		<p class="white">In addition, the code was falling over when it did not find any star data.  In these cases a pre-fill of the star is not attempted but other data is filled out.</p>
+		<p class="white">If you find a sector is not loading any worlds and is not leaving the message "No World Data available" it is generally because there is something in the legacy data the code does not like.  Please bring these cases to my attention! A sector name is enough.</p>
+		<h2 class="white">13 July 2018</h2>
+		<p class="white"><b>Bug Fix:</b> Noble Estates will no longer be placed in open ocean.</p>
+		<p class="white"><b>Equator Line:</b> All world maps now have a dashed line at the equator.</p>
+		<p class="white"><b>Blank Maps:</b> Under the Options on the main page you can generate a blank world map of sizes 1 to 19.  I invented this to help with analysis, and thought others might want it too.</p>
+		<p class="white"><b>World Details:</b> When a system table is generated, every world now has a "Details" button next to it (but not gas giants, stars or planetoids).  For the moment, this just adds information appended to the system page for more detail, including randomly determined atmospheric compositions for atmospheres 10-12, temperatures at day, night and in the seasons, and so on.  These are drawn from Grand Survey.  This is an 'alpha' release and the code still contains bugs although no fatal errors that I can see.<p class="white">
+		<h2 class="white">13 April 2018</h2>
+		<p class="white"><b>System maps.</b> When a star system is generated, there is a new 'Create system symbol map'.  It creates a symbolic map of the system in the style of Joshua Bell's prototype code found here: <a href="https://travellermap.com/tmp/sys.html">https://travellermap.com/tmp/sys.html</a>.</p>
+		<p class="white"><b>Place Several Noble Estates option added.</b>  This will place a number of World Hex level Noble Estates based on the Nobles field.  One Noble Estate World Hex will be placed for each of Knight, Baronet, Baron, Marquis, Viscount, or Count.  Two estates will be placed for Dukes, and Four for Capital Dukes.  When the World Hex Map is generated, the number of Terrain Hexes placed as Noble Estates varies based on the type of nobility of the estate.  For a Knight Estate, one Terrain Hex will be placed; Baronet is two; Baron is four; Marquis is eight; Viscount is sixteen; and Count or Duke is thirty-two.  Thus, the correct number of Terrain Hexes is placed for each noble, bearing in mind for that Dukes there is more than one World Hex of estates.</p>
+		<p class="white"><b>Names of celestial objects can be edited.</b>  In the system generator, the user can add names to all objects and they will form part of any download of the system.</p>
+		<p class="white"><b>World name on maps.</b> The world name as edited in the system generator is now added to the map.  The system name (i.e. the main world name plus hex and sector) is also added; some modifications to map layout as a consequence.</p>
+		<p class="white"><b>Layout.</b> Generate buttons are now at the top of the layout rather than the bottom.</p>
+		<p class="white"><b>Coding rationalisation.</b> This will make it easier to expand in future, BUT there may be bugs.  I have tried many combinations successfully for all options but it is difficult to test for all options.  Please report bugs!</p>
+		<h2 class="white">7 April 2018</h2>
+		<p class="white">Minor fixes and enhancements this time around: the Main World is now placed according to the T5 rules: if it is an asteroid belt, it is placed randomly without considering the habitable zone.  Otherwise it is placed according to a roll that can place it in the orbit just inside the HZ, in the HZ orbit, or the next orbit outside.  Similarly, the main world will be rolled for a random chance to be a satellite.</p>
+		<p class="white">To help placing the main world where Referees feel it must be a planet or must be a satellite, I have added options to force this choice.  I also added back the option for a black and white map (sorry, Marc, it was taken away by accident!).  I have also added an option to stop the placement of a Nobel Estate if desired.</p>
+		<p class="white">Satellites are now placed in different orbits - except for Ring Systems (fix to come).</p>
+		<p class="white">The BIG change: the system generation table.  Energy Absorption (i.e. one minus Albedo), Greenhouse effect and Average Temperature are now calculated for each world.</p>
+		<p class="white">You can now adjust the orbit or decimal orbit up or down using the arrows. This allows 'fine tuning' of planets positions to suit the temperature you envision is average for that world.  The values are recalculated for you.</p>
+		<p class="white">The download formats have changed.  You can download the system in HTML format - it is a plain unstyled format of the data (no functioning buttons.  Additionally, the data can be downloaded as plain text, or as CSV which can be opened by spreadsheet programs.</p>
+		<h2 class="white">28 March 2018</h2>
+		<p class="white">Marc Miller's requested feature was an interesting challenge and I dropped working on other code to make it work.</p>
+		<p class="white">Each map now has a "<" and a ">" button above it.  They slide all of the terrain left or right over the world map.  This allows slight adjustments to get important hexes (e.g. the starport and main town or a noble estate) into the centre of a map or triangle.</p>
+		<p class="white">The initial attempt simply got each hex to grab its west or east neighour's terrain to rotate the terrain around the globe.  The intriguing problem was that the polar regions ended up distorted because of the way that hexes north of the pentagons move west or east - because suddenly, relative to the middle part of the map, the hexes are 'moving faster'.</p>
+		<p class="white">The solution I implemented simply moves the top and bottom regions more slowly than the middle region.  This does <b>not</b> remove the distortion, but minimises it so that the polar regions keep the rough shapes of the terrain they have relative to the rest of the globe.  Moving back and forth an arbitrary amount will still distort the shape.  But it should be robust enough to make a minor adjustment without completely changing the map.</p>
+		<p class="white">To understand this problem, I had to print out a larger world (I chose a Size 9 world) with 50% hydrographics to give some interesting shapes, and then cut it out and fold it into the duodecahedron to visualise the problem.  It was fun!</p>
+		<h2 class="white">17 March 2018</h2>
+		<p class="white">This release contains two updates.  I have re-worked the Sector list - and unfortunately I have had to do away with multiple milieux of the same sector.</p>
+		<p class="white">HOWEVER, what I have added is that the last sector selected by the user is now automatically saved.  When the page is loaded again, the name of that sector is selected by default, and the worlds of that sector are loaded into the 'Select a world:' list.</p>
+		<p class="white">Marc Miller has requested a feature whereby we can move the rendering of the hexes east and west so that the main town with the starport or the city with the starport can be shifted towards the middle of a world triangle.  This is possible but will take some time.  It will be extremely awesome when I get it done.  Even if I do say so myself.  As a first step, I have simply stopped the starport being placed in the half-triangles the current east and west edges of the map.  This can still leave the starport positioned awkwardly on a half-hex between two triangles.</p>
+		<h2 class="white">25 February 2018</h2>
+		<p class="white">I am proud to announce that the system generation table now includes a link to map any world in the generated star system.  At the touch of a button, you can generate a map for any planet in Chartered Space, or your own Traveller Universe.</p>
+		<p class="white">The next step will be to make the names of objects in the system editable so that you can download more meaningful data.  I will also be working on downloading and uploading your own data into the system generation table so that you can save it and keep working on it.  This is an important precursor to being able to edit and generate details for each world such as gravity, temperature and so on.</p>
+		<h2 style-"margin-top:0">24 February 2018</h2>
+		<p class="white">Download As HTML and Download as Plain Text buttons added to the generated systems page.  The plain text file is a fixed-width data file - each systme entry is padded with spaces.  The HTML is an HTML file that includes the style sheet used by the T5 World Builder pages.  This means you can open it in your favourite word processor to edit it and save it.</p>
+		<p class="white">Future formats to be added for the system are tab-delimited and CSV.  CSV format allows the results to be imported into spreadsheet programs.</p>
+		<p class="white">If the sector you select from <a href="https://travellermap.com/">travellermap.com</a> has no world data, the world selector will now say so.  All data from <a href="https://travellermap.com/">travellermap.com</a> is now available to play with.  Where a sector does not have names for its worlds, the sector hex coordinate for each world is displayed in the world selection list.</p>
+		<h2 class="white">18 February 2018</h2>
+		<p class="white">Bug fixes to get World Hex, Terrain Hex, Local Hex maps working correctly.  Also fixed the Download Map buttons that stopped working.  System data table cleaned up slightly.</p>
+		<p class="white"><b>All</b> <a href="https://travellermap.com/">travellermap.com</a> sector data - Official OTU or not - is now accessible from the Select Sector drop-down box.</p>
+		<h2 class="white">22 January 2018</h2>
+		<p class="white">Published a draft Traveller5 extended star system generator.  At present it is little more than a proof-of-concept leveraging the code created for the Map generator.</p>
+		<p class="white">It is published as a separate web page because I'm lazy and I developed it as a separate page in my sandbox.  However, it will be integrated into one page in the near future with a title something like 'Traveller5 World Builder' with buttons for either generating a map or a system.</p>
+		<p class="white">Then the real fun starts: after developing the system format more and clarifying naming conventions for unnamed objects, put a link next to each world (not Gas Giants or Planetoid Belts to generate a map.</p>
+		<p class="white">Any UWP listed as "???????-?" in <a href="https://travellermap.com/">travellermap.com</a> data (see especially <a href="https://travellermap.com/data/corridor">Corridor Sector Data</a> is not added to the World List for selection.</p>
+		<p class="white">In generating the extended system, there are some departures from the T5 rules and interpretations.<p class="white">
+		<p class="white">The main world is always placed in the first available Habitable Zone.  This will change in future and the table on p. 408 of the T5.09 rules will be used.  I did this to simplify things while I worked out how to determine system zones and other system related conventions.</p>
+		<p class="white">Determining whether a given Satellite is Close or Far is done using the Book 6: Scouts throw (roll 2D: 7- = close, 8+ = far), and then rolling on the relevant column of table 2c on p. 408 of the T5.09 rules.</p>
+		<p class="white">Size zero is allowed for objects other than Planetoid Belts.  This is especially important for satellites because where a satellite's size is equal to or bigger than its planet, I have implemented the original T5 core rule that it is reduced to the planet's size minus 3 (p. 437 of the T5.0 core rules). In these circumstances, it should be interpreted in a similar way to Size 'S' of the original Book 6 extended system generator.</p>
+		<p class="white">Ring system orbits are rolled for using the 1D table found in Book 6: Scouts on page 28.</p>
+		<p class="white">Feedback is welcome - e-mail me at jonathan.a.sherlock@gmail.com.  I acknowledge there is still much work to be done.
+		<h2 class="white">7 November 2017</h2>
+		<p class="white">Implemented a polyfill for URLParameters to ensure links to particular maps are more robust and the code is simplified.</p>
+		<p class="white">Layout and style changes to make the user interface more logical and with a clear order.</p>
+		<h2 class="white">5 November 2017</h2>
+		<p class="white">The main noticeable change is the random number generator.  A new smaller generator by Rob Eaglestone and converted to javascript by Joshua Bell is now in use.  That means the nature of the seed has changed.  Instead of a 256-character string, it is an integer between 0 and 4,294,967,295.  If you have saved bookmarks to your favourite maps using links previously, many apologies.</p>
+		<p class="white">The new random number generator is faster, and the app can cope with up to size 20 worlds ... but you may have to tell the script to 'continue' if asked because it will take time.  My aim of being able to generate Size 33 ('Z') worlds is still unfulfilled.</p>
+		<p class="white">Layout has been modified to include tool tips and adjusted so that the 'Generate Map' button is more prominent and at the top of the screen.</p>
+		<p class="white">There have been many backend coding changes to make the app more robust into the future.  There will be a few more changes to the user experience and background code into the future.</p>
+		<p class="white">The rules interpretations will be better documented at some point in the future and circulated for discussion.</p>
+		<h2 class="white">21 October 2017</h2>
+		<p class="white">Many thanks to Joshua Bell of <a href="https://travellermap.com/">travellermap.com</a> fame for casting a professional eye over the website.  He raised a host of issues which I am working through.</p>
+		<p class="white">The first change is a to the general user experience.  So there have been major changes to layout.  Navigation bar to explanatory and background text introduced.  User input now gathered at the top with less scrolling down to buttons to get the action going.</p>
+		<p class="white">For now, functionality is the same.  There will be changes to the random number generator coming to speed up generation - this matters for larger world sizes.  There will also be various background changes to the code based on <i>inexorabletash</i>'s feedback.  But one thing at a time!</p>
+		<p class="white">As always, feedback is welcome.  Just e-mail me - I have a gmail account - jonathan dot a dot sherlock.</p>
+		<h2 class="white">7 October 2017</h2>
+		<p class="white">You can now drill down to the World Hex, Terrain Hex and Local Hex levels.  Click on an individual hex in any hex map to drill down to the next level.  All maps include a key and a scale.</p>
+		<p class="white">I have roughly documented my interpretations of the rules in <a href="Interpretations_7_Oct_2017.pdf" target="_blank">this PDF</a> file.  As always, feedback is welcome - I have a gmail account - jonathan dot a dot sherlock.  I would very much like feedback on interpretations of the rules, but also on website layout and, of course, any bugs.</p>
+		<h2 class="white">1 October 2017</h2>
+		<p class="white">You now have the option to generate a map in black & white.  This makes it easier to photocopy.</p>
+		<h2 class="white">29 September 2017</h2>
+		<p class="white">The <b>API is now open</b> in a similar way to <a href="https://travellermap.com/">travellermap.com</a>.</p>
+		<p class="white">The "API Documentation" help button under the "Select A World" heading gives more information about how to use it.</p>
+		<p class="white">Every map generated also has a URL posted beneath it to enable a direct recreation of that map using the world data just used.</p>
+		<p class="white">I have <b>changed the random number generator</b> to a faster algorithm with the seed still exposed.  If you have saved seeds, many apologies, they will no longer produce the same map.</p>
+		<p class="white">It is now much faster.  Although trying to generate a Size 20 world will give the 'script is taking too long ... continue or stop script' message, if you continue, it will generate the world.  Try it, it's fun (just substitute "L" for the size digit in any UWP).</p>
+		<p class="white">I have not managed to successfully generate a Size 33 ("Z") world yet.  That's too much for my browser.  Post photos at <a href="http://www.travellerrpg.com/CotI/Discuss/">CoTI</a> or the <a href="https://www.facebook.com/groups/travellerrpg/">Traveller RPG Facebook group</a> if your computer can do it.</p>
+		<h2 class="white">26 September 2017</h2>
+		<p class="white">This release fixes issues with World Hex maps and contains many background updates to rationalise the code.</p>
+		<p class="white">If you click on a Frozen Lands hex next to an Ice Field hex, the Ice Field now "creeps" onto the Frozen Land in a similar way that ocean "creeps" onto land to give wriggly coast lines.</p>
+		<p class="white">Half-hexes for Twilight Zones are now imposed on World Hexes and are a bit wriggly.</p>
+		<p class="white">Ice-caps now "creep" onto neighbouring hexes World Hex maps.</p>
+		<p class="white">Overall, the World Map provides an abstracted collection of world hexes, while each individual World Hex map provides more of the "crinkly bits" so beloved by Slartibartfast.</p>
+		<h2 class="white">18 September 2017</h2>
+		<p class="white">In this partial release, precipices and the two precipice lines for chasms are now traced onto World Hex Maps.  I am not completely satisfied with the results.</p>
+		<p class="white">The generator picks a random hex edge for the start, a random non-adjacent hex edge for the end, and picks a start and end hex from those edges.  Then it traces a random path from one to the other.</p>
+		<p class="white">The script does lock up occasionally because of a do..while loop that becomes infinite somehow when generating a World Hex Map with a chasm.  But it happens so rarely I thought it worth a release.</p>
+		<p class="white">The two precipice lines of a chasm are in different colours so you can see what the generator has attempted to do even if the line turns out to be a funny shape.</p>
+		<h2 class="white">10 September 2017</h2>
+		<p class="white">This is a <i>partial</i> new release.  World Names with UWPs are now bigger and at the top of the world map. The Download as PNG button now renders the SVG graphics at a higher resolution.</p>
+		<p class="white">In future I plan to implement letting the user choose the resolution of the PNG button.  At present a typical size 5 world is about 300kb - 400kb with the new resolution.  The trade-off will be better resolution for a larger file size.</p>
+		<p class="white">But most exciting for me, <b>click on the background</b> (not the terrain symbol!) of any hex on the world map and you get a map of that world hex.  I acknowledge this may cause issues with touch-screen devices.</p>
+		<p class="white">World Hex Maps are only in draft form.  I am still to implement Chasms and Precipice lines; the rules simply state "draw a precipice line through the hex" and I need to decide how this will work to be suitable squiggly and work in with shorelines and other terrain.</p>
+		<p class="white">At present, World Hex Maps do not take into account half-hexes in Twilight Zones.  I also want Frozen Lands and Ice Fields in Twlight Zone and Frozen worlds to have "shorelines" that are squiggly in a similar way to normal oceans and lands operate now.</p>
+		<p class="white">So check out a favourite world map, then generate a variety of World Hex maps.  You can download them in SVG or PNG format.</p>
+		<h2 class="white">26 August 2017</h2>
+		<p class="white">Instead of over-writing the world map when the "Generate Map" button is pressed, a new map is added.  The map download buttons are now produced for each individual map.  This allows users to generate multiple world maps for different worlds without starting again and still having access to previous maps generated in a particular session.  It also allows for using different random seeds until a satisfactory result is produced.</p>
+		<p class="white">Marc Miller has e-mailed in some great suggestions.  I will be working on them next, but for now I want to implement World Hex maps.  I will work on Marc's suggestions after that, before getting back to Terrain Hexes and Local Hexes.</p>
+		<p class="white">I also had a request to implement a 'Seed Me!' button.  This quickly creates a new random seed.  This means you can load or enter a world, generate a map, and if you don't like it, press the "Seed Me!" button and generate another map.  You can compare all the maps you have generated before downloading your preferred one.</p>
+		<h2 class="white">16 July 2017</h2>
+		<p class="white">The seed for random numbers is now exposed.  Enter any string upto 256 characters in length, or leave blank for a random seed.  If you wish to save a seed, copy and paste the seed for yourself.  I may add a "saved seed" library for individual users using cookies or an equivalent.</p>
+		<p class="white">This now uses a custom script that modifies the javascript random function.  The penalty is a cost in speed.  I have found when generating larger worlds (e.g. Size 18+) the script now takes 10-12 seconds.</p>
+		<h2 class="white">15 July 2017</h2>
+		<p class="white">Ocean placement is now randomised, not just world triangles marked off as oceans.  Maps are now looking heaps better.</p>
+		<p class="white">This meant I had to change the definition of a 'continent' for the purpose of placing features that the rules require placement of 'one per continent'.  A continent is simply all the land hexes in a particular world triangle, regardless of whether they are separated by ocean or not.</p>
+		<p class="white">To get around world of lower size (less than 5) and higher oceans (more than 7 for hydrographics), the program now simply selects a certain percentage of hexes overall as ocean hexes instead of trying to place separate oceans in neater shapes.  The randomly placed hexes on these kinds of worlds generally work out to a reasonably pleasing shape given there are few land hexes left.</p>
+		<p class="white">To simplify placement of settled areas, all settled areas must now be placed on land or islands.</p>
+		<p class="white">I will be working on exposing the random seed generator next.</p>
+		<h2 class="white">11 July 2017</h2>
+		<p class="white">Twilight Zone now works except for Size 1 worlds.  For now, all settled areas (cities, towns, arcologies, starports, cropland and rural areas) are still placed randomly, ignoring the Twilight Zone.</p>
+		<p class="white">Users will have the option, in future, to control where settled areas are placed.  But I need to change the way that oceans are placed which will change assumptions about what constitutes an 'ocean' and what a 'continent' is.</p>
+		<p class="white"><b>UPDATE:</b> Size 1 was easier to implement than I anticipated.  Now also done.
+		<h2 class="white">9 July 2017</h2>
+		<p class="white">Map key added.</p>
+		<p class="white">Rendering of world details with neat black outline added.  Open to feedback on design.</p>
+		<p class="white">Map can now be downloaded in either PNG or SVG formats.</p>
+		<h2 class="white">7 July 2017</h2>
+		<p class="white">Option added to select a world from OTU sectors using <a href="https://travellermap.com/">travellermap.com</a> data.</p>
+		<p class="white">Users now enter comprehensive T5 data, or modify what was loaded before generating and / or downloading a map.</p>
+		<p class="white"><b>BUG FIX:</b> to enable worlds to load in Chrome.</p>
+		<h2 class="white">5 July 2017</h2>
+		<p class="white">Map generator first published.  User input a name and UWP and number of resources, and the generator calculated Trade Codes and generated the map.</p>
+	</div>
+	<div class="container" id="contact_me" style="display:none;">
+		<div style="margin-bottom:0;background-color:#4e4e50">
+			<h1>Contact</h1>
+		</div>
+		<div class="white" style="margin-top:0.2em">
+			<p class="white">Best contact is e-mail: jonathan dot a dot sherlock at gmail.com.</p>
+			<p class="white">I can also be contacted at <a href="https://www.travellerrpg.com/index.php" target="_blank">Citizens of the Imperium</a>.  My username is <a href="https://www.travellerrpg.com/index.php?members/ojnothered.10607/"  target="_blank">OjnoTheRed</a>.</p>
+			<p class="white">Please report bugs!  I test the code myself but there are always combinations I could not foresee.</p>
+			<p class="white">I also love suggestions for future development.  If it's not on my to-do list, you can put it on my to-do list.</p>
+			<p class="white">Lastly, do you have your own application and wish you could take data from here?  E-mail me and I will probably be able to get the data supplied in a format you want.</p>
+		</div>
+		<div style="margin-bottom:0;background-color:#4e4e50">
+			<h1>To-do list</h1>
+		</div>
+		<div style="margin-top:0.2em">
+			<p class="white"><b>Edit star positions</b> so that Close Companions can be changed to other orbits, and stars can be made Close Companions. I may reconfigure how orbits are edited completely.</p>
+			<p class="white"><b>Better layout</b> for the world details</p>
+			<p class="white"><b>Traditional World map size</b> - option to have traditional one-size maps based on Classic Traveller.</p>
+			<p class="white"><b>BeastMaker</b> - either a bunch of tables for the world, or generate an encounter table for particular terrain hexes</p>
+			<p class="white"><b>Weather and seismic events</b> listed next to every Terrain Hex based on Grand Survey.</p>
+			<p class="white"><b>Generate Sophonts</b> for relevant NIL values</p>
+			<p class="white"><b>Cargo calculator</b> - including saving calculated cargoes to a list for recall to sell cargoes on a particular world.</p>
+			<p class="white"><b>Plant Maker</b> for colour and description</p>
+			<p class="white"><b>Variations for World Hex, Terrain Hex and Local Hex maps</b> - greater random variations to layout.</p>
+			<p class="white"><b>Edit World Hex, Terrain Hex and Local Hex maps</b> - they will save with the star system.</p>
+			
+		</div>
+	</div>
+	<div class="container" id="credits" style="display:none;">
+		<div style="margin-bottom:0;background-color:#4e4e50">
+			<h1>Credits</h1>
+		</div>
+		<div style="margin-top:0.2em">
+			<p class="white">Creator of Traveller Worlds: Jonathan Sherlock</p>
+			<p class="white">Download as PNG uses <a href="https://github.com/exupero/saveSvgAsPng">this Github project</a>.</p>
+			<p class="white">Download as SVG uses <a href="https://github.com/eligrey/FileSaver.js/blob/master/FileSaver.js">this one</a> by Eli Grey.</p>
+			<p class="white">Parsing the URL using javascript taken from <a href="https://stackoverflow.com/questions/814613/how-to-read-get-data-from-a-url-using-javascript">here</a>.</p>
+			<p class="white">World maps and systems are generated using the <a href="http://www.drivethrurpg.com/product/150646/T5-Traveller5-Core-Rules-Book-759-pages">Traveller5 5.09 Core Rules</a>.</p>
+			<p class="white">Optima font is the <a href="http://www.freefontsdownload.net/free-optima-font-39.htm">free version</a>.</p>
+			<p class="white">Data parsing from travellermap.com uses some code taken from <a href="https://github.com/inexorabletash/travellermap/blob/master/make/routes.html#L150">here</a>.</p>
+			<p class="white">System symbolic map table uses ideas and CSS from Joshua Bell, taken from <a href="https://travellermap.com/tmp/sys.html">https://travellermap.com/tmp/sys.html</a>.</p>
+			<p class="white">Thinking about Symbols in the Cultural Extension uses ideas by Thomas Jones-Low found <a target="_blank" href="http://www.travellerrpg.com/CotI/Discuss/showpost.php?p=577390&postcount=29">here</a>.</p>
+		</div>
+	</div>
+	<div class="container" id="legal" style="display:none;">
+		<div style="margin-bottom:0.2em;background-color:#4e4e50">
+			<h1>Legal</h1>
+		</div>
+	    <p class="white">The Traveller game in all forms is owned by <a href="http://www.farfuture.net/">Far Future Enterprises</a>. Copyright 1977 - 2020 Far Future Enterprises. Traveller is a registered trademark of Far Future Enterprises. Far Future permits web sites and fanzines for this game, provided it contains this notice, that Far Future is notified, and subject to a withdrawal of permission on 90 days notice. The contents of this site are for personal, non-commercial use only. Any use of Far Future Enterprises's copyrighted material or trademarks anywhere on this web site and its files should not be viewed as a challenge to those copyrights or trademarks. In addition, any program/articles/file on this site cannot be republished or distributed without the consent of the author who contributed it.</p>
+	</div>
+	<div class="container" id="tutorial" style="display:none;">
+		<div class="contained">
+			<p>A quick and dirty 5-minute overview of the features of TravellerWorlds <a href="https://www.youtube.com/embed/hUmh3Jvnwx4" target="_blank">on YouTube</a>.</p>
+			<p>A look at 'Your Preferences' <a href="https://www.youtube.com/embed/kJORn_5a_wo" target="_blank">on YouTube</a>.</p>
+			<p>Giving good feedback for TravellerWorlds - <a href="https://youtu.be/W_gn2pshn_A" target="_blank">my video</a>.</p>
+			<p>A google doc outlining the rules used by TravellerWorlds can be found <a href="https://docs.google.com/document/d/1O2P9gN9CkGMo-fAIaZpnb9Cfey5UPl2Xzr5xhQ1EHFg/edit?usp=sharing"  target="_blank">here.</a></p>
+			<p>A google doc explaining the export of map data can be found <a target="_blank" href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit">here</a>.
+		</div>
+	</div>
+	<div class="container" id="beasts" style="display:none;">
+		<h1>Beast Maker tables</h1>
+		<div class="contained">	
+			<p id="beastExplanation"></p>
+		</div>
+		<div class="contained" id="beastArea">
+		
+		</div>
+	</div>
+	<div id="myAlert" class="alertBox">
+		<p class="alertBoxHeading">Traveller Worlds</p>
+		<p id="alertMessage" style="margin-top:0.4em;"></p>
+		<button onclick="this.parentElement.style.display='none';">OK</button>
+	</div>
+	<div id="myConfirm" class="alertBox">
+		<p class="alertBoxHeading">Traveller Worlds</p>
+		<p id="confirmMessage" style="margin-top:0.4em;"></p>
+		<button id="confirmYes">Yes</button>
+		<button id="confirmNo">No</button>
+	</div>
+	<div class="container" id="beastDetail" style="display:none;">
+		<h1>Beast Details</h1>
+		<div class="contained-flex">
+			<div class="formItem">
+				<p class="guidelines" id="world_name_lbl">Beast Name</p>
+				<input class="worldDetails" id="beast_name_edit" type="text" maxlength="50" value="" />
+				<span class="tooltiptext">Name your beast here.</span>
+			</div>
+			<div class="formItem">
+				<p class="guidelines" id="">Niche</p>
+				<select class="worldDetails" id="niche_edit" onchange="updateSubNiche();">
+					<option>Producer</option>
+					<option>Herbivore</option>
+					<option>Omnivore</option>
+					<option>Carnivore</option>
+					<option>Scavenger</option>
+				</select>				
+			</div>
+			<div class="formItem">
+				<p class="guidelines" id="">Subniche</p>
+				<select class="worldDetails" id="subniche_edit">
+					<option></option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines" id="">Locomotion</p>
+				<select class="worldDetails" id="locomotion_edit">
+					<option>Walker</option>
+					<option>Amphibian</option>
+					<option>Triphibian</option>
+					<option>Aquatic</option>
+					<option>Diver</option>
+					<option>Flyer</option>
+					<option>Flyphibian</option>
+					<option>Swimmer</option>
+					<option>Static</option>
+					<option>Drifter</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Quantity</p>
+				<select class="worldDetails" id="quantity_edit">
+					<option>Solitary (1)</option>
+					<option>Single (1)</option>
+					<option>Pair (half D)</option>
+					<option>Small Group (1D)</option>
+					<option>Large Group (1D+2)</option>
+					<option>Pack (2D)</option>
+					<option>Small Herd (3D)</option>
+					<option>Large Herd (4D)</option>
+					<option>Small Swarm (6D)</option>
+					<option>Large Swarm (8D)</option>
+					<option>Hive (2D*2D)</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Size</p>
+				<select class="worldDetails" id="beast_size_edit" onchange="updateBeastStrength();>
+					<option value="R">Microscopic</option>
+					<option value="T">Miniscule</option>
+					<option value="1">Tiny</option>
+					<option value="2">Very Small</option>
+					<option value="3">Small</option>
+					<option value="4">Typical</option>
+					<option value="5">Large</option>
+					<option value="6">Very Large</option>
+					<option value="7">Gigantic</option>
+					<option value="8">Colossal</option>
+					<option value="9">Very Colossal</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Strength</p>
+				<select class="worldDetails" id="beast_strength_edit">
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Speed</p>
+				<select class="worldDetails" id="beast_speed_edit">
+					<option value="0">Static</option>
+					<option value="1">Walk</option>
+					<option value="2">Run</option>
+					<option value="3">Sprint</option>
+					<option value="4">Charge</option>
+					<option value="5">Fast</option>
+					<option value="6">Very Fast</option>
+					<option value="7">Extra Fast</option>
+					<option value="8">Highly Fast</option>
+				</select>
+			</div>			
+			<div class="formItem">
+				<p class="guidelines">Attack Target Number</p>
+				<select class="worldDetails" id="beast_attack_TN">
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="12">12</option>
+					<option value="13">13</option>
+					<option value="N">No</option>
+					<option value="S">If Surprise</option>
+					<option value="P">If Possible</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Flee Target Number</p>
+				<select class="worldDetails" id="beast_flee_TN">
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="N">No</option>
+					<option value="S+">If Surprised</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Weapon</p>
+				<select class="worldDetails" id="beast_weapon">
+					<option>Horns</option>
+					<option>Antlers</option>
+					<option>Tusks</option>
+					<option>Fangs</option>
+					<option>Teeth</option>
+					<option>Claws</option>
+					<option>Hooves</option>
+					<option>Spikes</option>
+					<option>Quills</option>
+					<option>Sting</option>
+					<option>Manipulator</option>
+					<option>Ped</option>
+					<option>Thag</option>
+					<option>Body</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Armour</p>
+				<select class="worldDetails" id="beast_armour_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="2">2D</option>
+					<option value="3">3D</option>
+					<option value="4">4D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">RadProof</p>
+				<select class="worldDetails" id="beast_radproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Flashproof</p>
+				<select class="worldDetails" id="beast_flashproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">SoundProof</p>
+				<select class="worldDetails" id="beast_soundproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Sealed</p>
+				<select class="worldDetails" id="beast_sealed_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+					<option value="2">2D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Insulated</p>
+				<select class="worldDetails" id="beast_insulated_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+					<option value="2">2D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">PsiProof</p>
+				<select class="worldDetails" id="beast_psiproof_edit" name="beast_armour">
+					<option value="0">None</option>
+					<option value="1">1D</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Stance</p>
+				<select class="worldDetails" id="beast_stance">
+					<option value="V">Verticle</option>
+					<option value="H">Horizontal</option>
+				</select>
+			</div>		
+			<div class="formItem">
+				<p class="guidelines">Symmetry</p>
+				<select class="worldDetails" id="beast_symmetry">
+					<option>Asymmetrical</option>
+					<option>Bilateral</option>
+					<option>Trilateral</option>
+					<option>Radial</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Breathing Location</p>
+				<select class="worldDetails" id="beast_breathing_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Brain Location</p>
+				<select class="worldDetails" id="beast_brain_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Senses Location</p>
+				<select class="worldDetails" id="beast_senses_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Feeding Location</p>
+				<select class="worldDetails" id="beast_feeding_location">
+					<option value="H">Head</option>
+					<option value="T">Torso</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Front Limbs Group 1</p>
+				<select class="worldDetails" id="beast_front_limbs_1">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Front Limbs Group 2</p>
+				<select class="worldDetails" id="beast_front_limbs_2">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Rear Limbs Group 1</p>
+				<select class="worldDetails" id="beast_rear_limbs_1">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Rear Limbs Group 2</p>
+				<select class="worldDetails" id="beast_rear_Limbs_2">
+					<option value="A">Arm</option>
+					<option value="L">Leg</option>
+					<option value="M">Legs</option>
+					<option value="W">Wing</option>
+					<option value="F">Flipper</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Tail</p>
+				<select class="worldDetails" id="beast_tail">
+					<option value="P">Proboscis</option>
+					<option value="T">Tail</option>
+					<option value="V">Vestigial</option>
+					<option value="M">Manipulator</option>
+					<option value="A">Antennae</option>
+					<option value="N">None</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Skeleton</p>
+				<select class="worldDetails" id="beast_skeleton">
+					<option>Fluid Interior Sacs</option>
+					<option>Cartilage interior</option>
+					<option>Bony Interior</option>
+					<option>Exoskeleton</option>
+					<option>Segmented Shell</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Fluids</p>
+				<select class="worldDetails" id="beast_fluids">
+					<option>Foam</option>
+					<option>Lymph</option>
+					<option>Hemolymph</option>
+					<option>Ichor</option>
+					<option>Blood</option>
+					<option>Gore</option>
+					<option>Slime</option>
+					<option>Scum</option>
+					<option>Humours</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Skin</p>
+				<select class="worldDetails" id="beast_skin">
+					<option>Feathery pelt</option>
+					<option>Furry Pelt</option>
+					<option>Leather</option>
+					<option>Skin</option>
+					<option>Fine Scales</option>
+					<option>Scales</option>
+					<option>Spines</option>
+					<option>Plates</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Colour</p>
+				<select class="worldDetails" id="beast_colour">
+					<option>Brilliant</option>
+					<option>Bright</option>
+					<option>Drab</option>
+					<option>Camouflage</option>
+					<option>Monochrome</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Manipulators</p>
+				<select class="worldDetails" id="beast_manipulators">
+					<option>Tentacles</option>
+					<option>Grippers</option>
+					<option>Hands</option>
+					<option>Paws</option>
+					<option>Graspers</option>
+					<option>Sockets</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Width Divisor</p>
+				<select class="worldDetails" id="beast_body_width_divisor">
+					<option>100</option>
+					<option>20</option>
+					<option>12</option>
+					<option>11</option>
+					<option>10</option>
+					<option>9</option>
+					<option>8</option>
+					<option>7</option>
+					<option>6</option>
+					<option>1.5</option>
+					<option>1</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Width</p>
+				<p class="worldDetails" id="beast_width"></p>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Depth Divisor</p>
+				<select class="worldDetails" id="beast_body_depth_divisor">
+					<option>100</option>
+					<option>20</option>
+					<option>12</option>
+					<option>11</option>
+					<option>10</option>
+					<option>9</option>
+					<option>8</option>
+					<option>7</option>
+					<option>6</option>
+					<option>1.5</option>
+					<option>1</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Depth</p>
+				<p class="worldDetails" id="beast_depth"></p>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Density</p>
+				<select class="worldDetails" id="beast_density">
+					<option value="0.1">Sack</option>
+					<option value="0.5">Hollow</option>
+					<option value="0.9">Light</option>
+					<option value="1.0">Standard</option>
+					<option value="1.1">Dense</option>
+					<option value="1.5">Very Dense</option>
+				</select>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Volume</p>
+				<p class="worldDetails" id="beast_volume"></p>
+			</div>
+			<div class="formItem">
+				<p class="guidelines">Mass</p>
+				<p class="worldDetails" id="beast_mass"></p>
+			</div>
+<!--			<div class="formItem">
+				<p class="guidelines"></p>
+				<input class="worldDetails" id="" type="text" maxlength="50" />
+				<select class="worldDetails" id="">
+					<option></option>
+				</select>
+			</div> -->
+		</div>
+	</div>
+</body>
+</html>
