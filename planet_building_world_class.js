@@ -3524,6 +3524,15 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 									me.totalAvailOrb += orbit_set.availableOrbitCount();
 								});
 		var mwType = "";
+                if(me.mainWorld.dataObj.remarks.indexOf("Pl") >= 0)
+                {
+                    mwType = "";
+                    me.mainWorld.tcs.del("Pl");
+                }
+                else if(me.mainWorld.dataObj.remarks.indexOf("Lk") >= 0 || me.mainWorld.dataObj.remarks.indexOf("Sa") >= 0)
+                        mwType = "Sa";
+                else
+                {
 		if(!uPObj.prefs.main_world_is_sat && !uPObj.prefs.main_world_not_sat && me.mainWorld.uwp.size != 0)
 		{
 			mwSatTbl = new dice_table(MAIN_WORLD_SATELLITE_TABLE);
@@ -3533,6 +3542,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 			mwType = dice(1) > 3 ? "Sa" : "Lk";
 		if(uPObj.prefs.main_world_not_sat || me.mainWorld.uwp.size == 0)
 			mwType = "";
+                }
 		if(mwType == "Sa" || mwType == "Lk")
 		{
 			me.mainWorld.tcs.add("Sa");
