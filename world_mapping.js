@@ -616,6 +616,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function addOcean(selectedHex)
 	{
+		if(me.world.tcs.has("Va"))
+			return;
 		selectedHex.terrainTypes.push(oceanTerrain);
 		selectedHex.clear = false;
 		if(selectedHex.has(mountainTerrain))
