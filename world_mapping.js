@@ -783,8 +783,18 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			iceCapRows = Math.min(iceCapRows + dice(1),me.world.uwp.size*2);
 		if(iceCapRows > -1)
 		{
+                        if(me.getHex(-1,-1).has(islandTerrain))
+                        {
+                                me.getHex(-1,-1).erase(islandTerrain);
+                                me.getHex(-1,-1).add(mountainTerrain);
+                        }
 			me.getHex(-1,-1).add(icecapTerrain);
 			me.getHex(-1,-1).clear = false;
+                        if(me.getHex(-2,-2).has(islandTerrain))
+                        {
+                                me.getHex(-2,-2).erase(islandTerrain);
+                                me.getHex(-2,-2).add(mountainTerrain);
+                        }
 			me.getHex(-2,-2).add(icecapTerrain);
 			me.getHex(-2,-2).clear = false;
 		}
@@ -793,6 +803,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				if(me.worldTriangles[i].hexes[j].rowNumber < iceCapRows || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRows))
 				{
+                                        if(me.worldTriangles[i].hexes[j].has(islandTerrain))
+                                        {
+                                                me.worldTriangles[i].hexes[j].erase(islandTerrain);
+                                                me.worldTriangles[i].hexes[j].add(mountainTerrain);
+                                        }
 					me.worldTriangles[i].hexes[j].add(icecapTerrain)
 					me.worldTriangles[i].hexes[j].erase(oceanTerrain);
 					me.worldTriangles[i].hexes[j].clear = false;
@@ -812,6 +827,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				continue;
 			if(hex.has(oceanTerrain))
 			{
+                                if(hex.has(islandTerrain))
+                                {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                }
 				hex.erase(oceanTerrain);
 				hex.add(iceFieldTerrain);
 			}
@@ -837,6 +857,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 					continue;
 				if(hex.has(oceanTerrain))
 				{
+                                        if(hex.has(islandTerrain))
+                                        {
+                                                hex.erase(islandTerrain);
+                                                hex.add(mountainTerrain);
+                                        }
 					hex.erase(oceanTerrain);
 					hex.add(iceFieldTerrain);
 				}
@@ -1228,9 +1253,13 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				if(hex.has(oceanTerrain))
 				{
+					if(hex.has(islandTerrain))
+					{
+						hex.erase(islandTerrain);
+						hex.add(mountainTerrain);
+					}
 					hex.erase(oceanTerrain);
 					hex.add(iceFieldTerrain);
-					hex.erase(islandTerrain);
 				}
 				else
 				{
@@ -1241,13 +1270,13 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				if(hex.has(oceanTerrain))
 				{
-					hex.erase(oceanTerrain);
-					hex.add(desertTerrain);
 					if(hex.has(islandTerrain))
 					{
 						hex.erase(islandTerrain);
 						hex.add(mountainTerrain);
 					}
+					hex.erase(oceanTerrain);
+					hex.add(desertTerrain);
 				}
 				else
 				{
