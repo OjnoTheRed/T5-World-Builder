@@ -1650,7 +1650,7 @@ defines the actual drawing of terrain, its code for saving, its name, and variou
 Type is an integer with the following meanings:
 0 - base terrain: a hex must have exactly one base terrain assigned
 1 - symbol: a hex can have any number of terrain classed as a symbol
-2 - overlay: a hex may have 0 or 1 overlay terrain (generally the half-hexes needed for Twilight Zone worlds)
+2 - overlay: a hex may have 0, 1 or 2 overlay terrain (generally the half-hexes needed for Twilight Zone worlds)
 3 - key only: may not be placed on the map (e.g. scale)
 
 */
@@ -1748,14 +1748,16 @@ var desertTerrain = {name:"Desert", code:22, draw: function(aWorldHex)
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
 															addLine(l+3,t+17,l+30,t+17,"3px",strokeColour,aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false, type:0};														
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var desertTerrainWest = {name:"Desert West Half Only", code:118, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.desert_terrain_bw_bg : uPObj.prefs.desert_terrain_bg;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+3,t+17,l+16,t+17,"3px",strokeColour,aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(aWorldHex)
@@ -1764,7 +1766,9 @@ var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.desert_terrain_bw_bg : uPObj.prefs.desert_terrain_bg;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+16,t+17,l+30,t+17,"3px",strokeColour,aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var oceanTerrain = {name:"Ocean", code:31, draw: function(aWorldHex)
@@ -1869,7 +1873,9 @@ var iceFieldTerrainWest = {name:"Ice Field West Half Only", code:108, draw:funct
 															s += "M " + (l+13) + " " + (t+10) + " L " + (l+14) + " " + (t+6) + " L " + (l+16) + " " + (t+6) + " ";
 															var s1 = "M " + (l+5) + " " + (t+15) + " Q " + (l+11) + " " + (t+11) + " " + (l+16) + " " + (t+15);
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(230,236,255)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addPath(s, 2, "black", "none",aWorldHex.parentObj);
 															addPath(s1,2,"black","none",aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -1882,7 +1888,9 @@ var iceFieldTerrainEast = {name:"Ice Field East Half Only", code:109, draw:funct
 															s += "M " + (l+21) + " " + (t+10) + " L " + (l+22) + " " + (t+6) + " L " + (l+26) + " " + (t+6) + " L " + (l+27) + " " + (t+10) + " ";
 															var s1 = "M " + (l+16) + " " + (t+15) + " Q " + (l+21) + " " + (t+19) + " " + (l+27) + " " + (t+15);
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(230,236,255)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour, aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour, aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addPath(s, 2, "black", "none", aWorldHex.parentObj);
 															addPath(s1, 2,"black", "none", aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -1901,7 +1909,9 @@ var frozenLandTerrainWest = {name:"Frozen Land West Half Only", code:106, draw:f
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(219,223,185)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+5,t+7,l+16,t+7,"2px","rgb(0,0,0)",aWorldHex.parentObj);
 															addPath("M " + (l+5) + " " + (t+12) + " Q " + (l+11) + " " + (t+9) + " " + (l+16) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -1910,7 +1920,9 @@ var frozenLandTerrainEast = {name:"Frozen Land East Half Only", code:107, draw:f
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(219,223,185)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+16,t+7,l+27,t+7,"2px","black",aWorldHex.parentObj);
 															addPath("M " + (l+16) + " " + (t+12) + " Q " + (l+21) + " " + (t+15) + " " + (l+27) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -2011,7 +2023,9 @@ var bakedLandsWestHalfTerrain = {name:"Baked Lands West Half Only", code:104, dr
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(204,0,0)";
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(255,119,51)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															for(var i=0;i<4;i++)
 																addRectangle(l+3+i*4,t+7,2,2,strokeColour,"1px",strokeColour,aWorldHex.parentObj);
 															addLine(l+3,t+11,l+16,t+11,"2px",strokeColour,aWorldHex.parentObj);
@@ -2022,7 +2036,9 @@ var bakedLandsEastHalfTerrain = {name:"Baked Lands East Half Only", code:105, dr
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(204,0,0)";
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(255,119,51)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															for(var i=4;i<7;i++)
 																addRectangle(l+3+i*4,t+7,2,2,strokeColour,"1px",strokeColour,aWorldHex.parentObj);
 															addLine(l+16,t+11,l+29,t+11,"2px",strokeColour,aWorldHex.parentObj);
@@ -2682,9 +2698,12 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 					me.add(terrainToAdd);					
 				break;
 			case 2:
-				var existingOverlay = me.terrainTypes.find(function(v) { return v.type == 1; });
+				var addingWest = (terrainToAdd.name.indexOf("West") >= 0)
+				var existingOverlay = me.terrainTypes.find(function(v) { return v.type == 2 && v.name.indexOf(addingWest?"West":"East") >= 0; });
 				if(existingOverlay === undefined)
 					me.add(terrainToAdd);
+				else if(existingOverlay === terrainToAdd)
+					me.erase(existingOverlay);
 				else
 					me.transform(existingOverlay, terrainToAdd);				
 		}
