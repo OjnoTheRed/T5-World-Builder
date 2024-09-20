@@ -102,18 +102,16 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(!me.blank)
 		{
 			mountains();
+			chasms();
+			precipices();
+			exotic();
+			resourceHexes();
 			oceans();
 			continents(); // not actual terrain placement, but defines a continent as all non-ocean hexes in a world triangle
 			craters();
 			seas();
-			icecaps();
-			frozenPlanet();
-			tundra();
-			twilightZone();
 			cities();
 			rural();
-			chasms();
-			precipices();
 			ruins();
 			cropLand();
 			lowPopulTown();
@@ -121,11 +119,15 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			starport();
 			penal();
 			waste();
-			exotic();
+			icecaps();
+			frozenPlanet();
+			hellishPlanet();
+			moltenPlanet();
+			tundra();
 			desert();
+			twilightZone();
 			if(uPObj.prefs.place_noble_estate)
 				nobleLand();
-			resourceHexes();
 			clearTerrainAllocate();
 		}
 	}
