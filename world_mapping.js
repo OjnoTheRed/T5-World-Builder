@@ -101,7 +101,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			return;
 		if(!me.blank)
 		{
-			desert();
 			mountains();
 			oceans();
 			continents(); // not actual terrain placement, but defines a continent as all non-ocean hexes in a world triangle
@@ -123,6 +122,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			penal();
 			waste();
 			exotic();
+			desert();
 			if(uPObj.prefs.place_noble_estate)
 				nobleLand();
 			resourceHexes();
@@ -738,6 +738,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(!me.world.tcs.has("De"))
 			return;
 		for(var i=0;i<me.hexes.length;i++)
+                    if(!me.hexes[i].has(oceanTerrain) && !me.hexes[i].has(icecapTerrain))
 			me.hexes[i].add(desertTerrain);
 	}
 
