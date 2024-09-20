@@ -2532,7 +2532,8 @@ function nil(worldObject)
 			s += "Corporate ";
 		if(me.world.gov == 6)
 			s += "Colonial ";
-		s += me.type.name;
+		if(me.type)
+                        s += me.type.name;
 		return s;
 	}
 
