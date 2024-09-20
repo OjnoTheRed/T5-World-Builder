@@ -3155,14 +3155,14 @@ function generateHexMap(parentHex, mapType, mapClass)
 
 
 	var userSeed = parseInt(document.getElementById("seed").value);
-	var seedUsed = userSeed;
+	var seedUsed = userSeed + parentHex.columnNumber * 100 + parentHex.rowNumber;
 	if(userSeed)
 		init_rng(seedUsed);
 	else
 	{
 		seedUsed = Date.now() >>> 0;
 	}
-	document.getElementById("seed").value = seedUsed;
+//	document.getElementById("seed").value = seedUsed;
 
 	var map = new mapClass(hexMapSVG, parentHex);
 	map.generate();
