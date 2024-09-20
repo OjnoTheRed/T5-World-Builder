@@ -1735,7 +1735,8 @@ var cratersTerrain = {name:"Craters", code:74, draw:function(aWorldHex)
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(64,64,64)";
 															var craterFill = uPObj.prefs.black_and_white_map ? "white" : "rgb(204,204,204)";
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(194,194,163";
-															addCircle(l+16, t+17, 9, 1, strokeColour, craterFill,aWorldHex.parentObj);
+                                                                                                                        var fillOpacity = 0.5;  // needed so underlying symbols remain visible
+															addCircle(l+16, t+17, 9, 1, strokeColour, craterFill,aWorldHex.parentObj, fillOpacity);
 															aWorldHex.hexElem.style.fill = fillColour;
 
 														}, toString:function(){ return this.name}, preferLand:true, type:0};
@@ -2217,7 +2218,8 @@ var lakeTerrain = {name:"Lake", code:35, draw:function(aWorldHex)
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var lakeFill = uPObj.prefs.black_and_white_map ? "rgb(127,127,127)" : "blue";
-															addCircle(l+16, t+17, 8, 1, "black", lakeFill,aWorldHex.parentObj);
+                                                                                                                        var fillOpacity = 0.5;  // needed so underlying symbols remain visible
+															addCircle(l+16, t+17, 8, 1, "black", lakeFill,aWorldHex.parentObj, fillOpacity);
 														}, toString:function() {return this.name} , preferLand:true, type:0};
 var lakeTerrain2 = {name: "Lake", code: 37, draw:function(aWorldHex)
 														{
@@ -4533,13 +4535,15 @@ function addLine(x1, y1, x2, y2, strokeWidth, stroke, parentObj, dashed)
 
 }
 
-function addCircle(cx, cy, r, strokeWidth, stroke, fill, parentObj)
+function addCircle(cx, cy, r, strokeWidth, stroke, fill, parentObj, opacity)
 {
 	var circle = document.createElementNS(svgNS,"circle");
 	circle.setAttributeNS(null,"cx",cx);
 	circle.setAttributeNS(null,"cy",cy);
 	circle.setAttributeNS(null,"r",r);
-	circle.setAttributeNS(null,"style","stroke=width:" + strokeWidth + ";stroke:" + stroke + ";fill:" + fill);
+        if(!opacity)
+                opacity = 1.0;
+	circle.setAttributeNS(null,"style","stroke=width:" + strokeWidth + ";stroke:" + stroke + ";fill:" + fill + ";fill-opacity:"+opacity);
 	parentObj.appendChild(circle);
 }
 
