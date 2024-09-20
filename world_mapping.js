@@ -39,8 +39,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		me.map_top_offset = 200;
 		me.mapHeight = me.map_top_offset+(3*me.world.uwp.size+1)*28+MAP_KEY_HEIGHT;
 	}
-	me.parentObj.setAttributeNS(null,"height","");
-	me.parentObj.setAttributeNS(null,"width","100%");	
+	me.parentObj.setAttributeNS(null,"height","100%");
+	me.parentObj.setAttributeNS(null,"width","100%");
 	me.parentObj.setAttributeNS(null,"viewBox","0 0 " + me.mapWidth + " " + me.mapHeight);
 	me.topCoverTrianglePoints = [];
 	me.bottomCoverTrianglePoints = [];
