@@ -2445,7 +2445,8 @@ function tcs(world)
 
 	me.generate = function()
 	{
-		me.classes = [];
+//		me.classes = [];
+            if(me.classes.length == 0)
 		for(var i=0;i<ALL_TC.length;i++)
 			if(ALL_TC[i].rules(me.world))
 				me.add(ALL_TC[i].code);
@@ -3540,6 +3541,8 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 			me.mainWorld.isSatellite = false;
 		if(mwType == "Lk")
 			me.mainWorld.tcs.add("Lk");
+//                if(me.mainWorld.dataObj.remarks.indexOf("Tz") >= 0)
+//                        me.mainWorld.tcs.add("Tz");
 		var mainWorldPlaced = false;
 		if(!uPObj.prefs.main_world_hz_only)
 		{
