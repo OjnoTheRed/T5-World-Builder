@@ -3177,7 +3177,9 @@ function generateHexMap(parentHex, mapType, mapClass)
 
 
 	var userSeed = parseInt(document.getElementById("seed").value);
-	var seedUsed = userSeed + parentHex.hexID;
+        var seedUsed = userSeed + parentHex.columnNumber * 100 + parentHex.rowNumber;
+        if(parentHex.hexID < 0)
+            seedUsed = userSeed + parentHex.hexID;
 	if(userSeed)
 		init_rng(seedUsed);
 	else
