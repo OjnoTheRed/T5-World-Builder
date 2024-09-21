@@ -849,6 +849,28 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(!me.world.tcs.has("Tu"))
 			return;
 		var numTundraRows = dice(1);
+                var poles = [me.getHex(-1,-1), me.getHex(-2,-2)]
+                for (var i in poles)
+                {
+                    var hex = poles[i];
+                    if(!hex.has(icecapTerrain))
+                    {
+				if(hex.has(oceanTerrain))
+				{
+                                        if(hex.has(islandTerrain))
+                                        {
+                                                hex.erase(islandTerrain);
+                                                hex.add(mountainTerrain);
+                                        }
+					hex.erase(oceanTerrain);
+					hex.add(iceFieldTerrain);
+				}
+				else
+				{
+					hex.add(frozenLandTerrain);
+				}
+                    }
+                }
 		for(var i=0;i<me.worldTriangles.length;i++)
 			for(var j=0;j<me.worldTriangles[i].hexes.length;j++)
 			{
