@@ -857,6 +857,7 @@ function world()
 				if(extrFnc())
 					ROTATIONAL_PERIOD *= extrFnc();
 			}
+			if(me.dataObj.remarks.indexOf('Pl') < 0)    // if Pl code given, would also give Tz code if needed, so skip the check
 			me.lockCheck();
 		}
 		ROTATIONAL_PERIOD = Math.floor(ROTATIONAL_PERIOD*100)/100;
