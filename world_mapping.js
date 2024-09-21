@@ -2763,13 +2763,13 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 	{
 		var neighbours = [];
 		var wsize = me.map.world.uwp.size;
-		if(me.x == -1 && me.y == -1) //NORTH POLE
+		if(me.hexID == -1 || (me.x == -1 && me.y == -1)) //NORTH POLE
 		{
 			for(var i=0;i<me.map.rows[0].length;i++)
 				neighbours.push(me.map.rows[0][i]);
 			return neighbours;
 		}	
-		if(me.x == -2 && me.y == -2) //SOUTH POLE
+		if(me.hexID == -2 || (me.x == -2 && me.y == -2)) //SOUTH POLE
 		{
 			for(var i=0;i<me.map.rows[3*wsize-2].length;i++)
 				neighbours.push(me.map.rows[3*wsize-2][i]);
@@ -3177,7 +3177,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 
 
 	var userSeed = parseInt(document.getElementById("seed").value);
-	var seedUsed = userSeed + parentHex.columnNumber * 100 + parentHex.rowNumber;
+	var seedUsed = userSeed + parentHex.hexID;
 	if(userSeed)
 		init_rng(seedUsed);
 	else
@@ -4078,7 +4078,7 @@ function hexMap(parentObj, parentHex)
 		me.key.addHex(terrainToAdd);
 		for(var i=0;i<neighbours.length;i++)
 		{
-			if(neighbours[i] && neighbours[i].has(terrainObj))
+			if(neighbours[i] && me.edgeHexesBySide[i] && neighbours[i].has(terrainObj))
 				for(var j=0;j<me.edgeHexesBySide[i].length;j++)
 				{
 					me.hexes[me.edgeHexesBySide[i][j]].add(terrainToAdd);
@@ -4272,7 +4272,7 @@ function worldHexMap(parentObj, worldHexToMap)
 		var offsets = [{x:16, y:-28},{x:32,y:0},{x:16,y:28},{x:-16,y:28},{x:-32,y:0},{x:-16,y:-28}];
 		for(var i=0;i<neighbours.length;i++)
 		{
-			if(neighbours[i])
+			if(neighbours[i] && offsets[i])
 			{
 				overallNeighbours.push(new worldHex(me, me.parentObj, null, overallHex.left_offset+offsets[i].x, overallHex.top_offset+offsets[i].y,-3));
 				overallNeighbours[i].terrainTypes = array_fnc.copy.call(neighbours[i].terrainTypes);
