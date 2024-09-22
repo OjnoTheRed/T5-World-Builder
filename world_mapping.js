@@ -2645,12 +2645,12 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 
 	me.calcRow = function()
 	{
-		return me.top_offset < 0 ? me.top_offset : (me.top_offset - me.map.map_top_offset) / 28;
+		return me.top_offset < 0 ? me.top_offset : Math.round((me.top_offset - me.map.map_top_offset) / 28);
 	}
 
 	me.calcCol = function()
 	{
-		return me.left_offset < 0 ? me.left_offset : (me.left_offset - me.map.map_left_offset) / 16;
+		return me.left_offset < 0 ? me.left_offset : Math.round((me.left_offset - me.map.map_left_offset) / 16);
 	}
 
 	me.render = function(editFlag)
@@ -2939,12 +2939,12 @@ function terrainHex(worldHexMapObject, parentObj, left_offset, top_offset)
 
 	me.calcCol = function()
 	{
-		return (me.left_offset - HEX_MAP_LEFT_OFFSET) / 27;
+		return Math.round((me.left_offset - HEX_MAP_LEFT_OFFSET) / 27);
 	}
 
 	me.calcRow = function()
 	{
-		return (me.top_offset - HEX_MAP_TOP_OFFSET) / 16;
+		return Math.round((me.top_offset - HEX_MAP_TOP_OFFSET) / 16);
 	}
 
 	me.render = function()
@@ -2995,12 +2995,12 @@ function localHex(terrainHexMapObject, parentObj, left_offset, top_offset)
 
 	me.calcCol = function()
 	{
-		return (me.left_offset - HEX_MAP_LEFT_OFFSET) / 16;
+		return Math.round((me.left_offset - HEX_MAP_LEFT_OFFSET) / 16);
 	}
 
 	me.calcRow = function()
 	{
-		return (me.top_offset - HEX_MAP_TOP_OFFSET) / 28;
+		return Math.round((me.top_offset - HEX_MAP_TOP_OFFSET) / 28);
 	}
 
 	me.render = function()
@@ -3059,12 +3059,12 @@ function singleHex(terrainHexMapObject, parentObj, left_offset, top_offset)
 
 	me.calcCol = function()
 	{
-		return (me.left_offset - HEX_MAP_LEFT_OFFSET) / 27;
+		return Math.round((me.left_offset - HEX_MAP_LEFT_OFFSET) / 27);
 	}
 
 	me.calcRow = function()
 	{
-		return (me.top_offset - HEX_MAP_TOP_OFFSET) / 16;
+		return Math.round((me.top_offset - HEX_MAP_TOP_OFFSET) / 16);
 	}
 
 	me.render = function()
