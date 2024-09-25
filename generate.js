@@ -860,6 +860,7 @@ function readUserInput()
 	if(thereIsAnError)
 		return false;
 	myWorld.processData = false;
+	myWorld.dataObj = myWorld.saveDataObj();
 	return myWorld;
 }
 

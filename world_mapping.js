@@ -121,8 +121,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			waste();
 			icecaps();
 			frozenPlanet();
-			hellishPlanet();
-			moltenPlanet();
+			//hellishPlanet();
+			//moltenPlanet();
 			tundra();
 			desert();
 			twilightZone();
