@@ -3530,7 +3530,10 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
                     mwType = "";
                     me.mainWorld.tcs.del("Pl");
                 }
-                else if(me.mainWorld.dataObj.remarks.indexOf("Lk") >= 0 || me.mainWorld.dataObj.remarks.indexOf("Sa") >= 0)
+//                else if(me.mainWorld.dataObj.remarks.indexOf("Lk") >= 0 || me.mainWorld.dataObj.remarks.indexOf("Sa") >= 0)
+                // don't assume "Lk" means satellite - planets can be locked to their primary
+                // if locked planet has twilight zone, a separate "Tz" code should be provided for that
+                else if(me.mainWorld.dataObj.remarks.indexOf("Sa") >= 0)
                         mwType = "Sa";
                 else
                 {
@@ -3544,6 +3547,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 		if(uPObj.prefs.main_world_not_sat || me.mainWorld.uwp.size == 0)
 			mwType = "";
                 }
+                // mwType will only be "Lk" if randomly rolled up by immediately prior code
 		if(mwType == "Sa" || mwType == "Lk")
 		{
 			me.mainWorld.tcs.add("Sa");
