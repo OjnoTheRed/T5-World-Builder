@@ -447,6 +447,8 @@ function readURL()
 	myWorldDataObj.remarks = URLParams.getAll("tc").join(" ");
         myWorldDataObj.icN = URLParams.get("icN")
         myWorldDataObj.icS = URLParams.get("icS")
+        myWorldDataObj.tzD = URLParams.get("tzD")
+        myWorldDataObj.tzN = URLParams.get("tzN")
 	var pbgString = URLParams.get("pbg");
 	if(pbgString)
 	{
