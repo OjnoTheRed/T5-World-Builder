@@ -346,6 +346,48 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		addLine(me.mapCornerPoints[3].x, me.mapCornerPoints[3].y, me.mapCornerPoints[5].x, me.mapCornerPoints[5].y, "2px","black", me.parentObj);
 		addRectangle(0, 0, me.map_left_offset + 6*(sizeUsed+1)*32, me.map_top_offset-10, "white",0,"none", me.parentObj);
 		addRectangle(0, me.mapCornerPoints[2].y, me.map_left_offset + 6*(sizeUsed+1)*32, 500, "white",0,"none", me.parentObj);
+                // column markers
+                var colDiff = me.mapCornerPoints[2].x - me.mapCornerPoints[0].x;
+                var rowDiff = (me.mapCornerPoints[1].y-me.mapCornerPoints[0].y)/2
+                for (var i=0; i<=10; i+=2)
+                {
+                    addText(me.mapCornerPoints[0].x-6+i*colDiff, me.mapCornerPoints[0].y-14, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y-10, me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y-2, "1px","black", me.parentObj )
+                    addText(me.mapCornerPoints[0].x-6+i*colDiff, me.mapCornerPoints[0].y+24+rowDiff*2, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y+12+rowDiff*2, me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y+4+rowDiff*2, "1px","black", me.parentObj )
+                }
+                for (var i=1; i<=9; i+=2)
+                {
+                    addText(me.mapCornerPoints[2].x-6+(i-1)*colDiff, me.mapCornerPoints[2].y+21, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y+10, me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y+2, "1px","black", me.parentObj )
+                    addText(me.mapCornerPoints[2].x-6+(i-1)*colDiff, me.mapCornerPoints[2].y-14-rowDiff*2, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y-12-rowDiff*2, me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y-4-rowDiff*2, "1px","black", me.parentObj )
+                }
+                // row markers
+		addText(me.mapCornerPoints[0].x-33, me.mapCornerPoints[0].y+3, "+"+Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[0].x-10, me.mapCornerPoints[0].y, me.mapCornerPoints[0].x-2, me.mapCornerPoints[0].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[4].x+12, me.mapCornerPoints[4].y+3, "+"+Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[4].x+10, me.mapCornerPoints[4].y, me.mapCornerPoints[4].x+2, me.mapCornerPoints[4].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[1].x-25, me.mapCornerPoints[1].y+3, -Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[1].x-10, me.mapCornerPoints[1].y, me.mapCornerPoints[1].x-2, me.mapCornerPoints[1].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[5].x+12, me.mapCornerPoints[5].y+3, -Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[5].x+10, me.mapCornerPoints[5].y, me.mapCornerPoints[5].x+2, me.mapCornerPoints[5].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[1].x-26, me.mapCornerPoints[0].y+rowDiff+3, "+"+Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[1].x-10, me.mapCornerPoints[0].y+rowDiff, me.mapCornerPoints[1].x-2, me.mapCornerPoints[0].y+rowDiff, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[5].x+12, me.mapCornerPoints[4].y+rowDiff+3, "+"+Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[5].x+10, me.mapCornerPoints[4].y+rowDiff, me.mapCornerPoints[1].x+2, me.mapCornerPoints[4].y+rowDiff, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[2].x-33, me.mapCornerPoints[2].y+3, -Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[2].x-10, me.mapCornerPoints[2].y, me.mapCornerPoints[2].x-2, me.mapCornerPoints[2].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[3].x+12, me.mapCornerPoints[3].y+3, -Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[3].x+10, me.mapCornerPoints[3].y, me.mapCornerPoints[3].x+2, me.mapCornerPoints[3].y, "1px","black", me.parentObj )
+                // equator marker
+                if(me.world.uwp.size%2==0)
+                {
+		addText(me.mapCornerPoints[1].x-25, me.mapCornerPoints[1].y-rowDiff/2+3, 0, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[1].x-10, me.mapCornerPoints[1].y-rowDiff/2, me.mapCornerPoints[1].x-2, me.mapCornerPoints[1].y-rowDiff/2, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[5].x+12, me.mapCornerPoints[5].y-rowDiff/2+3, 0, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[5].x+10, me.mapCornerPoints[5].y-rowDiff/2, me.mapCornerPoints[5].x+2, me.mapCornerPoints[5].y-rowDiff/2, "1px","black", me.parentObj )
+                }
 		if(!me.blank && !editingFlag)
 		{
 			me.worldText();
@@ -3128,7 +3170,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 	hexMapContainer.style.height = (HEX_MAP_TOP_OFFSET*2 + HEX_MAP_HEIGHT + 80) + "px";
 	hexMapContainer.style.zIndex = worldHexCounter+1;
 	hexMapContainer.style.top = "4px";
-	hexMapContainer.style.left = "4px";	//hexMapContainer.style.overflow = "scroll";
+	hexMapContainer.style.right = "4px";	//hexMapContainer.style.overflow = "scroll";
 
 	var downloadMapButton = document.createElement("INPUT");
 	downloadMapButton.setAttribute("name","downloadMap" + worldHexCounter);
@@ -4233,6 +4275,32 @@ function worldHexMap(parentObj, worldHexToMap)
 	me.world = me.parentHex.world;
 	me.inheritFrom = hexMap;
 	me.inheritFrom(me.parentObj, me.parentHex);
+        var lng = me.parentHex.calcCol() - (me.world.uwp.size-1)
+        lng = (lng + me.world.uwp.size*10) % (me.world.uwp.size*10)
+        var lat, lng;
+        if(me.parentHex.hexID == -1)    // if north pole
+        {
+            lat = Math.round(me.world.uwp.size*1.5)
+            lng = 0
+        }
+        else if (me.parentHex.hexID == -2)  // if south pole
+        {
+            lat = me.parentHex.latitude
+            if(me.world.uwp.size%2!=0)  // if equator runs through hex borders
+                lat -= 1
+            lng = me.world.uwp.size
+        }
+        else
+        {
+            lat = me.parentHex.latitude
+            if(me.world.uwp.size%2!=0)  // if equator runs through hex borders
+                lat += (me.parentHex.hemisphere == 'N' ? 1 : -1)
+        }
+        if(me.parentHex.hemisphere == 'E')
+            lat = "," + lat
+        else if(me.parentHex.hemisphere != 'S')
+            lat = "+" + lat
+        me.lng_lat = "" + lng + lat
 
 	me.outline = function()
 	{
@@ -4256,7 +4324,7 @@ function worldHexMap(parentObj, worldHexToMap)
 		addPolygon("" + (x6-21) + "," + (y6+5) + " " + x6 + "," + y6 + " " + x1 + "," + y1 + " " + (x1-17) + "," + (y1-16), "none","white","white",me.parentObj);
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		addPolygon(pointsCoord, "3px", "rgb(0,0,0)", "none", me.parentObj);
-		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "World Hex Map", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "World Hex Map (" + me.lng_lat + ")", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20-32, "World Name", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20, me.world.name, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 200, OUTLINE_THICKNESS*20-32, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
@@ -4265,6 +4333,24 @@ function worldHexMap(parentObj, worldHexToMap)
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 350, OUTLINE_THICKNESS*20, me.world.tcs, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addRectangle(HEX_MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS, me.parentObj.getAttribute("width") - 16, me.parentObj.getAttribute("height") - HEX_MAP_TOP_OFFSET + 28, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 495, OUTLINE_THICKNESS*20-32, "Overall World Hex", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                // column markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 9, OUTLINE_THICKNESS*20+69, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 144, OUTLINE_THICKNESS*20-11, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-9, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-1, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 276, OUTLINE_THICKNESS*20+69, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+                // row markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+6, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+2, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+2, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+86, "2.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+82, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+82, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+166, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+162, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+162, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+246, "7.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+242, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+242, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+327, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+323, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+323, "1px","black", me.parentObj )
 		var overallHex = new worldHex(me, me.parentObj, null, 550, OUTLINE_THICKNESS*20+12, -3);
 		overallHex.terrainTypes = array_fnc.copy.call(me.parentHex.terrainTypes);
 		overallHex.clickEnabled = false;
@@ -4291,6 +4377,8 @@ function terrainHexMap(parentObj, terrainHexToMap)
 	var me = this;
 	me.parentObj = parentObj;
 	me.parentHex = terrainHexToMap;
+        var worldHexMapLoc = me.parentHex.map.lng_lat;
+        me.col_row = me.parentHex.calcCol() + "," + (me.parentHex.calcRow()-1)/2  // subtract 1 from row so it is 0-based
 	me.world = me.parentHex.world;
 	me.inheritFrom = hexMap;
 	me.inheritFrom(me.parentObj, me.parentHex);
@@ -4317,7 +4405,7 @@ function terrainHexMap(parentObj, terrainHexToMap)
 		addPolygon("" + (x6-25) + "," + (y6+5) + " " + x6 + "," + y6 + " " + x1 + "," + y1 + " " + (x1-17) + "," + (y1-16), "none","white","white",me.parentObj);
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		addPolygon(pointsCoord, "3px", "rgb(0,0,0)", "none", me.parentObj);
-		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Terrain Hex Map", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Terrain Hex Map ("+worldHexMapLoc+' : '+me.col_row+")", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20-32, "World Name", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20, me.world.name, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 200, OUTLINE_THICKNESS*20-32, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
@@ -4326,6 +4414,24 @@ function terrainHexMap(parentObj, terrainHexToMap)
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 350, OUTLINE_THICKNESS*20, me.world.tcs, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addRectangle(HEX_MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS, me.parentObj.getAttribute("width") - 16, me.parentObj.getAttribute("height") - HEX_MAP_TOP_OFFSET + 28, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 495, OUTLINE_THICKNESS*20-32, "Overall Terrain Hex", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                // column markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 9, OUTLINE_THICKNESS*20+152, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+153, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+161, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 82, OUTLINE_THICKNESS*20+12, "2.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 92, OUTLINE_THICKNESS*20+15, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 92, OUTLINE_THICKNESS*20+23, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 168, OUTLINE_THICKNESS*20+12, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 171, OUTLINE_THICKNESS*20+15, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 171, OUTLINE_THICKNESS*20+23, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 242, OUTLINE_THICKNESS*20+12, "7.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 252, OUTLINE_THICKNESS*20+15, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 252, OUTLINE_THICKNESS*20+23, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 327, OUTLINE_THICKNESS*20+151, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 333, OUTLINE_THICKNESS*20+153, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 333, OUTLINE_THICKNESS*20+161, "1px","black", me.parentObj )
+                // row markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 266, OUTLINE_THICKNESS*20+30, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 256, OUTLINE_THICKNESS*20+26, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 264, OUTLINE_THICKNESS*20+26, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 346, OUTLINE_THICKNESS*20+170, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 336, OUTLINE_THICKNESS*20+166, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 344, OUTLINE_THICKNESS*20+166, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 266, OUTLINE_THICKNESS*20+310, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 256, OUTLINE_THICKNESS*20+306, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 264, OUTLINE_THICKNESS*20+306, "1px","black", me.parentObj )
 		var overallHex = new terrainHex(me, me.parentObj, 550, OUTLINE_THICKNESS*20+12);
 		overallHex.terrainTypes = array_fnc.copy.call(me.parentHex.terrainTypes);
 		overallHex.clickEnabled = false;
@@ -4353,6 +4459,9 @@ function localHexMap(parentObj, localHexToMap)
 	var me = this;
 	me.parentObj = parentObj;
 	me.parentHex = localHexToMap;
+        var terrainHexMapLoc = me.parentHex.map.col_row;
+        var worldHexMapLoc = me.parentHex.map.parentHex.map.lng_lat;
+        me.col_row = me.parentHex.calcCol()/2 + "," + (me.parentHex.calcRow()-1)  // subtract 1 from row so it is 0-based
 	me.world = me.parentHex.world;
 	me.inheritFrom = hexMap;
 	me.inheritFrom(me.parentObj, me.parentHex);
@@ -4379,7 +4488,7 @@ function localHexMap(parentObj, localHexToMap)
 		addPolygon("" + (x6-21) + "," + (y6+5) + " " + x6 + "," + y6 + " " + x1 + "," + y1 + " " + (x1-17) + "," + (y1-16), "none","white","white",me.parentObj);
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		addPolygon(pointsCoord, "3px", "rgb(0,0,0)", "none", me.parentObj);
-		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Local Hex Map", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Local Hex Map ("+worldHexMapLoc+" : "+terrainHexMapLoc+' : '+me.col_row+")", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20-32, "World Name", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20, me.world.name, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 200, OUTLINE_THICKNESS*20-32, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
@@ -4388,6 +4497,24 @@ function localHexMap(parentObj, localHexToMap)
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 350, OUTLINE_THICKNESS*20, me.world.tcs, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addRectangle(HEX_MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS, me.parentObj.getAttribute("width") - 16, me.parentObj.getAttribute("height") - HEX_MAP_TOP_OFFSET + 28, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 495, OUTLINE_THICKNESS*20-32, "Overall Local Hex", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                // column markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 9, OUTLINE_THICKNESS*20+69, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 144, OUTLINE_THICKNESS*20-11, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-9, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-1, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 276, OUTLINE_THICKNESS*20+69, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+                // row markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+6, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+2, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+2, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+86, "2.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+82, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+82, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+166, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+162, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+162, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+246, "7.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+242, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+242, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+327, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+323, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+323, "1px","black", me.parentObj )
 		var overallHex = new localHex(me, me.parentObj, 550, OUTLINE_THICKNESS*20+12);
 		overallHex.terrainTypes = array_fnc.copy.call(me.parentHex.terrainTypes);
 		overallHex.clickEnabled = false;
