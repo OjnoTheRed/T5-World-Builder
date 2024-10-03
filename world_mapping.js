@@ -39,8 +39,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		me.map_top_offset = 200;
 		me.mapHeight = me.map_top_offset+(3*me.world.uwp.size+1)*28+MAP_KEY_HEIGHT;
 	}
-	me.parentObj.setAttributeNS(null,"height","");
-	me.parentObj.setAttributeNS(null,"width","100%");	
+	me.parentObj.setAttributeNS(null,"height","100%");
+	me.parentObj.setAttributeNS(null,"width","100%");
 	me.parentObj.setAttributeNS(null,"viewBox","0 0 " + me.mapWidth + " " + me.mapHeight);
 	me.topCoverTrianglePoints = [];
 	me.bottomCoverTrianglePoints = [];
@@ -101,20 +101,17 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			return;
 		if(!me.blank)
 		{
-			desert();
 			mountains();
+			chasms();
+			precipices();
+			exotic();
+			resourceHexes();
 			oceans();
 			continents(); // not actual terrain placement, but defines a continent as all non-ocean hexes in a world triangle
 			craters();
 			seas();
-			icecaps();
-			frozenPlanet();
-			tundra();
-			twilightZone();
 			cities();
 			rural();
-			chasms();
-			precipices();
 			ruins();
 			cropLand();
 			lowPopulTown();
@@ -122,10 +119,15 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			starport();
 			penal();
 			waste();
-			exotic();
+			icecaps();
+			frozenPlanet();
+			//hellishPlanet();
+			//moltenPlanet();
+			tundra();
+			desert();
+			twilightZone();
 			if(uPObj.prefs.place_noble_estate)
 				nobleLand();
-			resourceHexes();
 			clearTerrainAllocate();
 		}
 	}
@@ -616,6 +618,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function addOcean(selectedHex)
 	{
+		if(me.world.tcs.has("Va"))
+			return;
 		selectedHex.terrainTypes.push(oceanTerrain);
 		selectedHex.clear = false;
 		if(selectedHex.has(mountainTerrain))
@@ -736,6 +740,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(!me.world.tcs.has("De"))
 			return;
 		for(var i=0;i<me.hexes.length;i++)
+                    if(!me.hexes[i].has(oceanTerrain) && !me.hexes[i].has(icecapTerrain))
 			me.hexes[i].add(desertTerrain);
 	}
 
@@ -780,8 +785,18 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			iceCapRows = Math.min(iceCapRows + dice(1),me.world.uwp.size*2);
 		if(iceCapRows > -1)
 		{
+                        if(me.getHex(-1,-1).has(islandTerrain))
+                        {
+                                me.getHex(-1,-1).erase(islandTerrain);
+                                me.getHex(-1,-1).add(mountainTerrain);
+                        }
 			me.getHex(-1,-1).add(icecapTerrain);
 			me.getHex(-1,-1).clear = false;
+                        if(me.getHex(-2,-2).has(islandTerrain))
+                        {
+                                me.getHex(-2,-2).erase(islandTerrain);
+                                me.getHex(-2,-2).add(mountainTerrain);
+                        }
 			me.getHex(-2,-2).add(icecapTerrain);
 			me.getHex(-2,-2).clear = false;
 		}
@@ -790,6 +805,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				if(me.worldTriangles[i].hexes[j].rowNumber < iceCapRows || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRows))
 				{
+                                        if(me.worldTriangles[i].hexes[j].has(islandTerrain))
+                                        {
+                                                me.worldTriangles[i].hexes[j].erase(islandTerrain);
+                                                me.worldTriangles[i].hexes[j].add(mountainTerrain);
+                                        }
 					me.worldTriangles[i].hexes[j].add(icecapTerrain)
 					me.worldTriangles[i].hexes[j].erase(oceanTerrain);
 					me.worldTriangles[i].hexes[j].clear = false;
@@ -809,6 +829,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				continue;
 			if(hex.has(oceanTerrain))
 			{
+                                if(hex.has(islandTerrain))
+                                {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                }
 				hex.erase(oceanTerrain);
 				hex.add(iceFieldTerrain);
 			}
@@ -824,6 +849,28 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(!me.world.tcs.has("Tu"))
 			return;
 		var numTundraRows = dice(1);
+                var poles = [me.getHex(-1,-1), me.getHex(-2,-2)]
+                for (var i in poles)
+                {
+                    var hex = poles[i];
+                    if(!hex.has(icecapTerrain))
+                    {
+				if(hex.has(oceanTerrain))
+				{
+                                        if(hex.has(islandTerrain))
+                                        {
+                                                hex.erase(islandTerrain);
+                                                hex.add(mountainTerrain);
+                                        }
+					hex.erase(oceanTerrain);
+					hex.add(iceFieldTerrain);
+				}
+				else
+				{
+					hex.add(frozenLandTerrain);
+				}
+                    }
+                }
 		for(var i=0;i<me.worldTriangles.length;i++)
 			for(var j=0;j<me.worldTriangles[i].hexes.length;j++)
 			{
@@ -834,6 +881,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 					continue;
 				if(hex.has(oceanTerrain))
 				{
+                                        if(hex.has(islandTerrain))
+                                        {
+                                                hex.erase(islandTerrain);
+                                                hex.add(mountainTerrain);
+                                        }
 					hex.erase(oceanTerrain);
 					hex.add(iceFieldTerrain);
 				}
@@ -1225,9 +1277,13 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				if(hex.has(oceanTerrain))
 				{
+					if(hex.has(islandTerrain))
+					{
+						hex.erase(islandTerrain);
+						hex.add(mountainTerrain);
+					}
 					hex.erase(oceanTerrain);
 					hex.add(iceFieldTerrain);
-					hex.erase(islandTerrain);
 				}
 				else
 				{
@@ -1238,13 +1294,13 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				if(hex.has(oceanTerrain))
 				{
-					hex.erase(oceanTerrain);
-					hex.add(desertTerrain);
 					if(hex.has(islandTerrain))
 					{
 						hex.erase(islandTerrain);
 						hex.add(mountainTerrain);
 					}
+					hex.erase(oceanTerrain);
+					hex.add(desertTerrain);
 				}
 				else
 				{
@@ -1616,7 +1672,7 @@ defines the actual drawing of terrain, its code for saving, its name, and variou
 Type is an integer with the following meanings:
 0 - base terrain: a hex must have exactly one base terrain assigned
 1 - symbol: a hex can have any number of terrain classed as a symbol
-2 - overlay: a hex may have 0 or 1 overlay terrain (generally the half-hexes needed for Twilight Zone worlds)
+2 - overlay: a hex may have 0, 1 or 2 overlay terrain (generally the half-hexes needed for Twilight Zone worlds)
 3 - key only: may not be placed on the map (e.g. scale)
 
 */
@@ -1701,7 +1757,8 @@ var cratersTerrain = {name:"Craters", code:74, draw:function(aWorldHex)
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(64,64,64)";
 															var craterFill = uPObj.prefs.black_and_white_map ? "white" : "rgb(204,204,204)";
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(194,194,163";
-															addCircle(l+16, t+17, 9, 1, strokeColour, craterFill,aWorldHex.parentObj);
+                                                                                                                        var fillOpacity = 0.5;  // needed so underlying symbols remain visible
+															addCircle(l+16, t+17, 9, 1, strokeColour, craterFill,aWorldHex.parentObj, fillOpacity);
 															aWorldHex.hexElem.style.fill = fillColour;
 
 														}, toString:function(){ return this.name}, preferLand:true, type:0};
@@ -1713,14 +1770,16 @@ var desertTerrain = {name:"Desert", code:22, draw: function(aWorldHex)
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
 															addLine(l+3,t+17,l+30,t+17,"3px",strokeColour,aWorldHex.parentObj);
 															aWorldHex.hexElem.style.fill = fillColour;
-														}, toString:function(){ return this.name}, preferLand:false, type:0};														
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
 var desertTerrainWest = {name:"Desert West Half Only", code:118, draw: function(aWorldHex)
 														{
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.desert_terrain_bw_bg : uPObj.prefs.desert_terrain_bg;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+3,t+17,l+16,t+17,"3px",strokeColour,aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(aWorldHex)
@@ -1729,7 +1788,9 @@ var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.desert_terrain_bw_bg : uPObj.prefs.desert_terrain_bg;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(230,172,0)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+16,t+17,l+30,t+17,"3px",strokeColour,aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
 var oceanTerrain = {name:"Ocean", code:31, draw: function(aWorldHex)
@@ -1834,7 +1895,9 @@ var iceFieldTerrainWest = {name:"Ice Field West Half Only", code:108, draw:funct
 															s += "M " + (l+13) + " " + (t+10) + " L " + (l+14) + " " + (t+6) + " L " + (l+16) + " " + (t+6) + " ";
 															var s1 = "M " + (l+5) + " " + (t+15) + " Q " + (l+11) + " " + (t+11) + " " + (l+16) + " " + (t+15);
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(230,236,255)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addPath(s, 2, "black", "none",aWorldHex.parentObj);
 															addPath(s1,2,"black","none",aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -1847,7 +1910,9 @@ var iceFieldTerrainEast = {name:"Ice Field East Half Only", code:109, draw:funct
 															s += "M " + (l+21) + " " + (t+10) + " L " + (l+22) + " " + (t+6) + " L " + (l+26) + " " + (t+6) + " L " + (l+27) + " " + (t+10) + " ";
 															var s1 = "M " + (l+16) + " " + (t+15) + " Q " + (l+21) + " " + (t+19) + " " + (l+27) + " " + (t+15);
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(230,236,255)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour, aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour, aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addPath(s, 2, "black", "none", aWorldHex.parentObj);
 															addPath(s1, 2,"black", "none", aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -1866,7 +1931,9 @@ var frozenLandTerrainWest = {name:"Frozen Land West Half Only", code:106, draw:f
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(219,223,185)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+5,t+7,l+16,t+7,"2px","rgb(0,0,0)",aWorldHex.parentObj);
 															addPath("M " + (l+5) + " " + (t+12) + " Q " + (l+11) + " " + (t+9) + " " + (l+16) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -1875,7 +1942,9 @@ var frozenLandTerrainEast = {name:"Frozen Land East Half Only", code:107, draw:f
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(219,223,185)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															addLine(l+16,t+7,l+27,t+7,"2px","black",aWorldHex.parentObj);
 															addPath("M " + (l+16) + " " + (t+12) + " Q " + (l+21) + " " + (t+15) + " " + (l+27) + " " + (t+12), 2, "black", "none",aWorldHex.parentObj);
 														}, toString:function(){ return this.name}, preferLand:false, type:2};
@@ -1976,7 +2045,9 @@ var bakedLandsWestHalfTerrain = {name:"Baked Lands West Half Only", code:104, dr
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(204,0,0)";
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(255,119,51)";
-															addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+16) + "," + (t+35) + " " + l + "," + (t+28) + " " + l + "," + (t+7), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															for(var i=0;i<4;i++)
 																addRectangle(l+3+i*4,t+7,2,2,strokeColour,"1px",strokeColour,aWorldHex.parentObj);
 															addLine(l+3,t+11,l+16,t+11,"2px",strokeColour,aWorldHex.parentObj);
@@ -1987,7 +2058,9 @@ var bakedLandsEastHalfTerrain = {name:"Baked Lands East Half Only", code:105, dr
 															var t = aWorldHex.top_offset;
 															var strokeColour = uPObj.prefs.black_and_white_map ? "black" : "rgb(204,0,0)";
 															var fillColour = uPObj.prefs.black_and_white_map ? "white" : "rgb(255,119,51)";
-															addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+															var overlayElem = addPolygon((l+16) + "," + t + " " + (l+32) + "," + (t+7) + " " + (l+32) + "," + (t+28) + " " + (l+16) + "," + (t+35), 1, "black", fillColour,aWorldHex.parentObj);
+                                                                                                                        if(aWorldHex && aWorldHex.parentTriangle)
+                                                                                                                                overlayElem.onclick = function() { aWorldHex.editTerrain(); };
 															for(var i=4;i<7;i++)
 																addRectangle(l+3+i*4,t+7,2,2,strokeColour,"1px",strokeColour,aWorldHex.parentObj);
 															addLine(l+16,t+11,l+29,t+11,"2px",strokeColour,aWorldHex.parentObj);
@@ -2183,7 +2256,8 @@ var lakeTerrain = {name:"Lake", code:35, draw:function(aWorldHex)
 															var l = aWorldHex.left_offset;
 															var t = aWorldHex.top_offset;
 															var lakeFill = uPObj.prefs.black_and_white_map ? "rgb(127,127,127)" : "blue";
-															addCircle(l+16, t+17, 8, 1, "black", lakeFill,aWorldHex.parentObj);
+                                                                                                                        var fillOpacity = 0.5;  // needed so underlying symbols remain visible
+															addCircle(l+16, t+17, 8, 1, "black", lakeFill,aWorldHex.parentObj, fillOpacity);
 														}, toString:function() {return this.name} , preferLand:true, type:0};
 var lakeTerrain2 = {name: "Lake", code: 37, draw:function(aWorldHex)
 														{
@@ -2571,12 +2645,12 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 
 	me.calcRow = function()
 	{
-		return me.top_offset < 0 ? me.top_offset : (me.top_offset - me.map.map_top_offset) / 28;
+		return me.top_offset < 0 ? me.top_offset : Math.round((me.top_offset - me.map.map_top_offset) / 28);
 	}
 
 	me.calcCol = function()
 	{
-		return me.left_offset < 0 ? me.left_offset : (me.left_offset - me.map.map_left_offset) / 16;
+		return me.left_offset < 0 ? me.left_offset : Math.round((me.left_offset - me.map.map_left_offset) / 16);
 	}
 
 	me.render = function(editFlag)
@@ -2646,9 +2720,12 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 					me.add(terrainToAdd);					
 				break;
 			case 2:
-				var existingOverlay = me.terrainTypes.find(function(v) { return v.type == 1; });
+				var addingWest = (terrainToAdd.name.indexOf("West") >= 0)
+				var existingOverlay = me.terrainTypes.find(function(v) { return v.type == 2 && v.name.indexOf(addingWest?"West":"East") >= 0; });
 				if(existingOverlay === undefined)
 					me.add(terrainToAdd);
+				else if(existingOverlay === terrainToAdd)
+					me.erase(existingOverlay);
 				else
 					me.transform(existingOverlay, terrainToAdd);				
 		}
@@ -2686,13 +2763,13 @@ function worldHex(worldMapObj, parentObj, parentTriangle, left_offset, top_offse
 	{
 		var neighbours = [];
 		var wsize = me.map.world.uwp.size;
-		if(me.x == -1 && me.y == -1) //NORTH POLE
+		if(me.hexID == -1 || (me.x == -1 && me.y == -1)) //NORTH POLE
 		{
 			for(var i=0;i<me.map.rows[0].length;i++)
 				neighbours.push(me.map.rows[0][i]);
 			return neighbours;
 		}	
-		if(me.x == -2 && me.y == -2) //SOUTH POLE
+		if(me.hexID == -2 || (me.x == -2 && me.y == -2)) //SOUTH POLE
 		{
 			for(var i=0;i<me.map.rows[3*wsize-2].length;i++)
 				neighbours.push(me.map.rows[3*wsize-2][i]);
@@ -2862,12 +2939,12 @@ function terrainHex(worldHexMapObject, parentObj, left_offset, top_offset)
 
 	me.calcCol = function()
 	{
-		return (me.left_offset - HEX_MAP_LEFT_OFFSET) / 27;
+		return Math.round((me.left_offset - HEX_MAP_LEFT_OFFSET) / 27);
 	}
 
 	me.calcRow = function()
 	{
-		return (me.top_offset - HEX_MAP_TOP_OFFSET) / 16;
+		return Math.round((me.top_offset - HEX_MAP_TOP_OFFSET) / 16);
 	}
 
 	me.render = function()
@@ -2918,12 +2995,12 @@ function localHex(terrainHexMapObject, parentObj, left_offset, top_offset)
 
 	me.calcCol = function()
 	{
-		return (me.left_offset - HEX_MAP_LEFT_OFFSET) / 16;
+		return Math.round((me.left_offset - HEX_MAP_LEFT_OFFSET) / 16);
 	}
 
 	me.calcRow = function()
 	{
-		return (me.top_offset - HEX_MAP_TOP_OFFSET) / 28;
+		return Math.round((me.top_offset - HEX_MAP_TOP_OFFSET) / 28);
 	}
 
 	me.render = function()
@@ -2982,12 +3059,12 @@ function singleHex(terrainHexMapObject, parentObj, left_offset, top_offset)
 
 	me.calcCol = function()
 	{
-		return (me.left_offset - HEX_MAP_LEFT_OFFSET) / 27;
+		return Math.round((me.left_offset - HEX_MAP_LEFT_OFFSET) / 27);
 	}
 
 	me.calcRow = function()
 	{
-		return (me.top_offset - HEX_MAP_TOP_OFFSET) / 16;
+		return Math.round((me.top_offset - HEX_MAP_TOP_OFFSET) / 16);
 	}
 
 	me.render = function()
@@ -3100,14 +3177,16 @@ function generateHexMap(parentHex, mapType, mapClass)
 
 
 	var userSeed = parseInt(document.getElementById("seed").value);
-	var seedUsed = userSeed;
+        var seedUsed = userSeed + parentHex.columnNumber * 100 + parentHex.rowNumber;
+        if(parentHex.hexID < 0)
+            seedUsed = userSeed + parentHex.hexID;
 	if(userSeed)
 		init_rng(seedUsed);
 	else
 	{
 		seedUsed = Date.now() >>> 0;
 	}
-	document.getElementById("seed").value = seedUsed;
+//	document.getElementById("seed").value = seedUsed;
 
 	var map = new mapClass(hexMapSVG, parentHex);
 	map.generate();
@@ -4001,7 +4080,7 @@ function hexMap(parentObj, parentHex)
 		me.key.addHex(terrainToAdd);
 		for(var i=0;i<neighbours.length;i++)
 		{
-			if(neighbours[i] && neighbours[i].has(terrainObj))
+			if(neighbours[i] && me.edgeHexesBySide[i] && neighbours[i].has(terrainObj))
 				for(var j=0;j<me.edgeHexesBySide[i].length;j++)
 				{
 					me.hexes[me.edgeHexesBySide[i][j]].add(terrainToAdd);
@@ -4195,7 +4274,7 @@ function worldHexMap(parentObj, worldHexToMap)
 		var offsets = [{x:16, y:-28},{x:32,y:0},{x:16,y:28},{x:-16,y:28},{x:-32,y:0},{x:-16,y:-28}];
 		for(var i=0;i<neighbours.length;i++)
 		{
-			if(neighbours[i])
+			if(neighbours[i] && offsets[i])
 			{
 				overallNeighbours.push(new worldHex(me, me.parentObj, null, overallHex.left_offset+offsets[i].x, overallHex.top_offset+offsets[i].y,-3));
 				overallNeighbours[i].terrainTypes = array_fnc.copy.call(neighbours[i].terrainTypes);
@@ -4499,13 +4578,15 @@ function addLine(x1, y1, x2, y2, strokeWidth, stroke, parentObj, dashed)
 
 }
 
-function addCircle(cx, cy, r, strokeWidth, stroke, fill, parentObj)
+function addCircle(cx, cy, r, strokeWidth, stroke, fill, parentObj, opacity)
 {
 	var circle = document.createElementNS(svgNS,"circle");
 	circle.setAttributeNS(null,"cx",cx);
 	circle.setAttributeNS(null,"cy",cy);
 	circle.setAttributeNS(null,"r",r);
-	circle.setAttributeNS(null,"style","stroke=width:" + strokeWidth + ";stroke:" + stroke + ";fill:" + fill);
+        if(!opacity)
+                opacity = 1.0;
+	circle.setAttributeNS(null,"style","stroke=width:" + strokeWidth + ";stroke:" + stroke + ";fill:" + fill + ";fill-opacity:"+opacity);
 	parentObj.appendChild(circle);
 }
 

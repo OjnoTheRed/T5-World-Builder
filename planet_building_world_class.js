@@ -857,6 +857,7 @@ function world()
 				if(extrFnc())
 					ROTATIONAL_PERIOD *= extrFnc();
 			}
+			if(me.dataObj.remarks.indexOf('Pl') < 0)    // if Pl code given, would also give Tz code if needed, so skip the check
 			me.lockCheck();
 		}
 		ROTATIONAL_PERIOD = Math.floor(ROTATIONAL_PERIOD*100)/100;
@@ -2445,7 +2446,8 @@ function tcs(world)
 
 	me.generate = function()
 	{
-		me.classes = [];
+//		me.classes = [];
+            if(me.classes.length == 0)
 		for(var i=0;i<ALL_TC.length;i++)
 			if(ALL_TC[i].rules(me.world))
 				me.add(ALL_TC[i].code);
@@ -2531,7 +2533,8 @@ function nil(worldObject)
 			s += "Corporate ";
 		if(me.world.gov == 6)
 			s += "Colonial ";
-		s += me.type.name;
+		if(me.type)
+                        s += me.type.name;
 		return s;
 	}
 
@@ -3522,6 +3525,15 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 									me.totalAvailOrb += orbit_set.availableOrbitCount();
 								});
 		var mwType = "";
+                if(me.mainWorld.dataObj.remarks.indexOf("Pl") >= 0)
+                {
+                    mwType = "";
+                    me.mainWorld.tcs.del("Pl");
+                }
+                else if(me.mainWorld.dataObj.remarks.indexOf("Lk") >= 0 || me.mainWorld.dataObj.remarks.indexOf("Sa") >= 0)
+                        mwType = "Sa";
+                else
+                {
 		if(!uPObj.prefs.main_world_is_sat && !uPObj.prefs.main_world_not_sat && me.mainWorld.uwp.size != 0)
 		{
 			mwSatTbl = new dice_table(MAIN_WORLD_SATELLITE_TABLE);
@@ -3531,6 +3543,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 			mwType = dice(1) > 3 ? "Sa" : "Lk";
 		if(uPObj.prefs.main_world_not_sat || me.mainWorld.uwp.size == 0)
 			mwType = "";
+                }
 		if(mwType == "Sa" || mwType == "Lk")
 		{
 			me.mainWorld.tcs.add("Sa");
@@ -3540,6 +3553,8 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 			me.mainWorld.isSatellite = false;
 		if(mwType == "Lk")
 			me.mainWorld.tcs.add("Lk");
+//                if(me.mainWorld.dataObj.remarks.indexOf("Tz") >= 0)
+//                        me.mainWorld.tcs.add("Tz");
 		var mainWorldPlaced = false;
 		if(!uPObj.prefs.main_world_hz_only)
 		{
