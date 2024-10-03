@@ -122,7 +122,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			icecaps();
 			frozenPlanet();
 			hellishPlanet();
-			//moltenPlanet();
+			moltenPlanet();
 			tundra();
 			desert();
 			twilightZone();
@@ -660,9 +660,21 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function addOcean(selectedHex)
 	{
-		if(me.world.tcs.has("Va"))
+                // for Molten planet, ocean hexes will become lava
+		if(me.world.tcs.has("Va") && !me.world.tcs.has("Mo"))
 			return;
 		selectedHex.terrainTypes.push(oceanTerrain);
+		selectedHex.clear = false;
+		if(selectedHex.has(mountainTerrain))
+		{
+			selectedHex.erase(mountainTerrain);
+			selectedHex.add(islandTerrain);
+		}
+	}
+
+	function addLava(selectedHex)
+	{
+		selectedHex.terrainTypes.push(lavaTerrain);
 		selectedHex.clear = false;
 		if(selectedHex.has(mountainTerrain))
 		{
@@ -799,7 +811,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function icecaps()
 	{
-		if(me.systemZone == "I" || me.world.tcs.has("Tz") || me.world.tcs.has("He"))
+		if(me.systemZone == "I" || me.world.tcs.has("Tz") || me.world.tcs.has("He") || me.world.tcs.has("Mo"))
 			return;
 		var iceCapRows = Math.floor(me.world.uwp.hydro/2)-1;
 		if(me.world.uwp.size == 1)
@@ -903,6 +915,31 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                                 }
 				hex.erase(oceanTerrain);
 				hex.add(desertTerrain);
+			}
+			else
+			{
+				hex.add(bakedLandsTerrain);
+			}
+		}
+	}
+
+	function moltenPlanet()
+	{
+		if(!me.world.tcs.has("Mo"))
+			return;
+
+		for(var i=0;i<me.hexes.length;i++)
+		{
+			var hex = me.hexes[i];
+			if(hex.has(oceanTerrain))
+			{
+                                if(hex.has(islandTerrain))
+                                {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                }
+				hex.erase(oceanTerrain);
+				hex.add(lavaTerrain);
 			}
 			else
 			{
@@ -1863,6 +1900,22 @@ var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(
 var oceanTerrain = {name:"Ocean", code:31, draw: function(aWorldHex)
 														{
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.ocean_bw_bg : uPObj.prefs.ocean_bg;
+															aWorldHex.hexElem.style.fill = fillColour;
+															if(uPObj.prefs.black_and_white_map)
+															{
+																var l = aWorldHex.left_offset;
+																var t = aWorldHex.top_offset;
+																var d = t+7;
+																var c = t+13;
+																var s = "M" + (l+4) + " " + d + " ";
+																for(var i=0;i<4;i++)
+																	s += "Q" + (l+7+i*6) + " " + c + " " + (l+4+(i+1)*6) + " " + d + " ";
+																addPath(s, "2px", "black","none", aWorldHex.parentObj);
+															}
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
+var lavaTerrain = {name:"Lava", code:132, draw: function(aWorldHex)
+														{
+															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.lava_bw_bg : uPObj.prefs.lava_bg;
 															aWorldHex.hexElem.style.fill = fillColour;
 															if(uPObj.prefs.black_and_white_map)
 															{
@@ -3333,6 +3386,7 @@ function hexMap(parentObj, parentHex)
 		wood();
 		marsh();
 		swamp();
+                lava();
 		for(var i=0;i<me.hexes.length;i++)
 			if(me.hexes[i].noTerrain())
 			{
@@ -3868,6 +3922,21 @@ function hexMap(parentObj, parentHex)
 		for(var i=0;i<me.hexes.length;i++)
 			me.hexes[i].add(bakedLandsTerrain);
 		creepNeighbouringTerrain(desertTerrain, bakedLandsTerrain);
+		creepNeighbouringTerrain(lavaTerrain, bakedLandsTerrain);
+	}
+
+	function lava()
+	{
+		if(!me.parentHex.has(lavaTerrain))
+			return;
+		me.key.addHex(lavaTerrain);
+		for(var i=0;i<me.hexes.length;i++)
+                    if(!me.hexes[i].has(mountainTerrain))
+			me.hexes[i].add(lavaTerrain);
+                    else
+			me.hexes[i].add(bakedLandsTerrain);
+		creepNeighbouringTerrain(bakedLandsTerrain, lavaTerrain);
+		creepNeighbouringTerrain(mountainTerrain, lavaTerrain);
 	}
 
 	function clear()

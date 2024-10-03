@@ -36,6 +36,8 @@ var defaultPrefs = {
 	mountain_terrain_mars_bg:"#674a35",
 	mountain_terrain_grey_bg:"#737373",
 	mountain_terrain_bw_bg:"#c8c8c8",
+	lava_bg:"#dd2010",
+        lava_bw_bg:"#aaaaaa",
 	ocean_bg:"#4167b7",
 	ocean_depth_bg:"#2d4486",
 	ocean_abyss_bg:"#131c35",
