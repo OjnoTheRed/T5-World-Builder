@@ -2662,6 +2662,7 @@ var allTerrain = {
 	129:borderRedCSTerrain,
 	130:borderRedCSWTerrain,
 	131:borderRedCNWTerrain
+	,132:lavaTerrain
 };
 
 var WORLD_HEX = 0;
