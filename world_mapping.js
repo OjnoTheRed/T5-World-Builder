@@ -121,7 +121,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			waste();
 			icecaps();
 			frozenPlanet();
-			//hellishPlanet();
+			hellishPlanet();
 			//moltenPlanet();
 			tundra();
 			desert();
@@ -799,7 +799,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function icecaps()
 	{
-		if(me.systemZone == "I" || me.world.tcs.has("Tz"))
+		if(me.systemZone == "I" || me.world.tcs.has("Tz") || me.world.tcs.has("He"))
 			return;
 		var iceCapRows = Math.floor(me.world.uwp.hydro/2)-1;
 		if(me.world.uwp.size == 1)
@@ -882,6 +882,31 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			else
 			{
 				hex.add(frozenLandTerrain);
+			}
+		}
+	}
+
+	function hellishPlanet()
+	{
+		if(!me.world.tcs.has("He"))
+			return;
+
+		for(var i=0;i<me.hexes.length;i++)
+		{
+			var hex = me.hexes[i];
+			if(hex.has(oceanTerrain))
+			{
+                                if(hex.has(islandTerrain))
+                                {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                }
+				hex.erase(oceanTerrain);
+				hex.add(desertTerrain);
+			}
+			else
+			{
+				hex.add(bakedLandsTerrain);
 			}
 		}
 	}
