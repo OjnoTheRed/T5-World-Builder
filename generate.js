@@ -445,6 +445,8 @@ function readURL()
 		myWorldDataObj.seed = Math.floor(Math.random()*4294967295); 
 	myWorldDataObj.uwp = URLParams.get("uwp");
 	myWorldDataObj.remarks = URLParams.getAll("tc").join(" ");
+        myWorldDataObj.icN = URLParams.get("icN")
+        myWorldDataObj.icS = URLParams.get("icS")
 	var pbgString = URLParams.get("pbg");
 	if(pbgString)
 	{

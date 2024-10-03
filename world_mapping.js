@@ -814,6 +814,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(me.systemZone == "I" || me.world.tcs.has("Tz") || me.world.tcs.has("He") || me.world.tcs.has("Mo"))
 			return;
 		var iceCapRows = Math.floor(me.world.uwp.hydro/2)-1;
+                var iceCapRowsN = null;
+                var iceCapRowsS = null;
 		if(me.world.uwp.size == 1)
 		{
 			switch(iceCapRows)
@@ -837,7 +839,31 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		}
 		if(me.world.tcs.has("Ic"))
 			iceCapRows = Math.min(iceCapRows + dice(1),me.world.uwp.size*2);
-		if(iceCapRows > -1)
+		if(me.world.dataObj.icN)
+			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icN / 90) - 1;
+		if(me.world.dataObj.icS)
+			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icS / 90) - 1;
+		if(iceCapRowsN >= 0)
+		{
+                        if(me.getHex(-1,-1).has(islandTerrain))
+                        {
+                                me.getHex(-1,-1).erase(islandTerrain);
+                                me.getHex(-1,-1).add(mountainTerrain);
+                        }
+			me.getHex(-1,-1).add(icecapTerrain);
+			me.getHex(-1,-1).clear = false;
+		}
+		if(iceCapRowsS >= 0)
+		{
+                        if(me.getHex(-2,-2).has(islandTerrain))
+                        {
+                                me.getHex(-2,-2).erase(islandTerrain);
+                                me.getHex(-2,-2).add(mountainTerrain);
+                        }
+			me.getHex(-2,-2).add(icecapTerrain);
+			me.getHex(-2,-2).clear = false;
+		}
+		if(iceCapRowsN == null && iceCapRowsS == null && iceCapRows > -1)
 		{
                         if(me.getHex(-1,-1).has(islandTerrain))
                         {
@@ -857,7 +883,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		for(var i=0;i<me.worldTriangles.length;i++)
 			for(var j=0;j<me.worldTriangles[i].hexes.length;j++)
 			{
-				if(me.worldTriangles[i].hexes[j].rowNumber < iceCapRows || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRows))
+				if(
+                                        (iceCapRowsN == null && iceCapRowsS == null && (me.worldTriangles[i].hexes[j].rowNumber < iceCapRows || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRows)))
+                                        || (me.worldTriangles[i].hexes[j].rowNumber < iceCapRowsN)
+                                        || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRowsS)
+                                )
 				{
                                         if(me.worldTriangles[i].hexes[j].has(islandTerrain))
                                         {
@@ -952,6 +982,12 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	{
 		if(!me.world.tcs.has("Tu"))
 			return;
+		var iceCapRowsN = 0;
+		if(me.world.dataObj.icN)
+			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icN / 90) - 1;
+		var iceCapRowsS = 0;
+		if(me.world.dataObj.icS)
+			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icS / 90) - 1;
 		var numTundraRows = dice(1);
                 var poles = [me.getHex(-1,-1), me.getHex(-2,-2)]
                 for (var i in poles)
@@ -979,7 +1015,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			for(var j=0;j<me.worldTriangles[i].hexes.length;j++)
 			{
 				var hex = me.worldTriangles[i].hexes[j];
-				if(hex.rowNumber > numTundraRows && (me.totalRows - hex.rowNumber - 1) > numTundraRows)
+				if(hex.rowNumber > numTundraRows + iceCapRowsN && (me.totalRows - hex.rowNumber - 1) > numTundraRows + iceCapRowsS)
 					continue;
 				if(hex.has(icecapTerrain))
 					continue;
