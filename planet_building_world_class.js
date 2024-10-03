@@ -3118,6 +3118,10 @@ function star(isPrimary)
 	{
 		if(me.spectral_size == "D")
 			return "D";
+		if(me.spectral_size == "N")
+			return "N";
+		if(me.spectral_size == "B")
+			return "B";
 		if(me.spectral_class == "BD")
 			return "BD";
 		return (me.spectral_class + " " + me.spectral_size);
@@ -3262,6 +3266,20 @@ function star(isPrimary)
 			me.getData();
 			return;
 		}
+		if(s == "N")
+		{
+			me.spectral_class = "";
+			me.spectral_size = "N";
+			me.getData();
+			return;
+		}
+		if(s == "B")
+		{
+			me.spectral_class = "";
+			me.spectral_size = "B";
+			me.getData();
+			return;
+		}
 		if(s == "BD")
 		{
 			me.spectral_class = "BD";
@@ -3392,7 +3410,7 @@ function starSystem(world)
 		s = s.replace(/O[2-9]\sVI/g, function(x) { return x.replace(/\sVI/g, " V"); }); // convert any O-type subdwarfs to dwarfs
 		me.stars = [];
 		me.companions = [];
-		var starStrings = s.match(/([OBAFGKM]\d\s(Ia|Ib|IV|V?I{0,3}|D))|(BD)(\s?})|(\s{0,1})(D)/g);
+		var starStrings = s.match(/([OBAFGKMLTY]\d\s(Ia|Ib|IV|V?I{0,3}|D))|(BD)(\s?})|(\s{0,1})(D)|(\s{0,1})(N)|(\s{0,1})(B)/g);
 		if(starStrings == null)
 			return;
 		starStrings.forEach(function(item, index, ssArray) { ssArray[index] = item.trim(); });
