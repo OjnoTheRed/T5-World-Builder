@@ -887,10 +887,10 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		}
 		if(me.world.tcs.has("Ic"))
 			iceCapRows = Math.min(iceCapRows + dice(1),me.world.uwp.size*2);
-		if(me.world.dataObj.icN)
-			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icN / 90) - 1;
-		if(me.world.dataObj.icS)
-			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icS / 90) - 1;
+		if(me.world.icecapN)
+			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.icecapN / 90) - 1;
+		if(me.world.icecapS)
+			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.icecapS / 90) - 1;
 		if(iceCapRowsN >= 0)
 		{
                         if(me.getHex(-1,-1).has(islandTerrain))
@@ -1031,11 +1031,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(!me.world.tcs.has("Tu"))
 			return;
 		var iceCapRowsN = 0;
-		if(me.world.dataObj.icN)
-			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icN / 90) - 1;
+		if(me.world.icecapN)
+			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.icecapN / 90) - 1;
 		var iceCapRowsS = 0;
-		if(me.world.dataObj.icS)
-			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.dataObj.icS / 90) - 1;
+		if(me.world.icecapS)
+			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.icecapS / 90) - 1;
 		var numTundraRows = dice(1);
                 var poles = [me.getHex(-1,-1), me.getHex(-2,-2)]
                 for (var i in poles)
@@ -1611,11 +1611,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	me.getTwilightZone = function()
 	{
                 var tzN = 85;   // default night-side degrees of frozen terrain
-                if(me.world.dataObj.tzN)
-                        tzN = me.world.dataObj.tzN;
+                if(me.world.twilightNight)
+                        tzN = me.world.twilightNight;
                 var tzD = 85;   // default day-side degrees of baked terrain
-                if(me.world.dataObj.tzD)
-                        tzD = me.world.dataObj.tzD;
+                if(me.world.twilightDay)
+                        tzD = me.world.twilightDay;
 		var twilightZone1 = [];
 		var twilightZone1a = [];
 		var twilightZone2 = [];
