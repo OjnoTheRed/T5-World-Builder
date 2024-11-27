@@ -672,6 +672,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(selectedHex.has(mountainTerrain))
 		{
 			selectedHex.erase(mountainTerrain);
+                        if(me.world.tcs.has("Vd"))
+                            selectedHex.add(precipiceTerrain);
+                        else
 			selectedHex.add(islandTerrain);
 		}
 	}
@@ -861,7 +864,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function icecaps()
 	{
-		if(me.systemZone == "I" || (me.world.tcs.has("Tz") && !me.world.tcs.has("Bc")) || me.world.tcs.has("Vh") || me.world.tcs.has("Mo"))
+                // if Tz world, skip N/S ice caps UNLESS also Bc (bright companion cancelling twilight zone), or Vd + Fr (completely covered in deep frozen ocean)
+		if(me.systemZone == "I" || (me.world.tcs.has("Tz") && !(me.world.tcs.has("Bc") || (me.world.tcs.has("Vd") && me.world.tcs.has("Fr")))) || me.world.tcs.has("Vh") || me.world.tcs.has("Mo"))
 			return;
 		var iceCapRows = Math.floor(me.world.uwp.hydro/2)-1;
                 var iceCapRowsN = null;
@@ -893,6 +897,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.icecapN / 90) - 1;
 		if(me.world.icecapS)
 			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.icecapS / 90) - 1;
+		if(me.world.tcs.has("Vd") && me.world.tcs.has("Fr"))    // if frozen massive water world, make ALL hexes icecap
+                        iceCapRows = me.totalRows;
 		if(iceCapRowsN >= 0)
 		{
                         if(me.getHex(-1,-1).has(islandTerrain))
@@ -1331,7 +1337,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 					{
 						selectedHex = array_fnc.random.call(me.hexes);
 					}
-					while((!uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain)) || selectedHex.has(nobleTerrainB) || selectedHex.has(nobleTerrainc) || selectedHex.has(nobleTerrainC) || selectedHex.has(nobleTerrainD) || selectedHex.has(nobleTerraine) || selectedHex.has(nobleTerrainE) || selectedHex.has(nobleTerrainf) || selectedHex.has(nobleTerrainF) );
+                                        // have to allow ocean placement on world with massive ocean (and thus no land or islands)
+                                        // so check for custom "Vd" TC code as alternative to "allow ocean noble" preference
+					while((!me.world.tcs.has("Vd") && !uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain)) || selectedHex.has(nobleTerrainB) || selectedHex.has(nobleTerrainc) || selectedHex.has(nobleTerrainC) || selectedHex.has(nobleTerrainD) || selectedHex.has(nobleTerraine) || selectedHex.has(nobleTerrainE) || selectedHex.has(nobleTerrainf) || selectedHex.has(nobleTerrainF) );
 					selectedHex.add(terrain);
 				}
 			}
@@ -1343,7 +1351,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				selectedHex = array_fnc.random.call(me.hexes);
 			}
-			while(!uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain))
+                        // have to allow ocean placement on world with massive ocean (and thus no land or islands)
+                        // so check for custom "Vd" TC code as alternative to "allow ocean noble" preference
+			while(!me.world.tcs.has("Vd") && !uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain))
 			selectedHex.add(nobleTerrain);
 		}
 	}
