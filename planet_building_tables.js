@@ -169,6 +169,11 @@ var TC_LK = {name:"Locked", code:"Lk", rules:function(world) {return world.isSat
 var TC_PZ = {name:"Puzzle", code:"Pz", rules:function(world) { return world.travelZone == "A" && world.uwp.popul > 6; }, mod:0 };
 var TC_DA = {name:"Dangerous", code:"Da", rules:function(world) { return world.travelZone == "A" && world.uwp.popul < 7; }, mod:0 };
 var TC_FO = {name:"Forbidden", code:"Fo", rules:function(world) { return world.travelZone == "R"; }, mod:0 };
+var TC_PL = {name:"Planet", code:"Pl", rules:function(world) { return !world.isSatellite; }, mod:0 };
+var TC_VD = {name:"Very Deep", code:"Vd", rules:function(world) { return false; }, mod:0 };
+var TC_VH = {name:"Very Hot", code:"Vh", rules:function(world) { return false; }, mod:0 };
+var TC_MO = {name:"Molten", code:"Mo", rules:function(world) { return false; }, mod:0 };
+var TC_BC = {name:"Bright Companion", code:"Bc", rules:function(world) { return false; }, mod:0 };
 
 var ALL_TC = [ TC_AS,TC_DE,TC_FL,TC_GA,TC_HE,TC_IC,TC_OC,TC_VA,TC_WA,TC_DI,TC_BA,TC_LO,TC_NI,TC_PH,TC_HI,TC_PA,TC_AG,TC_NA,TC_PX,TC_PI,TC_IN,TC_PO,TC_PR,TC_RI,TC_FR,TC_HO,TC_CO,TC_TR,TC_TU,TC_TZ,TC_FA,TC_MI,TC_MR,TC_PE,TC_RE,TC_CY,TC_PZ,TC_DA,TC_FO,TC_SA,TC_LK];
 
