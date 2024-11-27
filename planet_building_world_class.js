@@ -1877,9 +1877,19 @@ function mainWorld(generationObject)
                 if(me.dataObj.icS)
                         me.icecapS = me.dataObj.icS;
                 if(me.dataObj.tzD)
-                        me.twilightDay = me.dataObj.tzD;
+                        me.twilightDay = me.dataObj.tzD*1;
                 if(me.dataObj.tzN)
-                        me.twilightNight = me.dataObj.tzN;
+                        me.twilightNight = me.dataObj.tzN*1;
+                // don't allow combined twilight zones to go over 180 degrees
+                var twilightTotal = me.twilightDay + me.twilightNight;
+                if(twilightTotal > 180)
+                {
+                        me.twilightDay = Math.round(me.twilightDay * 180 / twilightTotal);
+                        me.twilightNight = Math.round(me.twilightNight * 180 / twilightTotal);
+                        // if new total != 180 because of rounding, force it to 180
+                        me.twilightDay -= (me.twilightDay+me.twilightNight > 180);
+                        me.twilightNight += (me.twilightDay+me.twilightNight < 180);
+                }
 		me.travelZone = me.dataObj.zone;
 		if(me.dataObj.pbg)
 		{
