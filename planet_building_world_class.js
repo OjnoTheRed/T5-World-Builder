@@ -4256,13 +4256,17 @@ function satelliteOrbitSet(planet)
 
 	me.generate = function()
 	{
-		do
-		{
+            // in rare cases, the do loop will sometimes get stuck without exiting
+            // so add a bail-out counter to eventually abort it
+//            var loopCnt = 0;
+            
+//		do
+//		{
 			var numSats = me.planet.numSats();
 			if(numSats == 0)
 				me.add(new ring(planet));
-		}
-		while(numSats == 0)
+//		}
+//		while(numSats == 0 && loopCnt++ < 10)
 		numSats = Math.max(numSats,0);
 		for(var k=0;k<numSats;k++)
 			me.add(me.planet.generateSat());
