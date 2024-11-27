@@ -1397,7 +1397,10 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function twilightZone()
 	{
-		if(!me.world.tcs.has("Tz"))
+                // molten worlds won't necessarily have un-molten land on night-side
+                // and trying to make un-molten night-side work in all scenarios is very complex
+                // so is simpler to just skip night-side/day-side logic for molten worlds
+		if(!me.world.tcs.has("Tz") || me.world.tcs.has("Mo"))
 			return;
 		if(me.world.uwp.size == 1)
 		{
@@ -1474,10 +1477,41 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				continue;
 			var hex = me.hexes[i];
 //			if(hex.columnNumber > me.twilightZoneWestCol+1 && hex.columnNumber < me.twilightZoneEastCol-1)
-			if((hex.columnNumber < 0 && me.twilightZoneNightDiff < me.twilightZoneDayDiff) || (hex.columnNumber > 0 && hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff))
+                            if(!(me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && (hex.rowNumber <= me.twilightZoneNightDiff*-0.5 - me.world.uwp.size/2 + 1 || hex.rowNumber >= 3*me.world.uwp.size + Math.round(me.twilightZoneNightDiff*0.5) + me.world.uwp.size/4 - 0.5))    //hex.rowNumber >= 3*me.world.uwp.size + Math.round(me.twilightZoneNightDiff*0.5 + me.world.uwp.size/4 - 0.5
+                            {
+                                    if(hex.has(islandTerrain))
+                                    {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                    }
+                                hex.erase(oceanTerrain);
+				hex.erase(desertTerrain);
+				hex.erase(iceFieldTerrain);
+				hex.erase(bakedLandsTerrain);
+				hex.erase(frozenLandTerrain);
+                                hex.add(icecapTerrain);
+                            }
+			if((hex.columnNumber < 0 && me.twilightZoneNightDiff < me.twilightZoneDayDiff) || (hex.columnNumber > 0 && ((hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff) || (hex.columnNumber+me.world.uwp.size*10 > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber+me.world.uwp.size*10 < me.twilightZoneEastCol - me.twilightZoneNightDiff))))
 			{
                                 if(hex.has(icecapTerrain))
                                         continue;
+                                if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                {
+					if(hex.has(islandTerrain))
+					{
+						hex.erase(islandTerrain);
+						hex.add(mountainTerrain);
+					}
+                                        if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                        {
+                                            hex.erase(lavaTerrain);
+                                            hex.erase(oceanTerrain);
+                                            hex.erase(desertTerrain);
+                                            hex.erase(iceFieldTerrain);
+                                            hex.add(desertTerrain);
+                                        }
+                                }
+				else
 				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 				{
 					if(hex.has(islandTerrain))
@@ -1487,7 +1521,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 					}
 					hex.erase(oceanTerrain);
                                         hex.erase(desertTerrain);
-                                        if(hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff + me.world.uwp.size/2 && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff - me.world.uwp.size/2)
+                                        if((hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff + me.world.uwp.size/2 && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff - me.world.uwp.size/2)/* || (hex.columnNumber >= 0 && me.twilightZoneNightDiff < 0 && hex.columnNumber < me.twilightZoneWestCol + me.twilightZoneNightDiff - me.world.uwp.size/2 + 1)*/)
                                         {
                                                 hex.erase(iceFieldTerrain);
                                                 hex.add(icecapTerrain);
@@ -1499,7 +1533,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				{
 //                                        hex.add(mountainTerrain);     // WHY WAS THIS HERE?!
                                         hex.erase(bakedLandsTerrain);
-                                        if(hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff + me.world.uwp.size/2 && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff - me.world.uwp.size/2)
+                                        if((hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff + me.world.uwp.size/2 && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff - me.world.uwp.size/2)/* || (hex.columnNumber >= 0 && me.twilightZoneNightDiff < 0 && hex.columnNumber < me.twilightZoneWestCol + me.twilightZoneNightDiff - me.world.uwp.size/2 + 1)*/)
                                         {
                                                 hex.erase(frozenLandTerrain);
                                                 hex.add(icecapTerrain);
@@ -1509,6 +1543,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 				}
 			}
 //			if(hex.columnNumber < me.twilightZoneWestCol-1 || hex.columnNumber > me.twilightZoneEastCol+1)
+                    // skip day side terrain for low column numbers when night side east edge goes past column # 0
+                    if(!(hex.columnNumber >= 0 && me.twilightZoneNightDiff < 0 && (hex.columnNumber+me.world.uwp.size*10 > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber+me.world.uwp.size*10 < me.twilightZoneEastCol - me.twilightZoneNightDiff)))
 			if((hex.columnNumber < 0 && me.twilightZoneNightDiff > me.twilightZoneDayDiff) || (hex.columnNumber > 0 && hex.columnNumber < me.twilightZoneWestCol - me.twilightZoneDayDiff || hex.columnNumber > me.twilightZoneEastCol + me.twilightZoneDayDiff))
 			{
                                 if(hex.has(icecapTerrain))
@@ -1566,6 +1602,50 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 //			if(zoneHexes[i].parentTriangle == null || zoneHexes[i].parentTriangle.id == 3 || zoneHexes[i].parentTriangle.id == 12)
 //				continue;
 			var hex = zoneHexes[i];
+                        // add icecap above and below day side if night area really big ...
+                        if(me.twilightZoneNightDiff < 0)
+                        {
+                            if(!(me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && (hex.rowNumber < Math.round(me.twilightZoneNightDiff*-0.5 - me.world.uwp.size/4 - 0.5) || hex.rowNumber >= 3*me.world.uwp.size + Math.round(me.twilightZoneNightDiff*0.5 + me.world.uwp.size/4 - 0.5)))
+                            {
+                                    if(hex.has(islandTerrain))
+                                    {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                    }
+                                hex.erase(oceanTerrain);
+				hex.erase(desertTerrain);
+				hex.erase(iceFieldTerrain);
+				hex.erase(bakedLandsTerrain);
+				hex.erase(frozenLandTerrain);
+                                hex.add(icecapTerrain);
+                            }
+                            else if(hex.rowNumber <= me.twilightZoneNightDiff*-0.5 || hex.rowNumber >= 3*me.world.uwp.size + me.twilightZoneNightDiff*0.5 - me.world.uwp.size/4)
+                            {
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                {
+                                    if(hex.has(islandTerrain))
+                                    {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                    }
+                                    hex.erase(oceanTerrain);
+                                    hex.erase(desertTerrain);
+                                    hex.erase(iceFieldTerrain);
+                                    if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                        hex.add(desertTerrain);
+                                    else
+                                        hex.add(iceFieldTerrain);
+                                }
+                                else
+                                {
+                                    hex.erase(desertTerrain);
+                                    if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                        hex.add(bakedLandsTerrain);
+                                    else
+                                        hex.add(frozenLandTerrain);
+                                }
+                            }
+                        }
                         // add twilight zone around poles if day and night areas really small ...
 			if(hex.columnNumber>me.twilightZoneWestCol && hex.columnNumber < me.twilightZoneEastCol && hex.rowNumber <= me.twilightZoneNightDiff - me.world.uwp.size + 1)
 				continue;
@@ -1578,8 +1658,15 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneEastCol-me.twilightZoneNightDiff)
 			{
+                                if(!me.variableTwilight && hex.rowNumber == me.world.uwp.size-2) continue;
                                 if(hex.has(icecapTerrain))
                                         continue;
+                                if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                {
+                                    if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                            hex.add(desertTerrainWest);
+                                }
+				else
 				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
                                 {
 					hex.add(iceFieldTerrainWest);
@@ -1598,6 +1685,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			}
 			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneWestCol-me.twilightZoneDayDiff)
 			{
+                                if(!me.variableTwilight && hex.rowNumber == me.world.uwp.size*2) continue;
                                 if(hex.has(icecapTerrain))
                                         continue;
 				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
@@ -1609,10 +1697,16 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
                                 if(hex.has(icecapTerrain))
                                         continue;
-				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
-					hex.add(iceFieldTerrainEast);
+                                if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                {
+                                        if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                                hex.add(desertTerrainEast);
+                                }
 				else
-					hex.add(frozenLandTerrainEast);
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                            hex.add(iceFieldTerrainEast);
+				else
+                                            hex.add(frozenLandTerrainEast);
 			}
 		}
 /*		for(i=0;i<zoneHexes.length;i++)
@@ -1628,18 +1722,24 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                 var tzD = 85;   // default day-side degrees of baked terrain
                 if(me.world.twilightDay)
                         tzD = me.world.twilightDay;
+                me.variableTwilight = (me.world.twilightNight || me.world.twilightDay);
+//                if(tzN + tzD == 180)
+//                    return [];
 		var twilightZone1 = [];
 		var twilightZone1a = [];
 		var twilightZone2 = [];
 		var twilightZone2a = [];
 		var worldSize = me.world.uwp.size;
-                me.twilightZoneNightDiff = worldSize * 2.5 * (90 - tzN) / 90
-                if(worldSize * 2.5 * (90 - tzN) / 90 < 0)
-                        me.twilightZoneNightDiff -= 0.000001    // negative #.5 needs to round to bigger negative value
+                me.twilightZoneNightDiff = worldSize * 2.5 * (90 - tzN) / 90;
+                if(me.twilightZoneNightDiff < 0)
+                        me.twilightZoneNightDiff -= 0.000001;    // negative #.5 needs to round to bigger negative value
                 me.twilightZoneNightDiff = Math.round(me.twilightZoneNightDiff)
-                me.twilightZoneDayDiff = Math.round(worldSize * 2.5 * (90 - tzD) / 90)
+                me.twilightZoneDayDiff = Math.round(worldSize * 2.5 * (90 - tzD) / 90);
 		var firstZone1Hex = me.worldTriangles[4].hexes[0];
-		me.twilightZoneWestCol = firstZone1Hex.columnNumber-1 + Math.round(worldSize * 0.5 - 0.01);     // for symmetry, round down
+		me.twilightZoneWestCol = firstZone1Hex.columnNumber-1;
+                if(me.variableTwilight)
+                        // use central symmetry for variable twilight zone placements
+                        me.twilightZoneWestCol += Math.round(worldSize * 0.5 - 0.01);     // for symmetry, round down
 		for(var i=0;i<me.hexes.length;i++)
                 {
 //			if(me.hexes[i].columnNumber > firstZone1Hex.columnNumber-3 && me.hexes[i].columnNumber < firstZone1Hex.columnNumber+1)
@@ -1653,17 +1753,23 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			if(me.hexes[i].columnNumber-worldSize*10 >= me.twilightZoneWestCol - me.twilightZoneDayDiff && me.hexes[i].columnNumber-worldSize*10 <= me.twilightZoneWestCol + me.twilightZoneNightDiff)
 				twilightZone1.push(me.hexes[i]);
 		}
-//		twilightZone1.push(me.worldTriangles[0].hexes[0]);
-//		var startCol = me.worldTriangles[3].hexes[me.worldTriangles[3].hexes.length-1].columnNumber;
-//		var x=startCol;
-//		for(var y=me.totalRows-1;y>me.totalRows-worldSize+1;y--)
-//		{
-//			selectedHex = me.getHex(x,y);
-//			twilightZone1a.push(selectedHex);
-//			x++;
-//		}
+                if(!me.variableTwilight)
+                {
+                    twilightZone1.push(me.worldTriangles[0].hexes[0]);
+                    var startCol = me.worldTriangles[3].hexes[me.worldTriangles[3].hexes.length-1].columnNumber;
+                    var x=startCol;
+                    for(var y=me.totalRows-1;y>me.totalRows-worldSize+1;y--)
+                    {
+                            selectedHex = me.getHex(x,y);
+                            twilightZone1a.push(selectedHex);
+                            x++;
+                    }
+                }
 		var firstZone2Hex = me.worldTriangles[15].hexes[me.worldTriangles[15].hexes.length-1];
-		me.twilightZoneEastCol = firstZone2Hex.columnNumber-1 + Math.round(worldSize * 0.5);    // for odd size, night side slightly bigger
+		me.twilightZoneEastCol = firstZone2Hex.columnNumber-1;
+                if(me.variableTwilight)
+                        // use central symmetry for variable twilight zone placements
+                        me.twilightZoneEastCol += Math.round(worldSize * 0.5);    // for odd size, night side slightly bigger
 		for(var i=0;i<me.hexes.length;i++)
                 {
 //			if(me.hexes[i].columnNumber>firstZone2Hex.columnNumber-3 && me.hexes[i].columnNumber < firstZone2Hex.columnNumber+1)
@@ -1672,26 +1778,34 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                                 continue;
 			if(me.hexes[i].columnNumber>=me.twilightZoneEastCol-me.twilightZoneNightDiff && me.hexes[i].columnNumber <= me.twilightZoneEastCol+me.twilightZoneDayDiff)
 				twilightZone2.push(me.hexes[i]);
+                        // if right-side column within night-side zone
+                        if(me.hexes[i].columnNumber+worldSize*10 < me.twilightZoneEastCol-me.twilightZoneNightDiff)
+                                continue;
                         // add twilight zone around poles if day and night areas are small ...
                         if(me.hexes[i].columnNumber>me.twilightZoneWestCol+me.twilightZoneNightDiff && me.hexes[i].columnNumber < me.twilightZoneEastCol-me.twilightZoneNightDiff && me.hexes[i].rowNumber <= me.twilightZoneNightDiff - worldSize + 1)
                                 twilightZone2.push(me.hexes[i]);
                         if(me.hexes[i].columnNumber>me.twilightZoneWestCol+me.twilightZoneNightDiff && me.hexes[i].columnNumber < me.twilightZoneEastCol-me.twilightZoneNightDiff && me.hexes[i].rowNumber >= 4*worldSize - me.twilightZoneNightDiff - 3)
                                 twilightZone2.push(me.hexes[i]);
+//                        if(me.hexes[i].columnNumber>=me.twilightZoneWestCol+me.twilightZoneNightDiff && (me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber <= me.twilightZoneDayDiff - worldSize + 1)
                         if((me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber <= me.twilightZoneDayDiff - worldSize + 1)
                                 twilightZone2.push(me.hexes[i]);
+//                        if(me.hexes[i].columnNumber>=me.twilightZoneWestCol+me.twilightZoneNightDiff && (me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber >= 4*worldSize - me.twilightZoneDayDiff - 3)
                         if((me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber >= 4*worldSize - me.twilightZoneDayDiff - 3)
                                 twilightZone2.push(me.hexes[i]);
 		}
-//		twilightZone2.push(me.worldTriangles[11].hexes[me.worldTriangles[11].hexes.length-1]);
-//		startCol = me.worldTriangles[12].hexes[0].columnNumber;
-//		x=startCol;
-//
-//		for(y=0;y<worldSize-2;y++)
-//		{
-//			selectedHex = me.getHex(x,y);
-//			twilightZone2a.push(selectedHex);
-//			x++;
-//		}
+                if(!me.variableTwilight)
+                {
+                    twilightZone2.push(me.worldTriangles[11].hexes[me.worldTriangles[11].hexes.length-1]);
+                    startCol = me.worldTriangles[12].hexes[0].columnNumber;
+                    x=startCol;
+
+                    for(y=0;y<worldSize-2;y++)
+                    {
+                            selectedHex = me.getHex(x,y);
+                            twilightZone2a.push(selectedHex);
+                            x++;
+                    }
+                }
 		var twilightZoneAll = twilightZone1.concat(twilightZone1a,twilightZone2,twilightZone2a);
                 if(tzN < 90 && tzD < 90)
                 {
