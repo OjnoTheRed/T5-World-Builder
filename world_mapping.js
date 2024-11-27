@@ -663,7 +663,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	function addOcean(selectedHex)
 	{
                 // for Molten planet, ocean hexes will become lava
-		if(me.world.tcs.has("Va") && !me.world.tcs.has("Mo"))
+                // for Very Hot planet, ocean hexes will become desert
+                // for Frozen planet, ocean hexes will become ice fields
+		if(me.world.tcs.has("Va") && !(me.world.tcs.has("Mo") || me.world.tcs.has("Vh") || me.world.tcs.has("Fr")))
 			return;
 		selectedHex.terrainTypes.push(oceanTerrain);
 		selectedHex.clear = false;
