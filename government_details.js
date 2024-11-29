@@ -81,7 +81,7 @@ function democracy(world)
 		{
 			var appointedLI = [];
 			me.leadershipInstitutions.map(function(anLI) { if(anLI.howChosen.appointed) appointedLI.push(anLI) });
-			var randomLI = appointedLI[rng(appointedLI.length-1)];
+			var randomLI = appointedLI[rng(appointedLI.length)-1];
 			do
 			{
 				randomLI.howChosen = newLIHowTbl.roll();
@@ -197,11 +197,11 @@ function party()
 		var ideologies = me.getIdeology();
 		ideologies.map(function(i)
 		{
-			me.ideology += (typeof(i.desc) == "string" ? i.desc : i.desc[rng(i.desc.length-1)]) + " ";
+			me.ideology += (typeof(i.desc) == "string" ? i.desc : i.desc[rng(i.desc.length)-1]) + " ";
 			while(i.combine)
 			{
 				i = ideologyTbl.roll();	
-				me.ideology += (typeof(i.desc) == "string" ? i.desc : i.desc[rng(i.desc.length-1)]) + " ";
+				me.ideology += (typeof(i.desc) == "string" ? i.desc : i.desc[rng(i.desc.length)-1]) + " ";
 			}	
 		});
 		me.type = new dice_table(Org_Type).roll();

@@ -139,7 +139,7 @@ function tjl_beast(world, terrain, niche)
 		if(me.weapon.inflicts.search(/\//) != "-1")
 		{
 			var inflictOptions = me.weapon.inflicts.split("/");
-			me.weapon.inflicts = inflictOptions[rng(inflictOptions.length-1)];
+			me.weapon.inflicts = inflictOptions[rng(inflictOptions.length)-1];
 		}
 		me.attack = typeof(me.subniche.a) == "string" ? me.subniche.a : me.subniche.a - dice(1);
 		me.flee = typeof(me.subniche.f) == "string" ? me.subniche.f : me.subniche.f - dice(1);
