@@ -59,7 +59,7 @@ function beast(world, terrain, niche)
 		if(me.weapon.inflicts.search(/\//) != "-1")
 		{
 			var inflictOptions = me.weapon.inflicts.split("/");
-			me.weapon.inflicts = inflictOptions[rng(inflictOptions.length-1)];
+			me.weapon.inflicts = inflictOptions[rng(inflictOptions.length)-1];
 		}
 		if(me.weapon.inflicts == "tranq")
 			me.weapon.damage = "tranq";
