@@ -857,7 +857,7 @@ function world()
 				if(extrFnc())
 					ROTATIONAL_PERIOD *= extrFnc();
 			}
-			if(me.dataObj.remarks.indexOf('Pl') < 0)    // if Pl code given, would also give Tz code if needed, so skip the check
+			if(!me.forcedPlanet)    // if forcedPlanet was set because Pl code was given, would also give Tz code if needed, so skip the check
 			me.lockCheck();
 		}
 		ROTATIONAL_PERIOD = Math.floor(ROTATIONAL_PERIOD*100)/100;
@@ -1867,6 +1867,17 @@ function mainWorld(generationObject)
 			me.tcs.readString(me.dataObj.remarks);
 		else
 			me.tcs.generate();
+		// 'Pl' does NOT need to be included in the displayed TCS values, so record it in separate field
+                if(me.dataObj.remarks && me.dataObj.remarks.indexOf('Pl') >= 0)
+                        me.forcedPlanet = true;
+                if(me.dataObj.icN)
+                        me.icecapN = me.dataObj.icN;
+                if(me.dataObj.icS)
+                        me.icecapS = me.dataObj.icS;
+                if(me.dataObj.tzD)
+                        me.twilightDay = me.dataObj.tzD;
+                if(me.dataObj.tzN)
+                        me.twilightNight = me.dataObj.tzN;
 		me.travelZone = me.dataObj.zone;
 		if(me.dataObj.pbg)
 		{
@@ -3525,12 +3536,12 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 									me.totalAvailOrb += orbit_set.availableOrbitCount();
 								});
 		var mwType = "";
-                if(me.mainWorld.dataObj.remarks.indexOf("Pl") >= 0)
+                if(me.mainWorld.forcedPlanet)
                 {
                     mwType = "";
                     me.mainWorld.tcs.del("Pl");
                 }
-                else if(me.mainWorld.dataObj.remarks.indexOf("Lk") >= 0 || me.mainWorld.dataObj.remarks.indexOf("Sa") >= 0)
+                else if(me.mainWorld.tcs.has("Lk") || me.mainWorld.tcs.has("Sa"))
                         mwType = "Sa";
                 else
                 {
