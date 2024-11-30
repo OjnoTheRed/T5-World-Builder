@@ -965,12 +965,6 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		for(var i=0;i<me.hexes.length;i++)
 		{
 			var hex = me.hexes[i];
-                        // if a very deep water world is frozen, it will have only icecap terrain
-			if(me.world.tcs.has("Vd"))
-                        {
-				hex.erase(oceanTerrain);
-				hex.add(icecapTerrain);
-                        }
 			if(hex.has(icecapTerrain))
 				continue;
 			if(hex.has(oceanTerrain))
@@ -1406,7 +1400,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                 // molten worlds won't necessarily have un-molten land on night-side
                 // and trying to make un-molten night-side work in all scenarios is very complex
                 // so is simpler to just skip night-side/day-side logic for molten worlds
-		if(!me.world.tcs.has("Tz") || me.world.tcs.has("Mo") || me.world.tcs.has("Vd"))
+		if(!me.world.tcs.has("Tz") || me.world.tcs.has("Mo"))
 			return;
 		if(me.world.uwp.size == 1)
 		{
