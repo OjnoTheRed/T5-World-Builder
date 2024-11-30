@@ -1495,7 +1495,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
                                 if(hex.has(icecapTerrain))
                                         continue;
-                                if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                if((me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && !me.world.tcs.has("Vd"))    // if Very Deep, leave oceans as oceans
                                 {
 					if(hex.has(islandTerrain))
 					{
@@ -1547,7 +1547,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                     if(!(hex.columnNumber >= 0 && me.twilightZoneNightDiff < 0 && (hex.columnNumber+me.world.uwp.size*10 > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber+me.world.uwp.size*10 < me.twilightZoneEastCol - me.twilightZoneNightDiff)))
 			if((hex.columnNumber < 0 && me.twilightZoneNightDiff > me.twilightZoneDayDiff) || (hex.columnNumber > 0 && hex.columnNumber < me.twilightZoneWestCol - me.twilightZoneDayDiff || hex.columnNumber > me.twilightZoneEastCol + me.twilightZoneDayDiff))
 			{
-                                if(hex.has(icecapTerrain))
+                                if(hex.has(icecapTerrain) || me.world.tcs.has("Vd"))    // if Very Deep, leave oceans as oceans
                                         continue;
 				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 				{
@@ -1578,11 +1578,13 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 						hex.erase(islandTerrain);
 						hex.add(mountainTerrain);
 		}
-					hex.erase(oceanTerrain);
+                                        if(!me.world.tcs.has("Vd"))
+                                            hex.erase(oceanTerrain);
 					hex.erase(desertTerrain);
 					hex.erase(iceFieldTerrain);
 					hex.erase(icecapTerrain);
-					hex.add(desertTerrainWest);
+                                        if(!me.world.tcs.has("Vd"))
+                                            hex.add(desertTerrainWest);
 					hex.add(iceFieldTerrainEast);
                                 }
 				else
@@ -1631,7 +1633,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                                     hex.erase(oceanTerrain);
                                     hex.erase(desertTerrain);
                                     hex.erase(iceFieldTerrain);
-                                    if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                    if((me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && !me.world.tcs.has("Vd"))
                                         hex.add(desertTerrain);
                                     else
                                         hex.add(iceFieldTerrain);
@@ -1664,6 +1666,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                                 if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
                                 {
                                     if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                        if(!me.world.tcs.has("Vd"))
                                             hex.add(desertTerrainWest);
                                 }
 				else
@@ -1676,7 +1679,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			}
 			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneEastCol+me.twilightZoneDayDiff)
 			{
-                                if(hex.has(icecapTerrain))
+                                if(hex.has(icecapTerrain) || me.world.tcs.has("Vd"))
                                         continue;
 				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 					hex.add(desertTerrainEast);
@@ -1686,7 +1689,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneWestCol-me.twilightZoneDayDiff)
 			{
                                 if(!me.variableTwilight && hex.rowNumber == me.world.uwp.size*2) continue;
-                                if(hex.has(icecapTerrain))
+                                if(hex.has(icecapTerrain) || me.world.tcs.has("Vd"))
                                         continue;
 				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 					hex.add(desertTerrainWest);
@@ -1700,6 +1703,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                                 if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
                                 {
                                         if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                            if(!me.world.tcs.has("Vd"))
                                                 hex.add(desertTerrainEast);
                                 }
 				else
