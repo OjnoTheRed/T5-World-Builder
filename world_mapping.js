@@ -1739,6 +1739,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
                         me.twilightZoneNightDiff -= 0.000001;    // negative #.5 needs to round to bigger negative value
                 me.twilightZoneNightDiff = Math.round(me.twilightZoneNightDiff)
                 me.twilightZoneDayDiff = Math.round(worldSize * 2.5 * (90 - tzD) / 90);
+                // if day + night completely cover world, ensure no twilight strips
+                if(tzN + tzD == 180 && me.twilightZoneNightDiff + me.twilightZoneDayDiff != 0)
+                    me.twilightZoneNightDiff = -me.twilightZoneDayDiff;
 		var firstZone1Hex = me.worldTriangles[4].hexes[0];
 		me.twilightZoneWestCol = firstZone1Hex.columnNumber-1;
                 if(me.variableTwilight)
