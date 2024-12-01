@@ -893,9 +893,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		}
 		if(me.world.tcs.has("Ic"))
 			iceCapRows = Math.min(iceCapRows + dice(1),me.world.uwp.size*2);
-		if(me.world.icecapN)
+		if(me.world.icecapN)    // if 0, do NOT treat as present
 			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.icecapN / 90) - 1;
-		if(me.world.icecapS)
+		if(me.world.icecapS)    // if 0, do NOT treat as present
 			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.icecapS / 90) - 1;
 		if(me.world.tcs.has("Vd") && me.world.tcs.has("Fr"))    // if frozen massive water world, make ALL hexes icecap
                         iceCapRows = me.totalRows;
@@ -1721,12 +1721,12 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	me.getTwilightZone = function()
 	{
                 var tzN = 85;   // default night-side degrees of frozen terrain
-                if(me.world.twilightNight)
+                if(me.world.twilightNight>=0)
                         tzN = me.world.twilightNight;
                 var tzD = 85;   // default day-side degrees of baked terrain
-                if(me.world.twilightDay)
+                if(me.world.twilightDay>=0)
                         tzD = me.world.twilightDay;
-                me.variableTwilight = (me.world.twilightNight || me.world.twilightDay);
+                me.variableTwilight = (me.world.twilightNight>=0 || me.world.twilightDay>=0);
 //                if(tzN + tzD == 180)
 //                    return [];
 		var twilightZone1 = [];
