@@ -1942,6 +1942,7 @@ function mainWorld(generationObject)
 		else
 			me.worlds = Math.min(12,me.worlds);
 		me.nativeIntLife.generate();
+		me.mapOnly = me.dataObj.mapOnly;
 	}
 
 	var inherited_dbObj = me.dbObj;

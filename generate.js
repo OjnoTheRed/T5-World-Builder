@@ -112,8 +112,13 @@ function initialSystem()
 		origMWData = Object.assign({}, givenWorld);
 		var localMainWorld = new mainWorld();
 		localMainWorld.dataObj = givenWorld;
-		mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
-		loadSystemOntoPage(mySystem);
+		if(localMainWorld.dataObj.mapOnly)
+			mapOnlyGeneration(localMainWorld);
+		else
+		{
+			mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
+			loadSystemOntoPage(mySystem);
+		}
 	}
 }
 
@@ -474,6 +479,12 @@ function readURL()
 	myWorldDataObj.system = URLParams.get("system");
 	if(!myWorldDataObj.system) 
 		myWorldDataObj.name + " (" + myWorldDataObj.hex + " " + myWorldDataObj.sector + ")";
+	var mapOnly = URLParams.get("mapOnly");
+	if(mapOnly)
+		mapOnly = true; 
+	else
+		mapOnly = false;
+	myWorldDataObj.mapOnly = mapOnly; // set mapOnly=any value and this flag will be true, otherwise it will be false.  Default is false. 
 	return myWorldDataObj;
 }
 
@@ -592,7 +603,8 @@ function divsToShow(optionChosen)
 			break;
 		case 2:
 			mapDiv.style.display="block";
-			detailDiv.style.display="block";
+			if(!currentWorld.mapOnly)
+				detailDiv.style.display="block";
 			seedEdit.value = currentWorld.seed;
 			break;
 		case 3:
@@ -1222,13 +1234,17 @@ function editMap()
 function finishEditingMap()
 {	
 	currentWorld.mapData = editing_map.genSaveObj();
-	currentWorld.editDetails();
+	if(!currentWorld.mapOnly)
+		currentWorld.editDetails();
+	else
+		currentWorld.createMap(currentWorld.mapData);
 	divsToShow(2);
 }
 
 function cancelEditingMap()
 {
-	currentWorld.editDetails();
+	if(!currentWorld.mapOnly)
+		currentWorld.editDetails();
 	divsToShow(2);	
 }
 
@@ -1325,4 +1341,18 @@ function tw_confirm(msg, yesFn, noFn)
 	else
 		noBtn.onclick = noFn;
 	confirmBox.style.display = "block";
+}
+
+function mapOnlyGeneration(mW)
+{
+	currentWorld = mW;
+	init_rng(mW.dataObj.seed)
+	mW.processDataObj();
+	divsToShow(2);
+	const elemToHide = ["mnuFullStarSystemView","mnuBeasts","mnuBeastsExp","mnuSystemActions","mnuSystemActionsContent","mnuGenerate","mnuGenerateContent","world_details"];
+	for(var i=0;i<elemToHide.length;i++)
+		document.getElementById(elemToHide[i]).style.display = "none";
+	mW.createMap();
+	document.getElementById("mapPlaceholder").style.display = "none";
+	
 }
