@@ -2471,7 +2471,7 @@ function tcs(world)
 
 	me.generate = function()
 	{
-//		me.classes = [];
+		me.classes = [];
             if(me.classes.length == 0)
 		for(var i=0;i<ALL_TC.length;i++)
 			if(ALL_TC[i].rules(me.world))
