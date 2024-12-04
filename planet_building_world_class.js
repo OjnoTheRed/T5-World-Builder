@@ -873,7 +873,8 @@ function world()
 
 	me.lockCheck = function()
 	{
-		if(ROTATIONAL_PERIOD > me.lockPeriod() || -ROTATIONAL_PERIOD < -me.lockPeriod())
+//		if(ROTATIONAL_PERIOD > me.lockPeriod() || -ROTATIONAL_PERIOD < -me.lockPeriod())
+		if(Math.abs(ROTATIONAL_PERIOD) > me.lockPeriod())
 		{
 			ROTATIONAL_PERIOD = me.lockPeriod();
 			me.isSatellite ? me.tcs.add("Lk") : me.tcs.add("Tz");
