@@ -164,7 +164,7 @@ var TC_MR = {name:"Military Rule", code:"Mr", rules:function(world) {return fals
 var TC_PE = {name:"Penal Colony", code:"Pe", rules:function(world) { return !world.isMainWorld && (world.uwp.atmos ==2 || world.uwp.atmos ==3 || world.uwp.atmos == 10 || world.uwp.atmos == 11) && world.uwp.hydro > 0 && world.uwp.hydro < 6 && world.uwp.popul > 2 && world.uwp.popul < 7 && world.uwp.gov == 6 && world.uwp.law > 5 && world.uwp.law < 10; }, mod:0 };
 var TC_RE = {name:"Reserve", code:"Re", rules:function(world) { return world.uwp.popul > 0 && world.uwp.popul < 5 && world.uwp.gov == 6 && (world.uwp.law ==4 || world.uwp.law ==5); }, mod:0 };
 var TC_CY = {name:"Colony", code:"Cy", rules:function(world) { return world.uwp.popul > 4 && world.uwp.popul < 11 && world.uwp.gov == 6 && world.uwp.law < 4; }, mod:0 };
-var TC_SA = {name:"Satellite", code:"Sa", rules:function(world) {return world.isSatellite}, mod:0 };
+var TC_SA = {name:"Satellite", code:"Sa", rules:function(world) {return world.isSatellite && !(world.orbit && world.orbit.baseOrbit.m < 70)}, mod:0 };
 var TC_LK = {name:"Locked", code:"Lk", rules:function(world) {return world.isSatellite && (world.orbit && world.orbit.baseOrbit.m < 70)}, mod:0 };
 var TC_PZ = {name:"Puzzle", code:"Pz", rules:function(world) { return world.travelZone == "A" && world.uwp.popul > 6; }, mod:0 };
 var TC_DA = {name:"Dangerous", code:"Da", rules:function(world) { return world.travelZone == "A" && world.uwp.popul < 7; }, mod:0 };

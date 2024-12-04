@@ -877,7 +877,7 @@ function world()
 		if(Math.abs(ROTATIONAL_PERIOD) > me.lockPeriod())
 		{
 			ROTATIONAL_PERIOD = me.lockPeriod();
-			me.isSatellite ? me.tcs.add("Lk") : me.tcs.add("Tz");
+			me.isSatellite ? me.tcs.add("Lk") || me.tcs.del("Sa") : me.tcs.add("Tz");
 		}
 	}
 
@@ -3573,7 +3573,9 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
                     mwType = "";
                     me.mainWorld.tcs.del("Pl");
                 }
-                else if(me.mainWorld.tcs.has("Lk") || me.mainWorld.tcs.has("Sa"))
+                else if(me.mainWorld.tcs.has("Lk"))
+                        mwType = "Lk";
+                else if(me.mainWorld.tcs.has("Sa"))
                         mwType = "Sa";
                 else
                 {
@@ -3587,15 +3589,18 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 		if(uPObj.prefs.main_world_not_sat || me.mainWorld.uwp.size == 0)
 			mwType = "";
                 }
-		if(mwType == "Sa" || mwType == "Lk")
+		if(mwType == "Sa" )
 		{
 			me.mainWorld.tcs.add("Sa");
 			me.mainWorld.isSatellite = true;
 		}
+		else if(mwType == "Lk")
+                {
+			me.mainWorld.tcs.add("Lk");
+			me.mainWorld.isSatellite = true;
+                }
 		else
 			me.mainWorld.isSatellite = false;
-		if(mwType == "Lk")
-			me.mainWorld.tcs.add("Lk");
 //                if(me.mainWorld.dataObj.remarks.indexOf("Tz") >= 0)
 //                        me.mainWorld.tcs.add("Tz");
 		var mainWorldPlaced = false;
