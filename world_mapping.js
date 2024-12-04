@@ -5243,17 +5243,17 @@ function beltMap(world, parentObj, containerDiv)
 		var m_label = n_bound-195;
 		var c_label = m_bound-195;
 		
-		addDashedCircle("-200","50","" + c_bound,"2","black","#A4A4A4","5,5",me.parentObj);
-		addDashedCircle("-200","50","" + m_bound,"2","black","#D8D8D8","5,5",me.parentObj);
-		addDashedCircle("-200","50","" + n_bound,"2","black","#F2F2F2","5,5",me.parentObj);
-		addDashedCircle("-200","50","" + inner_bound,"2","black","white","5,5",me.parentObj);
-		addText("10","20","Belt Details", "Optima", "80", "black", me.parentObj);
-		addText("30", "60", "To Star", "Arial", "12", "black", me.parentObj);
-		addPath("M10 54 L20 50 L20 58 Z","1","black","black",me.parentObj);
-		addPath("M155 80 L165 70 M155 80 L165 90 M155 80 L" + (c_bound - 205) + " 80 L" + (c_bound - 215) + " 70 M" + (c_bound - 205) + " 80 L" + (c_bound - 215) + " 90","4","black","none",me.parentObj);
-		addText("" + (100+(c_bound - inner_bound)/2), "95", "Width: " + me.world.beltDetails.orbitWidth + " AU", "Arial", "10", "black", me.parentObj);
-		addText("" + n_label, "50", "N-Zone", "Arial", "12", "black", me.parentObj);
-		addText("" + m_label, "50", "M-Zone", "Arial", "12", "black", me.parentObj)
-		addText("" + c_label, "50", "C-Zone", "Arial", "12", "white", me.parentObj)
+		addDashedCircle("-200","90","" + c_bound,"2","black","#A4A4A4","5,5",me.parentObj);
+		addDashedCircle("-200","90","" + m_bound,"2","black","#D8D8D8","5,5",me.parentObj);
+		addDashedCircle("-200","90","" + n_bound,"2","black","#F2F2F2","5,5",me.parentObj);
+		addDashedCircle("-200","90","" + inner_bound,"2","black","white","5,5",me.parentObj);
+		addText("10","60","Belt Details", "Optima", "80", "black", me.parentObj);
+		addText("30", "95", "To Star", "Arial", "12", "black", me.parentObj);
+		addPath("M10 91 L20 87 L20 95 Z","1","black","black",me.parentObj);
+		addPath("M155 70 L165 60 M155 70 L165 80 M155 70 L" + (c_bound - 205) + " 70 L" + (c_bound - 215) + " 60 M" + (c_bound - 205) + " 70 L" + (c_bound - 215) + " 80","4","black","none",me.parentObj);
+		addText("" + (100+(c_bound - inner_bound)/2), "85", "Width: " + me.world.beltDetails.orbitWidth + " AU", "Arial", "10", "black", me.parentObj);
+		addText("" + n_label, "95", "N-Zone", "Arial", "12", "black", me.parentObj);
+		addText("" + m_label, "95", "M-Zone", "Arial", "12", "black", me.parentObj)
+		addText("" + c_label, "95", "C-Zone", "Arial", "12", "white", me.parentObj)
 	}
 }
