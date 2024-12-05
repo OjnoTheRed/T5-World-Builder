@@ -1298,6 +1298,9 @@ function convertAUtoOrbit(au_measure)
 
 function beasts()
 {
+	if(currentWorld.seed)
+                init_rng(currentWorld.seed);
+
 	document.getElementById("beastExplanation").innerHTML = "These are randomly generated 1D beast tables for 11 terrain types in this world using the T5 rules.  Note that beast tables refer to Terrain Hexes and not World Hexes, and so some terrain such as Forest never appears at the world level.  This feature is in draft form at the moment; in future, a random selection of events will be added, and all beast details will be editable and all details such as edibility etc. from the BeastMaker rules will be added and the data will be saved with the system file.";
 	divsToShow(16);
 	var beastDiv = document.getElementById("beastArea");
@@ -1311,6 +1314,9 @@ function beasts()
 
 function tjl_beasts()
 {
+	if(currentWorld.seed)
+                init_rng(currentWorld.seed);
+
 	document.getElementById("beastExplanation").innerHTML = "These are randomly generated 1D beast tables for the terrain types in this world using the T5 rules.  Note that beast tables refer to Terrain Hexes and not World Hexes, and so some terrain such as Forest never appears at the world level.  This feature is in draft form at the moment; in future, a random selection of events will be added, and all beast details will be editable and all details such as edibility etc. from the BeastMaker rules will be added and the data will be saved with the system file.";
 	divsToShow(16);
 	var beastDiv = document.getElementById("beastArea");
