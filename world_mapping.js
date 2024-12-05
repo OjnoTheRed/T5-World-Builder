@@ -48,6 +48,8 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 	me.key = new mapKey(me);
 	me.twilightZoneWestCol = 0;
 	me.twilightZoneEastCol = 0;
+        me.twilightZoneNightDiff = 0;
+        me.twilightZoneDayDiff = 0;
 	me.twilightZoneOption = 0;
 	me.worldOceans = [];
 	me.worldContinents = [];
@@ -121,11 +123,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			waste();
 			icecaps();
 			frozenPlanet();
-			//hellishPlanet();
-			//moltenPlanet();
+			veryHotPlanet();
+			moltenPlanet();
 			tundra();
-			desert();
 			twilightZone();
+			desert();
 			if(uPObj.prefs.place_noble_estate)
 				nobleLand();
 			clearTerrainAllocate();
@@ -346,6 +348,48 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		addLine(me.mapCornerPoints[3].x, me.mapCornerPoints[3].y, me.mapCornerPoints[5].x, me.mapCornerPoints[5].y, "2px","black", me.parentObj);
 		addRectangle(0, 0, me.map_left_offset + 6*(sizeUsed+1)*32, me.map_top_offset-10, "white",0,"none", me.parentObj);
 		addRectangle(0, me.mapCornerPoints[2].y, me.map_left_offset + 6*(sizeUsed+1)*32, 500, "white",0,"none", me.parentObj);
+                // column markers
+                var colDiff = me.mapCornerPoints[2].x - me.mapCornerPoints[0].x;
+                var rowDiff = (me.mapCornerPoints[1].y-me.mapCornerPoints[0].y)/2
+                for (var i=0; i<=10; i+=2)
+                {
+                    addText(me.mapCornerPoints[0].x-6+i*colDiff, me.mapCornerPoints[0].y-14, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y-10, me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y-2, "1px","black", me.parentObj )
+                    addText(me.mapCornerPoints[0].x-6+i*colDiff, me.mapCornerPoints[0].y+24+rowDiff*2, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y+12+rowDiff*2, me.mapCornerPoints[0].x+i*colDiff, me.mapCornerPoints[0].y+4+rowDiff*2, "1px","black", me.parentObj )
+                }
+                for (var i=1; i<=9; i+=2)
+                {
+                    addText(me.mapCornerPoints[2].x-6+(i-1)*colDiff, me.mapCornerPoints[2].y+21, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y+10, me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y+2, "1px","black", me.parentObj )
+                    addText(me.mapCornerPoints[2].x-6+(i-1)*colDiff, me.mapCornerPoints[2].y-14-rowDiff*2, me.world.uwp.size * i, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                    addLine(me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y-12-rowDiff*2, me.mapCornerPoints[2].x+(i-1)*colDiff, me.mapCornerPoints[2].y-4-rowDiff*2, "1px","black", me.parentObj )
+                }
+                // row markers
+		addText(me.mapCornerPoints[0].x-33, me.mapCornerPoints[0].y+3, "+"+Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[0].x-10, me.mapCornerPoints[0].y, me.mapCornerPoints[0].x-2, me.mapCornerPoints[0].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[4].x+12, me.mapCornerPoints[4].y+3, "+"+Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[4].x+10, me.mapCornerPoints[4].y, me.mapCornerPoints[4].x+2, me.mapCornerPoints[4].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[1].x-25, me.mapCornerPoints[1].y+3, -Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[1].x-10, me.mapCornerPoints[1].y, me.mapCornerPoints[1].x-2, me.mapCornerPoints[1].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[5].x+12, me.mapCornerPoints[5].y+3, -Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[5].x+10, me.mapCornerPoints[5].y, me.mapCornerPoints[5].x+2, me.mapCornerPoints[5].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[1].x-26, me.mapCornerPoints[0].y+rowDiff+3, "+"+Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[1].x-10, me.mapCornerPoints[0].y+rowDiff, me.mapCornerPoints[1].x-2, me.mapCornerPoints[0].y+rowDiff, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[5].x+12, me.mapCornerPoints[4].y+rowDiff+3, "+"+Math.round(me.world.uwp.size*0.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[5].x+10, me.mapCornerPoints[4].y+rowDiff, me.mapCornerPoints[1].x+2, me.mapCornerPoints[4].y+rowDiff, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[2].x-33, me.mapCornerPoints[2].y+3, -Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[2].x-10, me.mapCornerPoints[2].y, me.mapCornerPoints[2].x-2, me.mapCornerPoints[2].y, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[3].x+12, me.mapCornerPoints[3].y+3, -Math.round(me.world.uwp.size*1.5), "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[3].x+10, me.mapCornerPoints[3].y, me.mapCornerPoints[3].x+2, me.mapCornerPoints[3].y, "1px","black", me.parentObj )
+                // equator marker
+                if(me.world.uwp.size%2==0)
+                {
+		addText(me.mapCornerPoints[1].x-25, me.mapCornerPoints[1].y-rowDiff/2+3, 0, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[1].x-10, me.mapCornerPoints[1].y-rowDiff/2, me.mapCornerPoints[1].x-2, me.mapCornerPoints[1].y-rowDiff/2, "1px","black", me.parentObj )
+		addText(me.mapCornerPoints[5].x+12, me.mapCornerPoints[5].y-rowDiff/2+3, 0, "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(me.mapCornerPoints[5].x+10, me.mapCornerPoints[5].y-rowDiff/2, me.mapCornerPoints[5].x+2, me.mapCornerPoints[5].y-rowDiff/2, "1px","black", me.parentObj )
+                }
 		if(!me.blank && !editingFlag)
 		{
 			me.worldText();
@@ -618,9 +662,26 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function addOcean(selectedHex)
 	{
-		if(me.world.tcs.has("Va"))
+                // for Molten planet, ocean hexes will become lava
+                // for Very Hot planet, ocean hexes will become desert
+                // for Frozen planet, ocean hexes will become ice fields
+		if(me.world.tcs.has("Va") && !(me.world.tcs.has("Mo") || me.world.tcs.has("Vh") || me.world.tcs.has("Fr")))
 			return;
 		selectedHex.terrainTypes.push(oceanTerrain);
+		selectedHex.clear = false;
+		if(selectedHex.has(mountainTerrain))
+		{
+			selectedHex.erase(mountainTerrain);
+                        if(me.world.tcs.has("Vd"))
+                            selectedHex.add(precipiceTerrain);
+                        else
+			selectedHex.add(islandTerrain);
+		}
+	}
+
+	function addLava(selectedHex)
+	{
+		selectedHex.terrainTypes.push(lavaTerrain);
 		selectedHex.clear = false;
 		if(selectedHex.has(mountainTerrain))
 		{
@@ -740,8 +801,54 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		if(!me.world.tcs.has("De"))
 			return;
 		for(var i=0;i<me.hexes.length;i++)
-                    if(!me.hexes[i].has(oceanTerrain) && !me.hexes[i].has(icecapTerrain))
+                    if(!me.hexes[i].has(oceanTerrain) && !me.hexes[i].has(icecapTerrain) && !me.hexes[i].has(iceFieldTerrain) && !me.hexes[i].has(frozenLandTerrain) && !me.hexes[i].has(bakedLandsTerrain))
+                        {
 			me.hexes[i].add(desertTerrain);
+                            
+                            // remove and re-add overlays, so they are on top of desert symbol
+                            // still need to add desert for these, since might be only one overlay so desert will show on uncovered half
+                            if(me.hexes[i].has(iceFieldTerrainWest))
+                            {
+                                me.hexes[i].erase(iceFieldTerrainWest);
+                                me.hexes[i].add(iceFieldTerrainWest);
+	}
+                            if(me.hexes[i].has(frozenLandTerrainWest))
+                            {
+                                me.hexes[i].erase(frozenLandTerrainWest);
+                                me.hexes[i].add(frozenLandTerrainWest);
+                            }
+                            if(me.hexes[i].has(iceFieldTerrainEast))
+                            {
+                                me.hexes[i].erase(iceFieldTerrainEast);
+                                me.hexes[i].add(iceFieldTerrainEast);
+                            }
+                            if(me.hexes[i].has(frozenLandTerrainEast))
+                            {
+                                me.hexes[i].erase(frozenLandTerrainEast);
+                                me.hexes[i].add(frozenLandTerrainEast);
+                            }
+
+                            if(me.hexes[i].has(desertTerrainWest))
+                            {
+                                me.hexes[i].erase(desertTerrainWest);
+                                me.hexes[i].add(desertTerrainWest);
+                            }
+                            if(me.hexes[i].has(bakedLandsWestHalfTerrain))
+                            {
+                                me.hexes[i].erase(bakedLandsWestHalfTerrain);
+                                me.hexes[i].add(bakedLandsWestHalfTerrain);
+                            }
+                            if(me.hexes[i].has(desertTerrainEast))
+                            {
+                                me.hexes[i].erase(desertTerrainEast);
+                                me.hexes[i].add(desertTerrainEast);
+                            }
+                            if(me.hexes[i].has(bakedLandsEastHalfTerrain))
+                            {
+                                me.hexes[i].erase(bakedLandsEastHalfTerrain);
+                                me.hexes[i].add(bakedLandsEastHalfTerrain);
+                            }
+                        }
 	}
 
 	function seas()
@@ -757,9 +864,12 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function icecaps()
 	{
-		if(me.systemZone == "I" || me.world.tcs.has("Tz"))
+                // if Tz world, skip N/S ice caps UNLESS also Bc (bright companion cancelling twilight zone), or Vd + Fr (completely covered in deep frozen ocean)
+		if(me.systemZone == "I" || (me.world.tcs.has("Tz") && !(me.world.tcs.has("Bc") || (me.world.tcs.has("Vd") && me.world.tcs.has("Fr")))) || me.world.tcs.has("Vh") || me.world.tcs.has("Mo"))
 			return;
 		var iceCapRows = Math.floor(me.world.uwp.hydro/2)-1;
+                var iceCapRowsN = null;
+                var iceCapRowsS = null;
 		if(me.world.uwp.size == 1)
 		{
 			switch(iceCapRows)
@@ -783,7 +893,33 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		}
 		if(me.world.tcs.has("Ic"))
 			iceCapRows = Math.min(iceCapRows + dice(1),me.world.uwp.size*2);
-		if(iceCapRows > -1)
+		if(me.world.icecapN)    // if 0, do NOT treat as present
+			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.icecapN / 90) - 1;
+		if(me.world.icecapS)    // if 0, do NOT treat as present
+			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.icecapS / 90) - 1;
+		if(me.world.tcs.has("Vd") && me.world.tcs.has("Fr"))    // if frozen massive water world, make ALL hexes icecap
+                        iceCapRows = me.totalRows;
+		if(iceCapRowsN >= 0)
+		{
+                        if(me.getHex(-1,-1).has(islandTerrain))
+                        {
+                                me.getHex(-1,-1).erase(islandTerrain);
+                                me.getHex(-1,-1).add(mountainTerrain);
+                        }
+			me.getHex(-1,-1).add(icecapTerrain);
+			me.getHex(-1,-1).clear = false;
+		}
+		if(iceCapRowsS >= 0)
+		{
+                        if(me.getHex(-2,-2).has(islandTerrain))
+                        {
+                                me.getHex(-2,-2).erase(islandTerrain);
+                                me.getHex(-2,-2).add(mountainTerrain);
+                        }
+			me.getHex(-2,-2).add(icecapTerrain);
+			me.getHex(-2,-2).clear = false;
+		}
+		if(iceCapRowsN == null && iceCapRowsS == null && iceCapRows > -1)
 		{
                         if(me.getHex(-1,-1).has(islandTerrain))
                         {
@@ -803,7 +939,11 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		for(var i=0;i<me.worldTriangles.length;i++)
 			for(var j=0;j<me.worldTriangles[i].hexes.length;j++)
 			{
-				if(me.worldTriangles[i].hexes[j].rowNumber < iceCapRows || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRows))
+				if(
+                                        (iceCapRowsN == null && iceCapRowsS == null && (me.worldTriangles[i].hexes[j].rowNumber < iceCapRows || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRows)))
+                                        || (me.worldTriangles[i].hexes[j].rowNumber < iceCapRowsN)
+                                        || ((me.totalRows - me.worldTriangles[i].hexes[j].rowNumber - 1) < iceCapRowsS)
+                                )
 				{
                                         if(me.worldTriangles[i].hexes[j].has(islandTerrain))
                                         {
@@ -844,10 +984,66 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 		}
 	}
 
+	function veryHotPlanet()
+	{
+		if(!me.world.tcs.has("Vh"))
+			return;
+
+		for(var i=0;i<me.hexes.length;i++)
+		{
+			var hex = me.hexes[i];
+			if(hex.has(oceanTerrain))
+			{
+                                if(hex.has(islandTerrain))
+                                {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                }
+				hex.erase(oceanTerrain);
+				hex.add(desertTerrain);
+			}
+			else
+			{
+				hex.add(bakedLandsTerrain);
+			}
+		}
+	}
+
+	function moltenPlanet()
+	{
+		if(!me.world.tcs.has("Mo"))
+			return;
+
+		for(var i=0;i<me.hexes.length;i++)
+		{
+			var hex = me.hexes[i];
+			if(hex.has(oceanTerrain))
+			{
+                                if(hex.has(islandTerrain))
+                                {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                }
+				hex.erase(oceanTerrain);
+				hex.add(lavaTerrain);
+			}
+			else
+			{
+				hex.add(bakedLandsTerrain);
+			}
+		}
+	}
+
 	function tundra()
 	{
 		if(!me.world.tcs.has("Tu"))
 			return;
+		var iceCapRowsN = 0;
+		if(me.world.icecapN)
+			iceCapRowsN = Math.round(me.world.uwp.size * 1.5 * me.world.icecapN / 90) - 1;
+		var iceCapRowsS = 0;
+		if(me.world.icecapS)
+			iceCapRowsS = Math.round(me.world.uwp.size * 1.5 * me.world.icecapS / 90) - 1;
 		var numTundraRows = dice(1);
                 var poles = [me.getHex(-1,-1), me.getHex(-2,-2)]
                 for (var i in poles)
@@ -875,7 +1071,7 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			for(var j=0;j<me.worldTriangles[i].hexes.length;j++)
 			{
 				var hex = me.worldTriangles[i].hexes[j];
-				if(hex.rowNumber > numTundraRows && (me.totalRows - hex.rowNumber - 1) > numTundraRows)
+				if(hex.rowNumber > numTundraRows + iceCapRowsN && (me.totalRows - hex.rowNumber - 1) > numTundraRows + iceCapRowsS)
 					continue;
 				if(hex.has(icecapTerrain))
 					continue;
@@ -1141,7 +1337,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 					{
 						selectedHex = array_fnc.random.call(me.hexes);
 					}
-					while((!uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain)) || selectedHex.has(nobleTerrainB) || selectedHex.has(nobleTerrainc) || selectedHex.has(nobleTerrainC) || selectedHex.has(nobleTerrainD) || selectedHex.has(nobleTerraine) || selectedHex.has(nobleTerrainE) || selectedHex.has(nobleTerrainf) || selectedHex.has(nobleTerrainF) );
+                                        // have to allow ocean placement on world with massive ocean (and thus no land or islands)
+                                        // so check for custom "Vd" TC code as alternative to "allow ocean noble" preference
+					while((!me.world.tcs.has("Vd") && !uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain)) || selectedHex.has(nobleTerrainB) || selectedHex.has(nobleTerrainc) || selectedHex.has(nobleTerrainC) || selectedHex.has(nobleTerrainD) || selectedHex.has(nobleTerraine) || selectedHex.has(nobleTerrainE) || selectedHex.has(nobleTerrainf) || selectedHex.has(nobleTerrainF) );
 					selectedHex.add(terrain);
 				}
 			}
@@ -1153,7 +1351,9 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			{
 				selectedHex = array_fnc.random.call(me.hexes);
 			}
-			while(!uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain))
+                        // have to allow ocean placement on world with massive ocean (and thus no land or islands)
+                        // so check for custom "Vd" TC code as alternative to "allow ocean noble" preference
+			while(!me.world.tcs.has("Vd") && !uPObj.prefs.allow_ocean_nobz && selectedHex.has(oceanTerrain) && !selectedHex.has(islandTerrain))
 			selectedHex.add(nobleTerrain);
 		}
 	}
@@ -1197,7 +1397,10 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	function twilightZone()
 	{
-		if(!me.world.tcs.has("Tz"))
+                // molten worlds won't necessarily have un-molten land on night-side
+                // and trying to make un-molten night-side work in all scenarios is very complex
+                // so is simpler to just skip night-side/day-side logic for molten worlds
+		if(!me.world.tcs.has("Tz") || me.world.tcs.has("Mo"))
 			return;
 		if(me.world.uwp.size == 1)
 		{
@@ -1273,9 +1476,43 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 			if(zoneHexes.find(function(v) { return v.name == me.hexes[i].name }) !== undefined)
 				continue;
 			var hex = me.hexes[i];
-			if(hex.columnNumber > me.twilightZoneWestCol+1 && hex.columnNumber < me.twilightZoneEastCol-1)
+//			if(hex.columnNumber > me.twilightZoneWestCol+1 && hex.columnNumber < me.twilightZoneEastCol-1)
+                            if(!(me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && (hex.rowNumber <= me.twilightZoneNightDiff*-0.5 - me.world.uwp.size/2 + 1 || hex.rowNumber >= 3*me.world.uwp.size + Math.round(me.twilightZoneNightDiff*0.5) + me.world.uwp.size/4 - 0.5))    //hex.rowNumber >= 3*me.world.uwp.size + Math.round(me.twilightZoneNightDiff*0.5 + me.world.uwp.size/4 - 0.5
+                            {
+                                    if(hex.has(islandTerrain))
+                                    {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                    }
+                                hex.erase(oceanTerrain);
+				hex.erase(desertTerrain);
+				hex.erase(iceFieldTerrain);
+				hex.erase(bakedLandsTerrain);
+				hex.erase(frozenLandTerrain);
+                                hex.add(icecapTerrain);
+                            }
+			if((hex.columnNumber < 0 && me.twilightZoneNightDiff < me.twilightZoneDayDiff) || (hex.columnNumber > 0 && ((hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff) || (hex.columnNumber+me.world.uwp.size*10 > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber+me.world.uwp.size*10 < me.twilightZoneEastCol - me.twilightZoneNightDiff))))
 			{
-				if(hex.has(oceanTerrain))
+                                if(hex.has(icecapTerrain))
+                                        continue;
+                                if((me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && !me.world.tcs.has("Vd"))    // if Very Deep, leave oceans as oceans
+                                {
+					if(hex.has(islandTerrain))
+					{
+						hex.erase(islandTerrain);
+						hex.add(mountainTerrain);
+					}
+                                        if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                        {
+                                            hex.erase(lavaTerrain);
+                                            hex.erase(oceanTerrain);
+                                            hex.erase(desertTerrain);
+                                            hex.erase(iceFieldTerrain);
+                                            hex.add(desertTerrain);
+                                        }
+                                }
+				else
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 				{
 					if(hex.has(islandTerrain))
 					{
@@ -1283,16 +1520,36 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 						hex.add(mountainTerrain);
 					}
 					hex.erase(oceanTerrain);
+                                        hex.erase(desertTerrain);
+                                        if((hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff + me.world.uwp.size/2 && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff - me.world.uwp.size/2)/* || (hex.columnNumber >= 0 && me.twilightZoneNightDiff < 0 && hex.columnNumber < me.twilightZoneWestCol + me.twilightZoneNightDiff - me.world.uwp.size/2 + 1)*/)
+                                        {
+                                                hex.erase(iceFieldTerrain);
+                                                hex.add(icecapTerrain);
+                                        }
+                                        else
 					hex.add(iceFieldTerrain);
 				}
 				else
 				{
+//                                        hex.add(mountainTerrain);     // WHY WAS THIS HERE?!
+                                        hex.erase(bakedLandsTerrain);
+                                        if((hex.columnNumber > me.twilightZoneWestCol + me.twilightZoneNightDiff + me.world.uwp.size/2 && hex.columnNumber < me.twilightZoneEastCol - me.twilightZoneNightDiff - me.world.uwp.size/2)/* || (hex.columnNumber >= 0 && me.twilightZoneNightDiff < 0 && hex.columnNumber < me.twilightZoneWestCol + me.twilightZoneNightDiff - me.world.uwp.size/2 + 1)*/)
+                                        {
+                                                hex.erase(frozenLandTerrain);
+                                                hex.add(icecapTerrain);
+                                        }
+                                        else
 					hex.add(frozenLandTerrain);
 				}
 			}
-			if(hex.columnNumber < me.twilightZoneWestCol-1 || hex.columnNumber > me.twilightZoneEastCol+1)
+//			if(hex.columnNumber < me.twilightZoneWestCol-1 || hex.columnNumber > me.twilightZoneEastCol+1)
+                    // skip day side terrain for low column numbers when night side east edge goes past column # 0
+                    if(!(hex.columnNumber >= 0 && me.twilightZoneNightDiff < 0 && (hex.columnNumber+me.world.uwp.size*10 > me.twilightZoneWestCol + me.twilightZoneNightDiff && hex.columnNumber+me.world.uwp.size*10 < me.twilightZoneEastCol - me.twilightZoneNightDiff)))
+			if((hex.columnNumber < 0 && me.twilightZoneNightDiff > me.twilightZoneDayDiff) || (hex.columnNumber > 0 && hex.columnNumber < me.twilightZoneWestCol - me.twilightZoneDayDiff || hex.columnNumber > me.twilightZoneEastCol + me.twilightZoneDayDiff))
 			{
-				if(hex.has(oceanTerrain))
+                                if(hex.has(icecapTerrain) || me.world.tcs.has("Vd"))    // if Very Deep, leave oceans as oceans
+                                        continue;
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 				{
 					if(hex.has(islandTerrain))
 					{
@@ -1300,46 +1557,160 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 						hex.add(mountainTerrain);
 					}
 					hex.erase(oceanTerrain);
+					hex.erase(iceFieldTerrain);
 					hex.add(desertTerrain);
 				}
 				else
 				{
+                                        hex.erase(frozenLandTerrain);
 					hex.add(bakedLandsTerrain);
 				}
 			}
+                        // special case for pole hexes when planet is equally split between day and night
+                        if(hex.columnNumber < 0 && me.twilightZoneNightDiff == 0 && me.twilightZoneDayDiff == 0)
+                        {
+                                if(hex.has(icecapTerrain))
+                                        continue;
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                {
+					if(hex.has(islandTerrain))
+					{
+						hex.erase(islandTerrain);
+						hex.add(mountainTerrain);
 		}
+                                        if(!me.world.tcs.has("Vd"))
+                                            hex.erase(oceanTerrain);
+					hex.erase(desertTerrain);
+					hex.erase(iceFieldTerrain);
+					hex.erase(icecapTerrain);
+                                        if(!me.world.tcs.has("Vd"))
+                                            hex.add(desertTerrainWest);
+					hex.add(iceFieldTerrainEast);
+                                }
+				else
+                                {
+					hex.erase(bakedLandsTerrain);
+					hex.erase(frozenLandTerrain);
+					hex.erase(icecapTerrain);
+					hex.add(bakedLandsWestHalfTerrain);
+					hex.add(frozenLandTerrainEast);
+                                }
+                                continue;
+                        }
+		}
+                var halfSize = Math.round(me.world.uwp.size*2.5)
 		for(i=0;i<zoneHexes.length;i++)
 		{
-			if(zoneHexes[i].parentTriangle == null || zoneHexes[i].parentTriangle.id == 3 || zoneHexes[i].parentTriangle.id == 12)
-				continue;
+//			if(zoneHexes[i].parentTriangle == null || zoneHexes[i].parentTriangle.id == 3 || zoneHexes[i].parentTriangle.id == 12)
+//				continue;
 			var hex = zoneHexes[i];
-			if(hex.columnNumber == me.twilightZoneEastCol-1)
+                        // add icecap above and below day side if night area really big ...
+                        if(me.twilightZoneNightDiff < 0)
+                        {
+                            if(!(me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && (hex.rowNumber < Math.round(me.twilightZoneNightDiff*-0.5 - me.world.uwp.size/4 - 0.5) || hex.rowNumber >= 3*me.world.uwp.size + Math.round(me.twilightZoneNightDiff*0.5 + me.world.uwp.size/4 - 0.5)))
+                            {
+                                    if(hex.has(islandTerrain))
+                                    {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                    }
+                                hex.erase(oceanTerrain);
+				hex.erase(desertTerrain);
+				hex.erase(iceFieldTerrain);
+				hex.erase(bakedLandsTerrain);
+				hex.erase(frozenLandTerrain);
+                                hex.add(icecapTerrain);
+                            }
+                            else if(hex.rowNumber <= me.twilightZoneNightDiff*-0.5 || hex.rowNumber >= 3*me.world.uwp.size + me.twilightZoneNightDiff*0.5 - me.world.uwp.size/4)
+                            {
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                {
+                                    if(hex.has(islandTerrain))
+                                    {
+                                        hex.erase(islandTerrain);
+                                        hex.add(mountainTerrain);
+                                    }
+                                    hex.erase(oceanTerrain);
+                                    hex.erase(desertTerrain);
+                                    hex.erase(iceFieldTerrain);
+                                    if((me.world.tcs.has("Mo") || me.world.tcs.has("Vh")) && !me.world.tcs.has("Vd"))
+                                        hex.add(desertTerrain);
+                                    else
+                                        hex.add(iceFieldTerrain);
+                                }
+                                else
+                                {
+                                    hex.erase(desertTerrain);
+                                    if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                        hex.add(bakedLandsTerrain);
+                                    else
+                                        hex.add(frozenLandTerrain);
+                                }
+                            }
+                        }
+                        // add twilight zone around poles if day and night areas really small ...
+			if(hex.columnNumber>me.twilightZoneWestCol && hex.columnNumber < me.twilightZoneEastCol && hex.rowNumber <= me.twilightZoneNightDiff - me.world.uwp.size + 1)
+				continue;
+			if(hex.columnNumber>me.twilightZoneWestCol && hex.columnNumber < me.twilightZoneEastCol && hex.rowNumber >= 4*me.world.uwp.size - me.twilightZoneNightDiff - 3)
+				continue;
+			if((hex.columnNumber<me.twilightZoneWestCol || hex.columnNumber>me.twilightZoneEastCol) && hex.rowNumber <= me.twilightZoneDayDiff - me.world.uwp.size + 1)
+				continue;
+			if((hex.columnNumber<me.twilightZoneWestCol || hex.columnNumber>me.twilightZoneEastCol) && hex.rowNumber >= 4*me.world.uwp.size - me.twilightZoneDayDiff - 3)
+				continue;
+
+			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneEastCol-me.twilightZoneNightDiff)
 			{
-				if(hex.has(oceanTerrain))
+                                if(!me.variableTwilight && hex.rowNumber == me.world.uwp.size-2) continue;
+                                if(hex.has(icecapTerrain))
+                                        continue;
+                                if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                {
+                                    if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                        if(!me.world.tcs.has("Vd"))
+                                            hex.add(desertTerrainWest);
+                                }
+				else
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                {
 					hex.add(iceFieldTerrainWest);
+                                }
 				else
 					hex.add(frozenLandTerrainWest);
 			}
-			if(hex.columnNumber == me.twilightZoneEastCol+1)
+			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneEastCol+me.twilightZoneDayDiff)
 			{
-				if(hex.has(oceanTerrain))
+                                if(hex.has(icecapTerrain) || me.world.tcs.has("Vd"))
+                                        continue;
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 					hex.add(desertTerrainEast);
 				else
 					hex.add(bakedLandsEastHalfTerrain);
 			}
-			if(hex.columnNumber == me.twilightZoneWestCol-1)
+			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneWestCol-me.twilightZoneDayDiff)
 			{
-				if(hex.has(oceanTerrain))
+                                if(!me.variableTwilight && hex.rowNumber == me.world.uwp.size*2) continue;
+                                if(hex.has(icecapTerrain) || me.world.tcs.has("Vd"))
+                                        continue;
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
 					hex.add(desertTerrainWest);
 				else
 					hex.add(bakedLandsWestHalfTerrain);
 			}
-			if(hex.columnNumber == me.twilightZoneWestCol+1)
+			if(me.twilightZoneNightDiff < halfSize && hex.columnNumber == me.twilightZoneWestCol+me.twilightZoneNightDiff)
 			{
-				if(hex.has(oceanTerrain))
-					hex.add(iceFieldTerrainEast);
+                                if(hex.has(icecapTerrain))
+                                        continue;
+                                if(me.world.tcs.has("Mo") || me.world.tcs.has("Vh"))
+                                {
+                                        if(hex.has(lavaTerrain) || hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                            if(!me.world.tcs.has("Vd"))
+                                                hex.add(desertTerrainEast);
+                                }
 				else
-					hex.add(frozenLandTerrainEast);
+				if(hex.has(oceanTerrain) || hex.has(desertTerrain) || hex.has(iceFieldTerrain))
+                                            hex.add(iceFieldTerrainEast);
+				else
+                                            hex.add(frozenLandTerrainEast);
 			}
 		}
 /*		for(i=0;i<zoneHexes.length;i++)
@@ -1349,43 +1720,105 @@ function worldMap(world, parentObj, containerDiv, blankMap, editMode)
 
 	me.getTwilightZone = function()
 	{
+                var tzN = 85;   // default night-side degrees of frozen terrain
+                if(me.world.twilightNight>=0)
+                        tzN = me.world.twilightNight;
+                var tzD = 85;   // default day-side degrees of baked terrain
+                if(me.world.twilightDay>=0)
+                        tzD = me.world.twilightDay;
+                me.variableTwilight = (me.world.twilightNight>=0 || me.world.twilightDay>=0);
+//                if(tzN + tzD == 180)
+//                    return [];
 		var twilightZone1 = [];
 		var twilightZone1a = [];
 		var twilightZone2 = [];
 		var twilightZone2a = [];
 		var worldSize = me.world.uwp.size;
+                me.twilightZoneNightDiff = worldSize * 2.5 * (90 - tzN) / 90;
+                if(me.twilightZoneNightDiff < 0)
+                        me.twilightZoneNightDiff -= 0.000001;    // negative #.5 needs to round to bigger negative value
+                me.twilightZoneNightDiff = Math.round(me.twilightZoneNightDiff)
+                me.twilightZoneDayDiff = Math.round(worldSize * 2.5 * (90 - tzD) / 90);
+                // if day + night completely cover world, ensure no twilight strips
+                if(tzN + tzD == 180 && me.twilightZoneNightDiff + me.twilightZoneDayDiff != 0)
+                    me.twilightZoneNightDiff = -me.twilightZoneDayDiff;
 		var firstZone1Hex = me.worldTriangles[4].hexes[0];
 		me.twilightZoneWestCol = firstZone1Hex.columnNumber-1;
+                if(me.variableTwilight)
+                        // use central symmetry for variable twilight zone placements
+                        me.twilightZoneWestCol += Math.round(worldSize * 0.5 - 0.01);     // for symmetry, round down
 		for(var i=0;i<me.hexes.length;i++)
-			if(me.hexes[i].columnNumber > firstZone1Hex.columnNumber-3 && me.hexes[i].columnNumber < firstZone1Hex.columnNumber+1)
+                {
+//			if(me.hexes[i].columnNumber > firstZone1Hex.columnNumber-3 && me.hexes[i].columnNumber < firstZone1Hex.columnNumber+1)
+//				twilightZone1.push(me.hexes[i]);
+                        if(me.hexes[i].columnNumber < 0)
+                                continue;
+                        if(me.hexes[i].has(icecapTerrain))
+                                continue;
+			if(me.hexes[i].columnNumber >= me.twilightZoneWestCol - me.twilightZoneDayDiff && me.hexes[i].columnNumber <= me.twilightZoneWestCol + me.twilightZoneNightDiff)
 				twilightZone1.push(me.hexes[i]);
-		twilightZone1.push(me.worldTriangles[0].hexes[0]);
-		var startCol = me.worldTriangles[3].hexes[me.worldTriangles[3].hexes.length-1].columnNumber;
-		var x=startCol;
-		for(var y=me.totalRows-1;y>me.totalRows-worldSize+1;y--)
-		{
-			selectedHex = me.getHex(x,y);
-			twilightZone1a.push(selectedHex);
-			x++;
+			if(me.hexes[i].columnNumber-worldSize*10 >= me.twilightZoneWestCol - me.twilightZoneDayDiff && me.hexes[i].columnNumber-worldSize*10 <= me.twilightZoneWestCol + me.twilightZoneNightDiff)
+				twilightZone1.push(me.hexes[i]);
 		}
+                if(!me.variableTwilight)
+                {
+                    twilightZone1.push(me.worldTriangles[0].hexes[0]);
+                    var startCol = me.worldTriangles[3].hexes[me.worldTriangles[3].hexes.length-1].columnNumber;
+                    var x=startCol;
+                    for(var y=me.totalRows-1;y>me.totalRows-worldSize+1;y--)
+                    {
+                            selectedHex = me.getHex(x,y);
+                            twilightZone1a.push(selectedHex);
+                            x++;
+                    }
+                }
 		var firstZone2Hex = me.worldTriangles[15].hexes[me.worldTriangles[15].hexes.length-1];
 		me.twilightZoneEastCol = firstZone2Hex.columnNumber-1;
+                if(me.variableTwilight)
+                        // use central symmetry for variable twilight zone placements
+                        me.twilightZoneEastCol += Math.round(worldSize * 0.5);    // for odd size, night side slightly bigger
 		for(var i=0;i<me.hexes.length;i++)
-			if(me.hexes[i].columnNumber>firstZone2Hex.columnNumber-3 && me.hexes[i].columnNumber < firstZone2Hex.columnNumber+1)
+                {
+//			if(me.hexes[i].columnNumber>firstZone2Hex.columnNumber-3 && me.hexes[i].columnNumber < firstZone2Hex.columnNumber+1)
+//				twilightZone2.push(me.hexes[i]);
+                        if(me.hexes[i].columnNumber < 0)
+                                continue;
+			if(me.hexes[i].columnNumber>=me.twilightZoneEastCol-me.twilightZoneNightDiff && me.hexes[i].columnNumber <= me.twilightZoneEastCol+me.twilightZoneDayDiff)
 				twilightZone2.push(me.hexes[i]);
-		twilightZone2.push(me.worldTriangles[11].hexes[me.worldTriangles[11].hexes.length-1]);
-		startCol = me.worldTriangles[12].hexes[0].columnNumber;
-		x=startCol;
-
-		for(y=0;y<worldSize-2;y++)
-		{
-			selectedHex = me.getHex(x,y);
-			twilightZone2a.push(selectedHex);
-			x++;
+                        // if right-side column within night-side zone
+                        if(me.hexes[i].columnNumber+worldSize*10 < me.twilightZoneEastCol-me.twilightZoneNightDiff)
+                                continue;
+                        // add twilight zone around poles if day and night areas are small ...
+                        if(me.hexes[i].columnNumber>me.twilightZoneWestCol+me.twilightZoneNightDiff && me.hexes[i].columnNumber < me.twilightZoneEastCol-me.twilightZoneNightDiff && me.hexes[i].rowNumber <= me.twilightZoneNightDiff - worldSize + 1)
+                                twilightZone2.push(me.hexes[i]);
+                        if(me.hexes[i].columnNumber>me.twilightZoneWestCol+me.twilightZoneNightDiff && me.hexes[i].columnNumber < me.twilightZoneEastCol-me.twilightZoneNightDiff && me.hexes[i].rowNumber >= 4*worldSize - me.twilightZoneNightDiff - 3)
+                                twilightZone2.push(me.hexes[i]);
+//                        if(me.hexes[i].columnNumber>=me.twilightZoneWestCol+me.twilightZoneNightDiff && (me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber <= me.twilightZoneDayDiff - worldSize + 1)
+                        if((me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber <= me.twilightZoneDayDiff - worldSize + 1)
+                                twilightZone2.push(me.hexes[i]);
+//                        if(me.hexes[i].columnNumber>=me.twilightZoneWestCol+me.twilightZoneNightDiff && (me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber >= 4*worldSize - me.twilightZoneDayDiff - 3)
+                        if((me.hexes[i].columnNumber<me.twilightZoneWestCol-me.twilightZoneDayDiff || me.hexes[i].columnNumber>me.twilightZoneEastCol+me.twilightZoneDayDiff) && me.hexes[i].rowNumber >= 4*worldSize - me.twilightZoneDayDiff - 3)
+                                twilightZone2.push(me.hexes[i]);
 		}
+                if(!me.variableTwilight)
+                {
+                    twilightZone2.push(me.worldTriangles[11].hexes[me.worldTriangles[11].hexes.length-1]);
+                    startCol = me.worldTriangles[12].hexes[0].columnNumber;
+                    x=startCol;
+
+                    for(y=0;y<worldSize-2;y++)
+                    {
+                            selectedHex = me.getHex(x,y);
+                            twilightZone2a.push(selectedHex);
+                            x++;
+                    }
+                }
 		var twilightZoneAll = twilightZone1.concat(twilightZone1a,twilightZone2,twilightZone2a);
+                if(tzN < 90 && tzD < 90)
+                {
 		twilightZoneAll.push(me.getHex(-1,-1));
 		twilightZoneAll.push(me.getHex(-2,-2));
+                }
 		return twilightZoneAll;
 	}
 
@@ -1796,6 +2229,22 @@ var desertTerrainEast = {name:"Desert East Half Only", code:119, draw: function(
 var oceanTerrain = {name:"Ocean", code:31, draw: function(aWorldHex)
 														{
 															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.ocean_bw_bg : uPObj.prefs.ocean_bg;
+															aWorldHex.hexElem.style.fill = fillColour;
+															if(uPObj.prefs.black_and_white_map)
+															{
+																var l = aWorldHex.left_offset;
+																var t = aWorldHex.top_offset;
+																var d = t+7;
+																var c = t+13;
+																var s = "M" + (l+4) + " " + d + " ";
+																for(var i=0;i<4;i++)
+																	s += "Q" + (l+7+i*6) + " " + c + " " + (l+4+(i+1)*6) + " " + d + " ";
+																addPath(s, "2px", "black","none", aWorldHex.parentObj);
+															}
+														}, toString:function(){ return this.name}, preferLand:false, type:0};
+var lavaTerrain = {name:"Lava", code:132, draw: function(aWorldHex)
+														{
+															var fillColour = uPObj.prefs.black_and_white_map ? uPObj.prefs.lava_bw_bg : uPObj.prefs.lava_bg;
 															aWorldHex.hexElem.style.fill = fillColour;
 															if(uPObj.prefs.black_and_white_map)
 															{
@@ -2506,6 +2955,7 @@ var allTerrain = {
 	129:borderRedCSTerrain,
 	130:borderRedCSWTerrain,
 	131:borderRedCNWTerrain
+	,132:lavaTerrain
 };
 
 var WORLD_HEX = 0;
@@ -3128,7 +3578,7 @@ function generateHexMap(parentHex, mapType, mapClass)
 	hexMapContainer.style.height = (HEX_MAP_TOP_OFFSET*2 + HEX_MAP_HEIGHT + 80) + "px";
 	hexMapContainer.style.zIndex = worldHexCounter+1;
 	hexMapContainer.style.top = "4px";
-	hexMapContainer.style.left = "4px";	//hexMapContainer.style.overflow = "scroll";
+	hexMapContainer.style.right = "4px";	//hexMapContainer.style.overflow = "scroll";
 
 	var downloadMapButton = document.createElement("INPUT");
 	downloadMapButton.setAttribute("name","downloadMap" + worldHexCounter);
@@ -3266,6 +3716,7 @@ function hexMap(parentObj, parentHex)
 		wood();
 		marsh();
 		swamp();
+                lava();
 		for(var i=0;i<me.hexes.length;i++)
 			if(me.hexes[i].noTerrain())
 			{
@@ -3801,6 +4252,21 @@ function hexMap(parentObj, parentHex)
 		for(var i=0;i<me.hexes.length;i++)
 			me.hexes[i].add(bakedLandsTerrain);
 		creepNeighbouringTerrain(desertTerrain, bakedLandsTerrain);
+		creepNeighbouringTerrain(lavaTerrain, bakedLandsTerrain);
+	}
+
+	function lava()
+	{
+		if(!me.parentHex.has(lavaTerrain))
+			return;
+		me.key.addHex(lavaTerrain);
+		for(var i=0;i<me.hexes.length;i++)
+                    if(!me.hexes[i].has(mountainTerrain))
+			me.hexes[i].add(lavaTerrain);
+                    else
+			me.hexes[i].add(bakedLandsTerrain);
+		creepNeighbouringTerrain(bakedLandsTerrain, lavaTerrain);
+		creepNeighbouringTerrain(mountainTerrain, lavaTerrain);
 	}
 
 	function clear()
@@ -4233,6 +4699,32 @@ function worldHexMap(parentObj, worldHexToMap)
 	me.world = me.parentHex.world;
 	me.inheritFrom = hexMap;
 	me.inheritFrom(me.parentObj, me.parentHex);
+        var lng = me.parentHex.calcCol() - (me.world.uwp.size-1)
+        lng = (lng + me.world.uwp.size*10) % (me.world.uwp.size*10)
+        var lat, lng;
+        if(me.parentHex.hexID == -1)    // if north pole
+        {
+            lat = Math.round(me.world.uwp.size*1.5)
+            lng = 0
+        }
+        else if (me.parentHex.hexID == -2)  // if south pole
+        {
+            lat = me.parentHex.latitude
+            if(me.world.uwp.size%2!=0)  // if equator runs through hex borders
+                lat -= 1
+            lng = me.world.uwp.size
+        }
+        else
+        {
+            lat = me.parentHex.latitude
+            if(me.world.uwp.size%2!=0)  // if equator runs through hex borders
+                lat += (me.parentHex.hemisphere == 'N' ? 1 : -1)
+        }
+        if(me.parentHex.hemisphere == 'E')
+            lat = "," + lat
+        else if(me.parentHex.hemisphere != 'S')
+            lat = "+" + lat
+        me.lng_lat = "" + lng + lat
 
 	me.outline = function()
 	{
@@ -4256,7 +4748,7 @@ function worldHexMap(parentObj, worldHexToMap)
 		addPolygon("" + (x6-21) + "," + (y6+5) + " " + x6 + "," + y6 + " " + x1 + "," + y1 + " " + (x1-17) + "," + (y1-16), "none","white","white",me.parentObj);
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		addPolygon(pointsCoord, "3px", "rgb(0,0,0)", "none", me.parentObj);
-		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "World Hex Map", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "World Hex Map (" + me.lng_lat + ")", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20-32, "World Name", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20, me.world.name, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 200, OUTLINE_THICKNESS*20-32, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
@@ -4265,6 +4757,24 @@ function worldHexMap(parentObj, worldHexToMap)
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 350, OUTLINE_THICKNESS*20, me.world.tcs, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addRectangle(HEX_MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS, me.parentObj.getAttribute("width") - 16, me.parentObj.getAttribute("height") - HEX_MAP_TOP_OFFSET + 28, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 495, OUTLINE_THICKNESS*20-32, "Overall World Hex", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                // column markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 9, OUTLINE_THICKNESS*20+69, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 144, OUTLINE_THICKNESS*20-11, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-9, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-1, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 276, OUTLINE_THICKNESS*20+69, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+                // row markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+6, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+2, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+2, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+86, "2.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+82, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+82, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+166, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+162, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+162, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+246, "7.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+242, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+242, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+327, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+323, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+323, "1px","black", me.parentObj )
 		var overallHex = new worldHex(me, me.parentObj, null, 550, OUTLINE_THICKNESS*20+12, -3);
 		overallHex.terrainTypes = array_fnc.copy.call(me.parentHex.terrainTypes);
 		overallHex.clickEnabled = false;
@@ -4291,6 +4801,8 @@ function terrainHexMap(parentObj, terrainHexToMap)
 	var me = this;
 	me.parentObj = parentObj;
 	me.parentHex = terrainHexToMap;
+        var worldHexMapLoc = me.parentHex.map.lng_lat;
+        me.col_row = me.parentHex.calcCol() + "," + (me.parentHex.calcRow()-1)/2  // subtract 1 from row so it is 0-based
 	me.world = me.parentHex.world;
 	me.inheritFrom = hexMap;
 	me.inheritFrom(me.parentObj, me.parentHex);
@@ -4317,7 +4829,7 @@ function terrainHexMap(parentObj, terrainHexToMap)
 		addPolygon("" + (x6-25) + "," + (y6+5) + " " + x6 + "," + y6 + " " + x1 + "," + y1 + " " + (x1-17) + "," + (y1-16), "none","white","white",me.parentObj);
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		addPolygon(pointsCoord, "3px", "rgb(0,0,0)", "none", me.parentObj);
-		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Terrain Hex Map", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Terrain Hex Map ("+worldHexMapLoc+' : '+me.col_row+")", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20-32, "World Name", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20, me.world.name, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 200, OUTLINE_THICKNESS*20-32, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
@@ -4326,6 +4838,24 @@ function terrainHexMap(parentObj, terrainHexToMap)
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 350, OUTLINE_THICKNESS*20, me.world.tcs, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addRectangle(HEX_MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS, me.parentObj.getAttribute("width") - 16, me.parentObj.getAttribute("height") - HEX_MAP_TOP_OFFSET + 28, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 495, OUTLINE_THICKNESS*20-32, "Overall Terrain Hex", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                // column markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 9, OUTLINE_THICKNESS*20+152, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+153, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+161, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 82, OUTLINE_THICKNESS*20+12, "2.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 92, OUTLINE_THICKNESS*20+15, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 92, OUTLINE_THICKNESS*20+23, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 168, OUTLINE_THICKNESS*20+12, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 171, OUTLINE_THICKNESS*20+15, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 171, OUTLINE_THICKNESS*20+23, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 242, OUTLINE_THICKNESS*20+12, "7.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 252, OUTLINE_THICKNESS*20+15, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 252, OUTLINE_THICKNESS*20+23, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 327, OUTLINE_THICKNESS*20+151, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 333, OUTLINE_THICKNESS*20+153, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 333, OUTLINE_THICKNESS*20+161, "1px","black", me.parentObj )
+                // row markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 266, OUTLINE_THICKNESS*20+30, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 256, OUTLINE_THICKNESS*20+26, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 264, OUTLINE_THICKNESS*20+26, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 346, OUTLINE_THICKNESS*20+170, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 336, OUTLINE_THICKNESS*20+166, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 344, OUTLINE_THICKNESS*20+166, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 266, OUTLINE_THICKNESS*20+310, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 256, OUTLINE_THICKNESS*20+306, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 264, OUTLINE_THICKNESS*20+306, "1px","black", me.parentObj )
 		var overallHex = new terrainHex(me, me.parentObj, 550, OUTLINE_THICKNESS*20+12);
 		overallHex.terrainTypes = array_fnc.copy.call(me.parentHex.terrainTypes);
 		overallHex.clickEnabled = false;
@@ -4353,6 +4883,9 @@ function localHexMap(parentObj, localHexToMap)
 	var me = this;
 	me.parentObj = parentObj;
 	me.parentHex = localHexToMap;
+        var terrainHexMapLoc = me.parentHex.map.col_row;
+        var worldHexMapLoc = me.parentHex.map.parentHex.map.lng_lat;
+        me.col_row = me.parentHex.calcCol()/2 + "," + (me.parentHex.calcRow()-1)  // subtract 1 from row so it is 0-based
 	me.world = me.parentHex.world;
 	me.inheritFrom = hexMap;
 	me.inheritFrom(me.parentObj, me.parentHex);
@@ -4379,7 +4912,7 @@ function localHexMap(parentObj, localHexToMap)
 		addPolygon("" + (x6-21) + "," + (y6+5) + " " + x6 + "," + y6 + " " + x1 + "," + y1 + " " + (x1-17) + "," + (y1-16), "none","white","white",me.parentObj);
 		var pointsCoord = "" + x1 + "," + y1 + " " + x2 + "," + y2 + " " + x3 + "," + y3 + " " + x4 + "," + y4 + " " + x5 + "," + y5 + " " + x6 + "," + y6;
 		addPolygon(pointsCoord, "3px", "rgb(0,0,0)", "none", me.parentObj);
-		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Local Hex Map", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*9, "Local Hex Map ("+worldHexMapLoc+" : "+terrainHexMapLoc+' : '+me.col_row+")", "Optima, Arial, sans-serif", "2.5em", "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20-32, "World Name", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS, OUTLINE_THICKNESS*20, me.world.name, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 200, OUTLINE_THICKNESS*20-32, "UWP", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
@@ -4388,6 +4921,24 @@ function localHexMap(parentObj, localHexToMap)
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 350, OUTLINE_THICKNESS*20, me.world.tcs, "Arial, sans-serif", "1.5em",  "black", me.parentObj);
 		addRectangle(HEX_MAP_LEFT_OFFSET-8, OUTLINE_THICKNESS, me.parentObj.getAttribute("width") - 16, me.parentObj.getAttribute("height") - HEX_MAP_TOP_OFFSET + 28, "none", OUTLINE_THICKNESS, "black", me.parentObj);
 		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 495, OUTLINE_THICKNESS*20-32, "Overall Local Hex", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                // column markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 9, OUTLINE_THICKNESS*20+69, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 12, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 144, OUTLINE_THICKNESS*20-11, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-9, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 147, OUTLINE_THICKNESS*20-1, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 276, OUTLINE_THICKNESS*20+69, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+71, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 282, OUTLINE_THICKNESS*20+79, "1px","black", me.parentObj )
+                // row markers
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+6, "0", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+2, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+2, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+86, "2.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+82, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+82, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+166, "5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+162, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+162, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 296, OUTLINE_THICKNESS*20+246, "7.5", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 286, OUTLINE_THICKNESS*20+242, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 294, OUTLINE_THICKNESS*20+242, "1px","black", me.parentObj )
+		addText(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 165, OUTLINE_THICKNESS*20+327, "10", "Arial, sans-serif", "0.8em",  "black", me.parentObj);
+                addLine(HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 154, OUTLINE_THICKNESS*20+323, HEX_MAP_LEFT_OFFSET + OUTLINE_THICKNESS + 162, OUTLINE_THICKNESS*20+323, "1px","black", me.parentObj )
 		var overallHex = new localHex(me, me.parentObj, 550, OUTLINE_THICKNESS*20+12);
 		overallHex.terrainTypes = array_fnc.copy.call(me.parentHex.terrainTypes);
 		overallHex.clickEnabled = false;
@@ -4692,17 +5243,17 @@ function beltMap(world, parentObj, containerDiv)
 		var m_label = n_bound-195;
 		var c_label = m_bound-195;
 		
-		addDashedCircle("-200","50","" + c_bound,"2","black","#A4A4A4","5,5",me.parentObj);
-		addDashedCircle("-200","50","" + m_bound,"2","black","#D8D8D8","5,5",me.parentObj);
-		addDashedCircle("-200","50","" + n_bound,"2","black","#F2F2F2","5,5",me.parentObj);
-		addDashedCircle("-200","50","" + inner_bound,"2","black","white","5,5",me.parentObj);
-		addText("10","20","Belt Details", "Optima", "80", "black", me.parentObj);
-		addText("30", "60", "To Star", "Arial", "12", "black", me.parentObj);
-		addPath("M10 54 L20 50 L20 58 Z","1","black","black",me.parentObj);
-		addPath("M155 80 L165 70 M155 80 L165 90 M155 80 L" + (c_bound - 205) + " 80 L" + (c_bound - 215) + " 70 M" + (c_bound - 205) + " 80 L" + (c_bound - 215) + " 90","4","black","none",me.parentObj);
-		addText("" + (100+(c_bound - inner_bound)/2), "95", "Width: " + me.world.beltDetails.orbitWidth + " AU", "Arial", "10", "black", me.parentObj);
-		addText("" + n_label, "50", "N-Zone", "Arial", "12", "black", me.parentObj);
-		addText("" + m_label, "50", "M-Zone", "Arial", "12", "black", me.parentObj)
-		addText("" + c_label, "50", "C-Zone", "Arial", "12", "white", me.parentObj)
+		addDashedCircle("-200","90","" + c_bound,"2","black","#A4A4A4","5,5",me.parentObj);
+		addDashedCircle("-200","90","" + m_bound,"2","black","#D8D8D8","5,5",me.parentObj);
+		addDashedCircle("-200","90","" + n_bound,"2","black","#F2F2F2","5,5",me.parentObj);
+		addDashedCircle("-200","90","" + inner_bound,"2","black","white","5,5",me.parentObj);
+		addText("10","60","Belt Details", "Optima", "80", "black", me.parentObj);
+		addText("30", "95", "To Star", "Arial", "12", "black", me.parentObj);
+		addPath("M10 91 L20 87 L20 95 Z","1","black","black",me.parentObj);
+		addPath("M155 70 L165 60 M155 70 L165 80 M155 70 L" + (c_bound - 205) + " 70 L" + (c_bound - 215) + " 60 M" + (c_bound - 205) + " 70 L" + (c_bound - 215) + " 80","4","black","none",me.parentObj);
+		addText("" + (100+(c_bound - inner_bound)/2), "85", "Width: " + me.world.beltDetails.orbitWidth + " AU", "Arial", "10", "black", me.parentObj);
+		addText("" + n_label, "95", "N-Zone", "Arial", "12", "black", me.parentObj);
+		addText("" + m_label, "95", "M-Zone", "Arial", "12", "black", me.parentObj)
+		addText("" + c_label, "95", "C-Zone", "Arial", "12", "white", me.parentObj)
 	}
 }

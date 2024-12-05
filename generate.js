@@ -112,8 +112,13 @@ function initialSystem()
 		origMWData = Object.assign({}, givenWorld);
 		var localMainWorld = new mainWorld();
 		localMainWorld.dataObj = givenWorld;
-		mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
-		loadSystemOntoPage(mySystem);
+		if(localMainWorld.dataObj.mapOnly)
+			mapOnlyGeneration(localMainWorld);
+		else
+		{
+			mySystem = new fullSystem(localMainWorld, sysDiv, symbolDiv, detailDiv, true);
+			loadSystemOntoPage(mySystem);
+		}
 	}
 }
 
@@ -445,6 +450,10 @@ function readURL()
 		myWorldDataObj.seed = Math.floor(Math.random()*4294967295); 
 	myWorldDataObj.uwp = URLParams.get("uwp");
 	myWorldDataObj.remarks = URLParams.getAll("tc").join(" ");
+        myWorldDataObj.icN = URLParams.get("icN")
+        myWorldDataObj.icS = URLParams.get("icS")
+        myWorldDataObj.tzD = URLParams.get("tzD")
+        myWorldDataObj.tzN = URLParams.get("tzN")
 	var pbgString = URLParams.get("pbg");
 	if(pbgString)
 	{
@@ -470,6 +479,12 @@ function readURL()
 	myWorldDataObj.system = URLParams.get("system");
 	if(!myWorldDataObj.system) 
 		myWorldDataObj.name + " (" + myWorldDataObj.hex + " " + myWorldDataObj.sector + ")";
+	var mapOnly = URLParams.get("mapOnly");
+	if(mapOnly)
+		mapOnly = true; 
+	else
+		mapOnly = false;
+	myWorldDataObj.mapOnly = mapOnly; // set mapOnly=any value and this flag will be true, otherwise it will be false.  Default is false. 
 	return myWorldDataObj;
 }
 
@@ -588,7 +603,8 @@ function divsToShow(optionChosen)
 			break;
 		case 2:
 			mapDiv.style.display="block";
-			detailDiv.style.display="block";
+			if(!currentWorld.mapOnly)
+				detailDiv.style.display="block";
 			seedEdit.value = currentWorld.seed;
 			break;
 		case 3:
@@ -1218,13 +1234,17 @@ function editMap()
 function finishEditingMap()
 {	
 	currentWorld.mapData = editing_map.genSaveObj();
-	currentWorld.editDetails();
+	if(!currentWorld.mapOnly)
+		currentWorld.editDetails();
+	else
+		currentWorld.createMap(currentWorld.mapData);
 	divsToShow(2);
 }
 
 function cancelEditingMap()
 {
-	currentWorld.editDetails();
+	if(!currentWorld.mapOnly)
+		currentWorld.editDetails();
 	divsToShow(2);	
 }
 
@@ -1278,6 +1298,9 @@ function convertAUtoOrbit(au_measure)
 
 function beasts()
 {
+	if(currentWorld.seed)
+                init_rng(currentWorld.seed);
+
 	document.getElementById("beastExplanation").innerHTML = "These are randomly generated 1D beast tables for 11 terrain types in this world using the T5 rules.  Note that beast tables refer to Terrain Hexes and not World Hexes, and so some terrain such as Forest never appears at the world level.  This feature is in draft form at the moment; in future, a random selection of events will be added, and all beast details will be editable and all details such as edibility etc. from the BeastMaker rules will be added and the data will be saved with the system file.";
 	divsToShow(16);
 	var beastDiv = document.getElementById("beastArea");
@@ -1291,6 +1314,9 @@ function beasts()
 
 function tjl_beasts()
 {
+	if(currentWorld.seed)
+                init_rng(currentWorld.seed);
+
 	document.getElementById("beastExplanation").innerHTML = "These are randomly generated 1D beast tables for the terrain types in this world using the T5 rules.  Note that beast tables refer to Terrain Hexes and not World Hexes, and so some terrain such as Forest never appears at the world level.  This feature is in draft form at the moment; in future, a random selection of events will be added, and all beast details will be editable and all details such as edibility etc. from the BeastMaker rules will be added and the data will be saved with the system file.";
 	divsToShow(16);
 	var beastDiv = document.getElementById("beastArea");
@@ -1321,4 +1347,18 @@ function tw_confirm(msg, yesFn, noFn)
 	else
 		noBtn.onclick = noFn;
 	confirmBox.style.display = "block";
+}
+
+function mapOnlyGeneration(mW)
+{
+	currentWorld = mW;
+	init_rng(mW.dataObj.seed)
+	mW.processDataObj();
+	divsToShow(2);
+	const elemToHide = ["mnuFullStarSystemView","mnuSystemActions","mnuSystemActionsContent","mnuGenerate","mnuGenerateContent","world_details"];
+	for(var i=0;i<elemToHide.length;i++)
+		document.getElementById(elemToHide[i]).style.display = "none";
+	mW.createMap();
+	document.getElementById("mapPlaceholder").style.display = "none";
+	
 }

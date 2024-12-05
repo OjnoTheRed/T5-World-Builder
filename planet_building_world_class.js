@@ -36,6 +36,8 @@ var defaultPrefs = {
 	mountain_terrain_mars_bg:"#674a35",
 	mountain_terrain_grey_bg:"#737373",
 	mountain_terrain_bw_bg:"#c8c8c8",
+	lava_bg:"#dd2010",
+        lava_bw_bg:"#aaaaaa",
 	ocean_bg:"#4167b7",
 	ocean_depth_bg:"#2d4486",
 	ocean_abyss_bg:"#131c35",
@@ -871,10 +873,11 @@ function world()
 
 	me.lockCheck = function()
 	{
-		if(ROTATIONAL_PERIOD > me.lockPeriod() || -ROTATIONAL_PERIOD < -me.lockPeriod())
+//		if(ROTATIONAL_PERIOD > me.lockPeriod() || -ROTATIONAL_PERIOD < -me.lockPeriod())
+		if(Math.abs(ROTATIONAL_PERIOD) > me.lockPeriod())
 		{
 			ROTATIONAL_PERIOD = me.lockPeriod();
-			me.isSatellite ? me.tcs.add("Lk") : me.tcs.add("Tz");
+			me.isSatellite ? me.tcs.add("Lk") || me.tcs.del("Sa") : me.tcs.add("Tz");
 		}
 	}
 
@@ -1875,9 +1878,20 @@ function mainWorld(generationObject)
                 if(me.dataObj.icS)
                         me.icecapS = me.dataObj.icS;
                 if(me.dataObj.tzD)
-                        me.twilightDay = me.dataObj.tzD;
+                        me.twilightDay = me.dataObj.tzD*1;
                 if(me.dataObj.tzN)
-                        me.twilightNight = me.dataObj.tzN;
+                        me.twilightNight = me.dataObj.tzN*1;
+                // don't allow combined twilight zones to go over 180 degrees
+                var twilightTotal = me.twilightDay + me.twilightNight;
+                if(twilightTotal > 180)
+                {
+                        me.twilightDay = Math.round(me.twilightDay * 180 / twilightTotal);
+                        me.twilightNight = Math.round(me.twilightNight * 180 / twilightTotal);
+                        // if new total != 180 because of rounding, force it to 180
+                        me.twilightDay -= (me.twilightDay+me.twilightNight > 180);
+                        me.twilightNight += (me.twilightDay+me.twilightNight < 180);
+                }
+
 		me.travelZone = me.dataObj.zone;
 		if(me.dataObj.pbg)
 		{
@@ -1930,6 +1944,7 @@ function mainWorld(generationObject)
 		else
 			me.worlds = Math.min(12,me.worlds);
 		me.nativeIntLife.generate();
+		me.mapOnly = me.dataObj.mapOnly;
 	}
 
 	var inherited_dbObj = me.dbObj;
@@ -2457,7 +2472,7 @@ function tcs(world)
 
 	me.generate = function()
 	{
-//		me.classes = [];
+		me.classes = [];
             if(me.classes.length == 0)
 		for(var i=0;i<ALL_TC.length;i++)
 			if(ALL_TC[i].rules(me.world))
@@ -3129,6 +3144,10 @@ function star(isPrimary)
 	{
 		if(me.spectral_size == "D")
 			return "D";
+		if(me.spectral_size == "N")
+			return "N";
+		if(me.spectral_size == "B")
+			return "B";
 		if(me.spectral_class == "BD")
 			return "BD";
 		return (me.spectral_class + " " + me.spectral_size);
@@ -3273,6 +3292,20 @@ function star(isPrimary)
 			me.getData();
 			return;
 		}
+		if(s == "N")
+		{
+			me.spectral_class = "";
+			me.spectral_size = "N";
+			me.getData();
+			return;
+		}
+		if(s == "B")
+		{
+			me.spectral_class = "";
+			me.spectral_size = "B";
+			me.getData();
+			return;
+		}
 		if(s == "BD")
 		{
 			me.spectral_class = "BD";
@@ -3403,7 +3436,7 @@ function starSystem(world)
 		s = s.replace(/O[2-9]\sVI/g, function(x) { return x.replace(/\sVI/g, " V"); }); // convert any O-type subdwarfs to dwarfs
 		me.stars = [];
 		me.companions = [];
-		var starStrings = s.match(/([OBAFGKM]\d\s(Ia|Ib|IV|V?I{0,3}|D))|(BD)(\s?})|(\s{0,1})(D)/g);
+		var starStrings = s.match(/([OBAFGKMLTY]\d\s(Ia|Ib|IV|V?I{0,3}|D))|(BD)(\s?})|(\s{0,1})(D)|(\s{0,1})(N)|(\s{0,1})(B)/g);
 		if(starStrings == null)
 			return;
 		starStrings.forEach(function(item, index, ssArray) { ssArray[index] = item.trim(); });
@@ -3541,7 +3574,10 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
                     mwType = "";
                     me.mainWorld.tcs.del("Pl");
                 }
-                else if(me.mainWorld.tcs.has("Lk") || me.mainWorld.tcs.has("Sa"))
+.
+                else if(me.mainWorld.tcs.has("Lk"))
+                        mwType = "Lk";
+                else if(me.mainWorld.tcs.has("Sa"))
                         mwType = "Sa";
                 else
                 {
@@ -3555,15 +3591,18 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
 		if(uPObj.prefs.main_world_not_sat || me.mainWorld.uwp.size == 0)
 			mwType = "";
                 }
-		if(mwType == "Sa" || mwType == "Lk")
+		if(mwType == "Sa" )
 		{
 			me.mainWorld.tcs.add("Sa");
 			me.mainWorld.isSatellite = true;
 		}
+		else if(mwType == "Lk")
+                {
+			me.mainWorld.tcs.add("Lk");
+			me.mainWorld.isSatellite = true;
+                }
 		else
 			me.mainWorld.isSatellite = false;
-		if(mwType == "Lk")
-			me.mainWorld.tcs.add("Lk");
 //                if(me.mainWorld.dataObj.remarks.indexOf("Tz") >= 0)
 //                        me.mainWorld.tcs.add("Tz");
 		var mainWorldPlaced = false;
@@ -4236,13 +4275,17 @@ function satelliteOrbitSet(planet)
 
 	me.generate = function()
 	{
-		do
-		{
+            // in rare cases, the do loop will sometimes get stuck without exiting
+            // so add a bail-out counter to eventually abort it
+//            var loopCnt = 0;
+            
+//		do
+//		{
 			var numSats = me.planet.numSats();
 			if(numSats == 0)
 				me.add(new ring(planet));
-		}
-		while(numSats == 0)
+//		}
+//		while(numSats == 0 && loopCnt++ < 10)
 		numSats = Math.max(numSats,0);
 		for(var k=0;k<numSats;k++)
 			me.add(me.planet.generateSat());

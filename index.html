@@ -32,10 +32,10 @@
 			<button class="dropbtn">View</button>
 			<div class="dropdown-content">
 				<button class="dropdown_button" onclick="editUserPrefs();">Your Preferences</button>
-				<button class="dropdown_button" onclick="divsToShow(1);">Full Star System</button>
-				<button class="dropdown_button" onclick="divsToShow(2);">Current World</button>
-				<button class="dropdown_button" onclick="beasts();">Beasts (demo)</button>
-				<button class="dropdown_button" onclick="tjl_beasts();">Beasts (experimental)</button>
+				<button class="dropdown_button" onclick="divsToShow(1);" id="mnuFullStarSystemView">Full Star System</button>
+				<button class="dropdown_button" onclick="divsToShow(2);" id="mnuCurrentWorldView">Current World</button>
+				<button class="dropdown_button" onclick="beasts();beasts();" id="mnuBeasts">Beasts (demo)</button>
+				<button class="dropdown_button" onclick="tjl_beasts();tjl_beasts();" id="mnuBeastsExp">Beasts (experimental)</button>
 				<button class="dropdown_button" onclick="divsToShow(5);">Blank Maps</button>
 				<button class="dropdown_button" onclick="divsToShow(6);">API Documentation</button>
 				<a class="dropdown_button" target="_blank" href="https://docs.google.com/document/d/1sY3M-UMFkLdKpojADBDFkDFyRNxjpH3Yl-s4gyqruJM/edit?usp=sharing">Map Data documentation</a>
@@ -71,8 +71,8 @@
 			<select id="saved_systems" style="min-width:400px" onchange="load_sys();"></select>
 		</div>
 		<div class="dropdown">
-			<button class="dropbtn">System Actions</button>
-			<div class="dropdown-content">
+			<button class="dropbtn" id="mnuSystemActions">System Actions</button>
+			<div class="dropdown-content" id="mnuSystemActionsContent">
 				<button class="dropdown_button" id="regenSys" onclick="regenerateSystem();">Regenerate system (current seed)</button>
 				<button class="dropdown_button" id="regenSysRS" onclick="regenerateSystemRS();">Regenerate system (new random seed)</button>
 				<button class="dropdown_button" id="addObjectToSys" onclick="divsToShow(13);">Add a celestial object to the system</button>
@@ -88,8 +88,8 @@
 			</div>
 		</div>
 		<div class="dropdown">
-			<button class="dropbtn">Generate</button>
-			<div class="dropdown-content">
+			<button class="dropbtn" id="mnuGenerate" >Generate</button>
+			<div class="dropdown-content" id="mnuGenerateContent">
 				<button class="dropdown_button" onclick="generateNew();" >New star system</button>
 				<a class="dropdown_button" href="subsector_gen.html" target="_blank">Subsector (demo only)</a>
 				<input class="dropdown_button" id="convertKristoff" onchange="convertKristoff(this);" type="file" accept="json"><span class="dropdown_button">Generate all T5 main world details</span></input>				
@@ -1214,11 +1214,14 @@
 		<p class="white"><b>allegiance</b> - a string specifying the allegiance of the system, e.g. allegiance=Im.  Default value: blank.</p>
 		<p class="white"><b>stellar</b> - all stars in Traveller notation separated by a space, e.g. stellar=F7%20V%20M2%20V.  Default value: randomly generated using T5 rules.
 		<p class="white"><b>seed</b> - the seed used to randomly generate the map. Default value: the hex of the system concatenated to itself.  If the hex is not specified, 'undefined' is used.</p>
+		<p class="white"><b>mapOnly</b> - only generate a map without for the given data, do not generate a full system or other detailed world data, e.g. mapOnly=1. Default: generate the full system and all world data.</p>
 	</div>
 	<div class="container" id="changeLog" style="display:none;">
 		<div style="margin-bottom:0.2em;background-color:#4e4e50">
 			<h1>Change Log</h1>
 		</div>
+		<h2 class="white">5 December 2024</h2>
+		<p class="white"><b>Change Log no longer being updated in this location. For updates, check the <a target="_blank" href="https://github.com/OjnoTheRed/T5-World-Builder">GitHub repository</a> for TravellerWorlds.</b></p>
 		<h2 class="white">3 October 2023</h2>
 		<p class="white"><b>New Host:</b> TravellerWorlds has switched to travellerworlds.com instead of an obscure amateur URL.  Ahhhh.  Professional looking URL.</p>
 		<p class="white"><b>Bug fix:</b> When a world's atmosphere is 9, atmospheric pressure was using the "very dense" table, which is reserved for extreme Venus-like cases.  Was leading to odd results. Many thanks to a sharp-eyed user for pointing this out!</p>
@@ -1497,9 +1500,7 @@
 		</div>
 		<div style="margin-top:0.2em">
 			<p class="white"><b>Edit star positions</b> so that Close Companions can be changed to other orbits, and stars can be made Close Companions. I may reconfigure how orbits are edited completely.</p>
-			<p class="white"><b>Better layout</b> for the world details</p>
 			<p class="white"><b>Traditional World map size</b> - option to have traditional one-size maps based on Classic Traveller.</p>
-			<p class="white"><b>BeastMaker</b> - either a bunch of tables for the world, or generate an encounter table for particular terrain hexes</p>
 			<p class="white"><b>Weather and seismic events</b> listed next to every Terrain Hex based on Grand Survey.</p>
 			<p class="white"><b>Generate Sophonts</b> for relevant NIL values</p>
 			<p class="white"><b>Cargo calculator</b> - including saving calculated cargoes to a list for recall to sell cargoes on a particular world.</p>
@@ -1514,6 +1515,7 @@
 			<h1>Credits</h1>
 		</div>
 		<div style="margin-top:0.2em">
+			<p class="white">The code for TravellerWorlds can be found at <a target="_blank" href="https://github.com/OjnoTheRed/T5-World-Builder">GitHub</a></p>
 			<p class="white">Creator of Traveller Worlds: Jonathan Sherlock</p>
 			<p class="white">Download as PNG uses <a href="https://github.com/exupero/saveSvgAsPng">this Github project</a>.</p>
 			<p class="white">Download as SVG uses <a href="https://github.com/eligrey/FileSaver.js/blob/master/FileSaver.js">this one</a> by Eli Grey.</p>
