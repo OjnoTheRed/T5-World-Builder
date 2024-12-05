@@ -1349,7 +1349,7 @@ function mapOnlyGeneration(mW)
 	init_rng(mW.dataObj.seed)
 	mW.processDataObj();
 	divsToShow(2);
-	const elemToHide = ["mnuFullStarSystemView","mnuBeasts","mnuBeastsExp","mnuSystemActions","mnuSystemActionsContent","mnuGenerate","mnuGenerateContent","world_details"];
+	const elemToHide = ["mnuFullStarSystemView","mnuSystemActions","mnuSystemActionsContent","mnuGenerate","mnuGenerateContent","world_details"];
 	for(var i=0;i<elemToHide.length;i++)
 		document.getElementById(elemToHide[i]).style.display = "none";
 	mW.createMap();
