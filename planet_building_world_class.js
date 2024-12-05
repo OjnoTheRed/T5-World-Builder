@@ -3574,7 +3574,6 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
                     mwType = "";
                     me.mainWorld.tcs.del("Pl");
                 }
-.
                 else if(me.mainWorld.tcs.has("Lk"))
                         mwType = "Lk";
                 else if(me.mainWorld.tcs.has("Sa"))
