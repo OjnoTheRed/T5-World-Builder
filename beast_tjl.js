@@ -38,6 +38,8 @@ function tjl_beast(world, terrain, niche)
 	{
 		var textInput = document.createElement("INPUT");
 		textInput.setAttribute("type","text");
+                textInput.id = me.terrain.name + "-" + me.niche;
+                textInput.name = me.terrain.name + "-" + me.niche;
 		textInput.width = NAME_TABLE_WIDTH;
 		textInput.value = me.name;
 		textInput.onchange = function() { me.name = textInput.value; };
