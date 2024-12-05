@@ -1891,6 +1891,7 @@ function mainWorld(generationObject)
                         me.twilightDay -= (me.twilightDay+me.twilightNight > 180);
                         me.twilightNight += (me.twilightDay+me.twilightNight < 180);
                 }
+
 		me.travelZone = me.dataObj.zone;
 		if(me.dataObj.pbg)
 		{
@@ -3573,6 +3574,7 @@ function fullSystem(mainWorldObj, sysDiv, symbolDiv, detailsDiv, generate_now)
                     mwType = "";
                     me.mainWorld.tcs.del("Pl");
                 }
+.
                 else if(me.mainWorld.tcs.has("Lk"))
                         mwType = "Lk";
                 else if(me.mainWorld.tcs.has("Sa"))
