@@ -25,6 +25,7 @@ var defaultPrefs = {
 	main_world_not_sat:false,
 	tz_no_sat:false,
 	barren_sys:false,
+	balkanised_gov_max:60,
 	download_world_detail:true,
 	shoreline_extend_chance:40,
 	creep_into_tz_chance:30,
@@ -2767,6 +2768,7 @@ function eX(world)
 			me.generate();
 			return;
 		}
+		s = s.toUpperCase();
 		me.resources = readPseudoHex(s.substr(1,1));
 		me.labour = readPseudoHex(s.substr(2,1));
 		me.infrastructure = readPseudoHex(s.substr(3,1));
@@ -2820,6 +2822,7 @@ function cX(world)
 			me.generate();
 			return;
 		}
+		s = s.toUpperCase();
 		me.homogeneity = readPseudoHex(s.substr(1,1));
 		me.acceptance = readPseudoHex(s.substr(2,1));
 		me.strangeness = readPseudoHex(s.substr(3,1));
@@ -3428,12 +3431,14 @@ function starSystem(world)
 	{
 		if(typeof(s) != "string" || s.trim()=="")
 			return;
+		s = s.toUpperCase();
 		s = s.replace(/[OBAFGKM]\d\s(D)/g,function(x) { return x.replace(/\sD/g, " V"); });
 		s = s.replace(/F[0-4]\sVI/g, "F5 VI"); // F0 VI, F1 VI, F2 VI, F3 VI, F4 VI all converted to F5 VI
 		s = s.replace(/K[0-5]\sIV/g, "K6 IV"); // K0 through K5 IV converted to K6 IV
 		s = s.replace(/M[0-9]\sIV/g, function(x) { return x.replace(/\sIV/g, " V"); }); // convert M0 - M9 IV to V
 		s = s.replace(/O[0-1]/g, "O2"); // no O1 or O0 - both become O2
 		s = s.replace(/O[2-9]\sVI/g, function(x) { return x.replace(/\sVI/g, " V"); }); // convert any O-type subdwarfs to dwarfs
+		s = s.replace(/(A|B)[0-9]\sVI/g, function(x) { return x.replace(/\sVI/g, " V"); }); // convert any B-type subdrawfs to dwarfs
 		me.stars = [];
 		me.companions = [];
 		var starStrings = s.match(/([OBAFGKMLTY]\d\s(Ia|Ib|IV|V?I{0,3}|D))|(BD)(\s?})|(\s{0,1})(D)|(\s{0,1})(N)|(\s{0,1})(B)/g);

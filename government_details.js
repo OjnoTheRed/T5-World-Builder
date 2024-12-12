@@ -349,6 +349,7 @@ function balkanised(world)
 	me.states = [];
 	me.history = "";
 	me.numStates = 0;
+	me.govOverflowMsg = "";
 
 	me.toString = function()
 	{
@@ -356,7 +357,8 @@ function balkanised(world)
 		var s = me.history.desc;
 		s += " There are " + me.numStates + " states on this world.";
 		s += " The conflict level is " + me.conflict.title + ". " + me.conflict.desc;
-		s += me.allNations();		
+		s += me.allNations();
+		s += me.govOverflowMsg;
 		return s;
 	}
 	
@@ -437,6 +439,11 @@ function balkanised(world)
 		}
 		me.states.push(new nationState(me, newGov));
 		i++;
+		if(i > uPObj.prefs.balkanised_gov_max)
+		{
+			me.govOverflowMsg = " There are more governments, but only the first " + uPObj.prefs.balkanised_gov_max + " have been generated. ";
+			break;
+		}
 	}		
 }
 
