@@ -349,6 +349,7 @@ function balkanised(world)
 	me.states = [];
 	me.history = "";
 	me.numStates = 0;
+	me.govOverflowMsg = "";
 
 	me.toString = function()
 	{
@@ -356,7 +357,8 @@ function balkanised(world)
 		var s = me.history.desc;
 		s += " There are " + me.numStates + " states on this world.";
 		s += " The conflict level is " + me.conflict.title + ". " + me.conflict.desc;
-		s += me.allNations();		
+		s += me.allNations();
+		s += me.govOverflowMsg;
 		return s;
 	}
 	
@@ -400,11 +402,11 @@ function balkanised(world)
 	
 	me.allNations = function()
 	{
-		var s = "These are the characteristics each state: ";
+		var s = "\n\nThese are the characteristics for each state:";
 
 		for(var i=0;i<me.states.length;i++)
 		{
-			s += "Nation " + (i+1) + ": ";
+			s += "\n\tNation " + (i+1) + ": ";
 			s += me.states[i].toString() + " ";
 
 		}
@@ -421,10 +423,15 @@ function balkanised(world)
 	if(me.world.uwp.TL >=7 && me.conflict.title == "Very High")
 		me.conflict.desc += (dice(1) == 6 ? " At least one nation has used nuclear weapons on another." : "");
 	if(dice(2) > me.conflict.rollResult)
-		me.conflict.desc += " There is a supra-national body similar to the United Nations.";
+		me.conflict.desc += "\n\n(There is a supra-national body similar to the United Nations.)";
 	var i = 0;
 	while(i < me.numStates)
 	{
+		if(i >= uPObj.prefs.balkanised_gov_max)
+		{
+			me.govOverflowMsg = "\n\n(There are more governments, but only the first " + uPObj.prefs.balkanised_gov_max + " have been generated.)";
+			break;
+		}
 		var newGov = flux() + me.world.uwp.popul;
 		if(me.numStates > 1 && me.numStates < 5)
 			newGov++;
@@ -434,10 +441,16 @@ function balkanised(world)
 		if(newGov == 7)
 		{
 			me.numStates += me.history.numStates();
+			continue;
 		}
 		me.states.push(new nationState(me, newGov));
 		i++;
-	}		
+	}
+	me.states[0].port = me.world.uwp.port;
+	me.states.sort(function(state1, state2)
+						{
+							return state1.port.localeCompare(state2.port);
+						});
 }
 
 function nationState(govDetailObj, gov)
@@ -447,7 +460,7 @@ function nationState(govDetailObj, gov)
 	me.balk = govDetailObj;
 	me.gov = gov;
 	me.law = Math.max(0,me.gov + flux());
-	me.port = subPortTbl[me.world.uwp.port][Math.min(6,Math.max(1,dice(1)+me.balk.history.subPortDM))];
+	me.port = subPortTbl[me.world.uwp.port][Math.min(6,Math.max(1,dice(1)+me.balk.history.subPortDM-1))];
 	me.TL = Math.max(0,me.world.uwp.TL + TLmodTbl[me.world.uwp.port][me.port]);
 	me.anglic_status = new dice_table(anglic_table, null, me.world).roll();
 	if(me.anglic_status == "The vast majority of citizens speak Anglic as their first language")
