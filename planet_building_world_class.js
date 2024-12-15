@@ -2429,6 +2429,7 @@ function uwp(worldObject)
 
 	me.readUWP = function(uwpString)
 	{
+		uwpString = uwpString.toUpperCase();
 		me.port = uwpString.substr(0,1);
 		me.size = readPseudoHex(uwpString.substr(1,1));
 		me.atmos = readPseudoHex(uwpString.substr(2,1));
