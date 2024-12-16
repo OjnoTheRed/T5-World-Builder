@@ -460,7 +460,7 @@ function nationState(govDetailObj, gov)
 	me.balk = govDetailObj;
 	me.gov = gov;
 	me.law = Math.max(0,me.gov + flux());
-	me.port = subPortTbl[me.world.uwp.port][Math.min(6,Math.max(1,dice(1)+me.balk.history.subPortDM-1))];
+	me.port = subPortTbl[me.world.uwp.port][Math.min(6,Math.max(1,dice(1)+me.balk.history.subPortDM))-1];
 	me.TL = Math.max(0,me.world.uwp.TL + TLmodTbl[me.world.uwp.port][me.port]);
 	me.anglic_status = new dice_table(anglic_table, null, me.world).roll();
 	if(me.anglic_status == "The vast majority of citizens speak Anglic as their first language")
